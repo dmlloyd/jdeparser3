@@ -1,5 +1,7 @@
 package org.jboss.jdeparser.impl;
 
+import io.smallrye.common.constraint.Assert;
+
 import org.jboss.jdeparser.JExpr;
 import org.jboss.jdeparser.JVar;
 
@@ -24,6 +26,7 @@ public abstract non-sealed class AbstractJVar extends AbstractJExpr implements J
     /** {@inheritDoc} */
     @Override
     public JExpr assign(final JExpr value) {
+        Assert.checkNotNullParam("value", value);
         return new AssignJExpr(this, Tokens.$BINOP.ASSIGN, value);
     }
 
@@ -32,30 +35,35 @@ public abstract non-sealed class AbstractJVar extends AbstractJExpr implements J
     /** {@inheritDoc} */
     @Override
     public JExpr addAssign(final JExpr value) {
+        Assert.checkNotNullParam("value", value);
         return new AssignJExpr(this, Tokens.$BINOP.PLUS_ASSIGN, value);
     }
 
     /** {@inheritDoc} */
     @Override
     public JExpr subAssign(final JExpr value) {
+        Assert.checkNotNullParam("value", value);
         return new AssignJExpr(this, Tokens.$BINOP.MINUS_ASSIGN, value);
     }
 
     /** {@inheritDoc} */
     @Override
     public JExpr mulAssign(final JExpr value) {
+        Assert.checkNotNullParam("value", value);
         return new AssignJExpr(this, Tokens.$BINOP.TIMES_ASSIGN, value);
     }
 
     /** {@inheritDoc} */
     @Override
     public JExpr divAssign(final JExpr value) {
+        Assert.checkNotNullParam("value", value);
         return new AssignJExpr(this, Tokens.$BINOP.DIV_ASSIGN, value);
     }
 
     /** {@inheritDoc} */
     @Override
     public JExpr modAssign(final JExpr value) {
+        Assert.checkNotNullParam("value", value);
         return new AssignJExpr(this, Tokens.$BINOP.MOD_ASSIGN, value);
     }
 
@@ -64,18 +72,21 @@ public abstract non-sealed class AbstractJVar extends AbstractJExpr implements J
     /** {@inheritDoc} */
     @Override
     public JExpr bitAndAssign(final JExpr value) {
+        Assert.checkNotNullParam("value", value);
         return new AssignJExpr(this, Tokens.$BINOP.AND_ASSIGN, value);
     }
 
     /** {@inheritDoc} */
     @Override
     public JExpr bitOrAssign(final JExpr value) {
+        Assert.checkNotNullParam("value", value);
         return new AssignJExpr(this, Tokens.$BINOP.OR_ASSIGN, value);
     }
 
     /** {@inheritDoc} */
     @Override
     public JExpr bitXorAssign(final JExpr value) {
+        Assert.checkNotNullParam("value", value);
         return new AssignJExpr(this, Tokens.$BINOP.XOR_ASSIGN, value);
     }
 
@@ -84,18 +95,21 @@ public abstract non-sealed class AbstractJVar extends AbstractJExpr implements J
     /** {@inheritDoc} */
     @Override
     public JExpr shlAssign(final JExpr value) {
+        Assert.checkNotNullParam("value", value);
         return new AssignJExpr(this, Tokens.$BINOP.SHL_ASSIGN, value);
     }
 
     /** {@inheritDoc} */
     @Override
     public JExpr shrAssign(final JExpr value) {
+        Assert.checkNotNullParam("value", value);
         return new AssignJExpr(this, Tokens.$BINOP.SHR_ASSIGN, value);
     }
 
     /** {@inheritDoc} */
     @Override
     public JExpr ushrAssign(final JExpr value) {
+        Assert.checkNotNullParam("value", value);
         return new AssignJExpr(this, Tokens.$BINOP.USHR_ASSIGN, value);
     }
 }

@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+import io.smallrye.common.constraint.Assert;
+
 import org.jboss.jdeparser.JExpr;
 import org.jboss.jdeparser.JType;
 import org.jboss.jdeparser.SourceVersion;
@@ -35,7 +37,10 @@ public final class SwitchCreatorImpl extends AbstractCreator implements SwitchCr
     @Override
     public void case_(final JExpr value, final Consumer<BlockCreator> body) {
         checkActive();
+        Assert.checkNotNullParam("value", value);
+        Assert.checkNotNullParam("body", body);
         final BlockCreatorImpl block = new BlockCreatorImpl(version());
+        block.sourceFile(sourceFile());
         nest(() -> body.accept(block));
         block.finish();
         cases.add(w -> {
@@ -54,20 +59,16 @@ public final class SwitchCreatorImpl extends AbstractCreator implements SwitchCr
     @Override
     public void case_(final List<JExpr> values, final Consumer<BlockCreator> body) {
         checkActive();
+        Assert.checkNotNullParam("values", values);
+        Assert.checkNotEmptyParam("values", values);
+        Assert.checkNotNullParam("body", body);
         final BlockCreatorImpl block = new BlockCreatorImpl(version());
+        block.sourceFile(sourceFile());
         nest(() -> body.accept(block));
         block.finish();
         cases.add(w -> {
             w.write(Tokens.$KW.CASE);
-            boolean first = true;
-            for (JExpr v : values) {
-                if (!first) {
-                    w.write(Tokens.$PUNCT.COMMA);
-                    w.write(FormatPreferences.Space.AFTER_COMMA);
-                }
-                first = false;
-                AbstractJExpr.writeExpr(w, v);
-            }
+            AbstractJExpr.writeList(w, values, FormatPreferences.Space.AFTER_COMMA);
             w.write(Tokens.$PUNCT.COLON);
             w.nl();
             w.pushIndent(FormatPreferences.Indentation.LINE);
@@ -81,7 +82,13 @@ public final class SwitchCreatorImpl extends AbstractCreator implements SwitchCr
     @Override
     public void case_(final JType type, final String name, final Consumer<CaseCreator> builder) {
         checkActive();
+        Assert.checkNotNullParam("type", type);
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
+        Assert.checkNotNullParam("builder", builder);
+        registerUsedType(type);
         final CaseCreatorImpl cc = new CaseCreatorImpl(version());
+        cc.sourceFile(sourceFile());
         nest(() -> builder.accept(cc));
         cc.finish();
         cases.add(w -> {
@@ -108,7 +115,9 @@ public final class SwitchCreatorImpl extends AbstractCreator implements SwitchCr
     @Override
     public void caseNull(final Consumer<BlockCreator> body) {
         checkActive();
+        Assert.checkNotNullParam("body", body);
         final BlockCreatorImpl block = new BlockCreatorImpl(version());
+        block.sourceFile(sourceFile());
         nest(() -> body.accept(block));
         block.finish();
         cases.add(w -> {
@@ -127,7 +136,9 @@ public final class SwitchCreatorImpl extends AbstractCreator implements SwitchCr
     @Override
     public void default_(final Consumer<BlockCreator> body) {
         checkActive();
+        Assert.checkNotNullParam("body", body);
         final BlockCreatorImpl block = new BlockCreatorImpl(version());
+        block.sourceFile(sourceFile());
         nest(() -> body.accept(block));
         block.finish();
         cases.add(w -> {

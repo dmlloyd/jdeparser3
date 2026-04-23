@@ -67,7 +67,7 @@ public final class NarrowedJType extends AbstractJType {
      * @throws IllegalStateException always, since type arguments have already been applied
      */
     @Override
-    public JType typeArg(final JType... args) {
+    public JType typeArg(final List<JType> args) {
         throw new IllegalStateException("Type arguments already applied");
     }
 
@@ -76,15 +76,7 @@ public final class NarrowedJType extends AbstractJType {
     public void write(SourceFileWriter writer) throws IOException {
         AbstractJExpr.writeType(writer, rawType);
         writer.write(Tokens.$ANGLE.OPEN);
-        boolean first = true;
-        for (JType arg : typeArgs) {
-            if (!first) {
-                writer.write(Tokens.$PUNCT.COMMA);
-                writer.write(FormatPreferences.Space.COMMA_TYPE_ARGUMENT);
-            }
-            first = false;
-            AbstractJExpr.writeType(writer, arg);
-        }
+        AbstractJExpr.writeList(writer, typeArgs, FormatPreferences.Space.COMMA_TYPE_ARGUMENT);
         writer.write(Tokens.$ANGLE.CLOSE);
     }
 }

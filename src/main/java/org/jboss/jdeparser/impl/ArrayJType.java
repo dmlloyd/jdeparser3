@@ -1,6 +1,7 @@
 package org.jboss.jdeparser.impl;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.jboss.jdeparser.JType;
 
@@ -40,7 +41,7 @@ public final class ArrayJType extends AbstractJType {
      * @throws IllegalStateException always, since array types cannot have type arguments
      */
     @Override
-    public JType typeArg(final JType... args) {
+    public JType typeArg(final List<JType> args) {
         throw new IllegalStateException("Array types cannot have type arguments");
     }
 

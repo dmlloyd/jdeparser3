@@ -10,9 +10,9 @@ package org.jboss.jdeparser.creator;
  * @see ModifierFlag
  * @see ModifierLocation
  */
-public sealed interface ModifiableCreator extends AnnotatableCreator, DocCommentableCreator permits AnnotationInterfaceCreator, ClassCreator, ConstructorCreator,
-                                                                                                    EnumCreator, FieldCreator, InterfaceCreator, MethodCreator,
-                                                                                                    ParamCreator, RecordCreator {
+public sealed interface ModifiableCreator extends AnnotatableCreator, DocCommentableCreator<DocCommentCreator> permits AnnotationInterfaceCreator, ClassCreator, ConstructorCreator,
+                                                                                                                       EnumCreator, FieldCreator, InterfaceCreator, MethodCreator,
+                                                                                                                       ParamCreator, RecordCreator {
 
     /**
      * Returns the modifier location that determines which modifiers are valid.
@@ -110,6 +110,13 @@ public sealed interface ModifiableCreator extends AnnotatableCreator, DocComment
      */
     default void native_() {
         addFlag(ModifierFlag.NATIVE);
+    }
+
+    /**
+     * Adds the {@code strictfp} modifier.
+     */
+    default void strictfp_() {
+        addFlag(ModifierFlag.STRICTFP);
     }
 
     /**

@@ -79,15 +79,7 @@ public final class CallJExpr extends AbstractJExpr {
         }
         writer.writeName(method);
         writer.write(Tokens.$PAREN.OPEN);
-        boolean first = true;
-        for (JExpr arg : args) {
-            if (!first) {
-                writer.write(Tokens.$PUNCT.COMMA);
-                writer.write(FormatPreferences.Space.AFTER_COMMA);
-            }
-            first = false;
-            writeExpr(writer, arg);
-        }
+        writeList(writer, args, FormatPreferences.Space.AFTER_COMMA);
         writer.write(Tokens.$PAREN.CLOSE);
     }
 }

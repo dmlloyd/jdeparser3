@@ -1,13 +1,13 @@
 package com.example;
 
 public final class Person {
-    private final java.lang.String name;
+    private final String name;
 
-    public Person(java.lang.String name) {
+    public Person(String name) {
         this.name = name;
     }
 
-    public java.lang.String getName() {
+    public String getName() {
         return name;
     }
 }

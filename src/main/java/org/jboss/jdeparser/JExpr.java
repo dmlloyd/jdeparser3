@@ -310,7 +310,9 @@ public sealed interface JExpr permits JVar, AbstractJExpr {
      * @param args the method arguments
      * @return the method call expression
      */
-    JExpr call(String name, JExpr... args);
+    default JExpr call(String name, JExpr... args) {
+        return call(name, List.of(args));
+    }
 
     /**
      * Returns an expression representing an instance method call on this expression ({@code this.name(args...)}).

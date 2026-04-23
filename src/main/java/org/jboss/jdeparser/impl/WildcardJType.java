@@ -8,8 +8,8 @@ import org.jboss.jdeparser.JType;
 import org.jboss.jdeparser.JVar;
 
 /**
- * Represents a wildcard type with a bound: either {@code ? extends X}
- * (upper-bounded) or {@code ? super X} (lower-bounded).
+ * Represents a wildcard type: either unbounded ({@code ?}),
+ * upper-bounded ({@code ? extends X}), or lower-bounded ({@code ? super X}).
  * <p>
  * Wildcard types are used exclusively as type arguments and cannot be
  * used directly as types for most operations.  Consequently, most methods
@@ -18,21 +18,25 @@ import org.jboss.jdeparser.JVar;
  */
 public final class WildcardJType extends AbstractJType {
 
+    /** The singleton unbounded wildcard type ({@code ?}). */
+    public static final WildcardJType UNBOUNDED = new WildcardJType(true, null);
+
     /**
-     * {@code true} for an upper-bounded wildcard ({@code ? extends X}),
+     * {@code true} for an upper-bounded wildcard ({@code ? extends X})
+     * or an unbounded wildcard ({@code ?}),
      * {@code false} for a lower-bounded wildcard ({@code ? super X}).
      */
     private final boolean extends_;
 
-    /** The bound type. */
+    /** The bound type, or {@code null} for an unbounded wildcard. */
     private final JType bound;
 
     /**
      * Constructs a new wildcard type.
      *
-     * @param extends_ {@code true} for {@code ? extends bound},
+     * @param extends_ {@code true} for {@code ? extends bound} or unbounded,
      *                 {@code false} for {@code ? super bound}
-     * @param bound    the bound type
+     * @param bound    the bound type, or {@code null} for an unbounded wildcard
      */
     public WildcardJType(final boolean extends_, final JType bound) {
         this.extends_ = extends_;
@@ -40,18 +44,18 @@ public final class WildcardJType extends AbstractJType {
     }
 
     /**
-     * Returns whether this is an upper-bounded wildcard ({@code ? extends X}).
+     * Returns whether this is an upper-bounded or unbounded wildcard.
      *
-     * @return {@code true} for extends, {@code false} for super
+     * @return {@code true} for extends or unbounded, {@code false} for super
      */
     public boolean isExtends() {
         return extends_;
     }
 
     /**
-     * Returns the bound type.
+     * Returns the bound type, or {@code null} for an unbounded wildcard.
      *
-     * @return the bound type
+     * @return the bound type, or {@code null}
      */
     public JType bound() {
         return bound;
@@ -73,7 +77,7 @@ public final class WildcardJType extends AbstractJType {
      * @throws IllegalStateException always, since wildcard types cannot have type arguments
      */
     @Override
-    public JType typeArg(final JType... args) {
+    public JType typeArg(final List<JType> args) {
         throw new IllegalStateException("Wildcard types cannot have type arguments");
     }
 
@@ -171,11 +175,15 @@ public final class WildcardJType extends AbstractJType {
     @Override
     public void write(SourceFileWriter writer) throws IOException {
         writer.write(Tokens.$PUNCT.Q);
-        if (extends_) {
-            writer.write(Tokens.$KW.EXTENDS);
-        } else {
-            writer.write(Tokens.$KW.SUPER);
+        if (bound != null) {
+            // space between ? and the keyword, since $PUNCT is not in $KW's spacing check
+            writer.sp();
+            if (extends_) {
+                writer.write(Tokens.$KW.EXTENDS);
+            } else {
+                writer.write(Tokens.$KW.SUPER);
+            }
+            AbstractJExpr.writeType(writer, bound);
         }
-        AbstractJExpr.writeType(writer, bound);
     }
 }

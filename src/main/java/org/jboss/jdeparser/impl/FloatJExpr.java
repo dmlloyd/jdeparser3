@@ -67,7 +67,7 @@ public final class FloatJExpr extends AbstractJExpr {
     /** {@inheritDoc} */
     @Override
     public void write(final SourceFileWriter writer) throws IOException {
-        final String text = hex ? Float.toHexString(value) + "f" : Float.toString(value) + "f";
+        final String text = hex ? Float.toHexString(value) + "f" : value + "f";
         writer.writeNumber(text);
     }
 }

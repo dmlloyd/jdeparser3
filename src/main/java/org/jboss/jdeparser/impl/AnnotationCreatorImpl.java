@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.smallrye.common.constraint.Assert;
+
 import org.jboss.jdeparser.JExpr;
 import org.jboss.jdeparser.JType;
 import org.jboss.jdeparser.SourceVersion;
@@ -44,6 +46,7 @@ public final class AnnotationCreatorImpl extends AbstractCreator implements Anno
     @Override
     public void value(final JExpr value) {
         checkActive();
+        Assert.checkNotNullParam("value", value);
         entries.add(w -> AbstractJExpr.writeExpr(w, value));
     }
 
@@ -51,6 +54,9 @@ public final class AnnotationCreatorImpl extends AbstractCreator implements Anno
     @Override
     public void member(final String name, final JExpr value) {
         checkActive();
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
+        Assert.checkNotNullParam("value", value);
         entries.add(w -> {
             w.writeName(name);
             w.write(Tokens.$BINOP.ASSIGN);
@@ -60,22 +66,17 @@ public final class AnnotationCreatorImpl extends AbstractCreator implements Anno
 
     /** {@inheritDoc} */
     @Override
-    public void memberArray(final String name, final JExpr... values) {
+    public void memberArray(final String name, final List<JExpr> values) {
         checkActive();
-        final List<JExpr> vals = List.of(values);
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
+        Assert.checkNotNullParam("values", values);
+        final List<JExpr> vals = List.copyOf(values);
         entries.add(w -> {
             w.writeName(name);
             w.write(Tokens.$BINOP.ASSIGN);
             w.write(Tokens.$BRACE.OPEN);
-            boolean first = true;
-            for (JExpr val : vals) {
-                if (!first) {
-                    w.write(Tokens.$PUNCT.COMMA);
-                    w.write(FormatPreferences.Space.AFTER_COMMA);
-                }
-                first = false;
-                AbstractJExpr.writeExpr(w, val);
-            }
+            AbstractJExpr.writeList(w, vals, FormatPreferences.Space.AFTER_COMMA);
             w.write(Tokens.$BRACE.CLOSE);
         });
     }
@@ -87,15 +88,7 @@ public final class AnnotationCreatorImpl extends AbstractCreator implements Anno
         AbstractJExpr.writeType(writer, annotationType);
         if (!entries.isEmpty()) {
             writer.write(Tokens.$PAREN.OPEN);
-            boolean first = true;
-            for (Writable entry : entries) {
-                if (!first) {
-                    writer.write(Tokens.$PUNCT.COMMA);
-                    writer.write(FormatPreferences.Space.AFTER_COMMA);
-                }
-                first = false;
-                entry.write(writer);
-            }
+            AbstractJExpr.writeList(writer, entries, FormatPreferences.Space.AFTER_COMMA);
             writer.write(Tokens.$PAREN.CLOSE);
         }
     }

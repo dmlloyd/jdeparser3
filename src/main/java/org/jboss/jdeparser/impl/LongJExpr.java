@@ -72,6 +72,7 @@ public final class LongJExpr extends AbstractJExpr {
             case 10 -> Long.toUnsignedString(value) + "L";
             case 8 -> "0" + Long.toOctalString(value) + "L";
             case 2 -> "0b" + Long.toBinaryString(value) + "L";
+            default -> throw new IllegalStateException("Unsupported base: " + base);
         };
         writer.writeNumber(text);
     }

@@ -6,7 +6,7 @@ import org.jboss.jdeparser.format.FormatPreferences;
  * Indentation elements for comment regions.
  * <p>
  * When pushed onto the indent stack, these elements prepend comment
- * continuation prefixes ({@code "// "} for line comments, {@code " * "}
+ * continuation prefixes ({@code "// "} for line comments, {@code " *"}
  * for block/Javadoc comments) at the start of each new line within the
  * comment body.
  * <p>
@@ -22,17 +22,15 @@ public enum CommentIndent implements Indent {
     LINE("// "),
 
     /**
-     * Block/Javadoc comment indentation: prepends {@code " * "} on
+     * Block/Javadoc comment indentation: prepends {@code " *"} on
      * continuation lines and escapes {@code * /} sequences in content.
+     * <p>
+     * The trailing space between the {@code *} and content is handled via
+     * a deferred space ({@link #addIndent} returns {@code true}), so it
+     * only materializes when content follows — never trailing on blank lines.
      */
-    BLOCK(" * ") {
-        /**
-         * {@inheritDoc}
-         * <p>
-         * Scans the newly written content for {@code * /} sequences and
-         * inserts a zero-width joiner (U+200D) between them to prevent
-         * premature comment termination.
-         */
+    BLOCK(" *") {
+        /** {@inheritDoc} */
         @Override
         public void escape(final Indent next, final StringBuilder b, final int idx) {
             // scan for */ sequences that would close the comment
@@ -45,10 +43,27 @@ public enum CommentIndent implements Indent {
             next.escape(next, b, idx);
         }
     },
+
+    /**
+     * Closing-line indentation for block/Javadoc comments: prepends a
+     * single space to align the {@code *} in {@code * /} with the
+     * {@code *} on content lines.
+     */
+    BLOCK_CLOSE(" ") {
+        /** {@inheritDoc} */
+        @Override
+        public boolean addIndent(final Indent next, final FormatPreferences preferences, final StringBuilder lineBuffer) {
+            next.addIndent(next, preferences, lineBuffer);
+            final int idx = lineBuffer.length();
+            lineBuffer.append(text);
+            next.escape(next, lineBuffer, idx);
+            return false;
+        }
+    },
     ;
 
     /** The comment continuation prefix text. */
-    private final String text;
+    final String text;
 
     /**
      * Constructs a comment indentation element with the given prefix.
@@ -62,7 +77,7 @@ public enum CommentIndent implements Indent {
     /**
      * Returns the comment continuation prefix text.
      *
-     * @return the prefix (e.g., {@code "// "} or {@code " * "})
+     * @return the prefix (e.g., {@code "// "} or {@code " *"})
      */
     public String text() {
         return text;
@@ -73,13 +88,18 @@ public enum CommentIndent implements Indent {
      * <p>
      * Delegates to the next element to apply parent indentation, then
      * appends the comment continuation prefix and escapes it.
+     *
+     * @return {@code true} if the indent contributes visible content
+     *         requiring a deferred trailing space (true for {@link #BLOCK}
+     *         and {@link #LINE})
      */
     @Override
-    public void addIndent(final Indent next, final FormatPreferences preferences, final StringBuilder lineBuffer) {
+    public boolean addIndent(final Indent next, final FormatPreferences preferences, final StringBuilder lineBuffer) {
         next.addIndent(next, preferences, lineBuffer);
         final int idx = lineBuffer.length();
         lineBuffer.append(text);
         next.escape(next, lineBuffer, idx);
+        return true;
     }
 
     /**

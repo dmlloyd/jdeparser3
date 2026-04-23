@@ -3,6 +3,8 @@ package org.jboss.jdeparser;
 import java.util.List;
 import java.util.function.Consumer;
 
+import io.smallrye.common.constraint.Assert;
+
 import org.jboss.jdeparser.creator.BlockCreator;
 import org.jboss.jdeparser.creator.ClassCreator;
 import org.jboss.jdeparser.creator.SwitchCreator;
@@ -191,6 +193,7 @@ public final class JExprs {
      * @return the literal expression
      */
     public static JExpr str(final String value) {
+        Assert.checkNotNullParam("value", value);
         return new StringJExpr(value);
     }
 
@@ -201,6 +204,7 @@ public final class JExprs {
      * @return the literal expression
      */
     public static JExpr textBlock(final String value) {
+        Assert.checkNotNullParam("value", value);
         return new TextBlockJExpr(value);
     }
 
@@ -211,6 +215,8 @@ public final class JExprs {
      * @return the literal expression
      */
     public static JExpr ch(final int codePoint) {
+        Assert.checkMinimumParameter("codePoint", 0, codePoint);
+        Assert.checkMaximumParameter("codePoint", Character.MAX_CODE_POINT, codePoint);
         return new CharJExpr(codePoint);
     }
 
@@ -223,6 +229,8 @@ public final class JExprs {
      * @return the variable expression
      */
     public static JVar $v(final String name) {
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
         return new NameJExpr(name);
     }
 
@@ -233,6 +241,7 @@ public final class JExprs {
      * @return the qualified this expression
      */
     public static JExpr qualifiedThis(final JType qualifier) {
+        Assert.checkNotNullParam("qualifier", qualifier);
         return new QualifiedThisJExpr(qualifier);
     }
 
@@ -246,7 +255,21 @@ public final class JExprs {
      * @return the call expression
      */
     public static JExpr call(final String name, final JExpr... args) {
-        return new CallJExpr(null, name, List.of(args));
+        return call(name, List.of(args));
+    }
+
+    /**
+     * Creates an unqualified method call: {@code method(args)}.
+     *
+     * @param name the method name
+     * @param args the argument expressions as a list
+     * @return the call expression
+     */
+    public static JExpr call(final String name, final List<JExpr> args) {
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
+        Assert.checkNotNullParam("args", args);
+        return new CallJExpr(null, name, args);
     }
 
     /**
@@ -258,7 +281,23 @@ public final class JExprs {
      * @return the call expression
      */
     public static JExpr callStatic(final JType type, final String name, final JExpr... args) {
-        return new TypeCallJExpr(type, name, List.of(args));
+        return callStatic(type, name, List.of(args));
+    }
+
+    /**
+     * Creates a static method call: {@code Type.method(args)}.
+     *
+     * @param type the type on which the method is called
+     * @param name the method name
+     * @param args the argument expressions as a list
+     * @return the call expression
+     */
+    public static JExpr callStatic(final JType type, final String name, final List<JExpr> args) {
+        Assert.checkNotNullParam("type", type);
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
+        Assert.checkNotNullParam("args", args);
+        return new TypeCallJExpr(type, name, args);
     }
 
     // ---- Object creation ----
@@ -271,7 +310,20 @@ public final class JExprs {
      * @return the new expression
      */
     public static JExpr new_(final JType type, final JExpr... args) {
-        return new NewJExpr(type, List.of(args));
+        return new_(type, List.of(args));
+    }
+
+    /**
+     * Creates a constructor call: {@code new Type(args)}.
+     *
+     * @param type the type to instantiate
+     * @param args the constructor argument expressions as a list
+     * @return the new expression
+     */
+    public static JExpr new_(final JType type, final List<JExpr> args) {
+        Assert.checkNotNullParam("type", type);
+        Assert.checkNotNullParam("args", args);
+        return new NewJExpr(type, args);
     }
 
     /**
@@ -282,7 +334,21 @@ public final class JExprs {
      * @return the new array expression
      */
     public static JExpr newArray(final JType type, final JExpr... dimensions) {
-        return new NewArrayJExpr(type, List.of(dimensions));
+        return newArray(type, List.of(dimensions));
+    }
+
+    /**
+     * Creates an array creation expression with dimension sizes: {@code new Type[n]}.
+     *
+     * @param type       the array element type
+     * @param dimensions the dimension size expressions as a list
+     * @return the new array expression
+     */
+    public static JExpr newArray(final JType type, final List<JExpr> dimensions) {
+        Assert.checkNotNullParam("type", type);
+        Assert.checkNotNullParam("dimensions", dimensions);
+        Assert.checkNotEmptyParam("dimensions", dimensions);
+        return new NewArrayJExpr(type, dimensions);
     }
 
     /**
@@ -293,17 +359,19 @@ public final class JExprs {
      * @return the array initializer expression
      */
     public static JExpr newArrayInit(final JType type, final JExpr... elements) {
-        return new ArrayInitJExpr(type, List.of(elements));
+        return newArrayInit(type, List.of(elements));
     }
 
     /**
      * Creates an array creation expression with an initializer: {@code new Type[] {e1, e2, ...}}.
      *
      * @param type     the array element type
-     * @param elements the initializer element expressions
+     * @param elements the initializer element expressions as a list
      * @return the array initializer expression
      */
     public static JExpr newArrayInit(final JType type, final List<JExpr> elements) {
+        Assert.checkNotNullParam("type", type);
+        Assert.checkNotNullParam("elements", elements);
         return new ArrayInitJExpr(type, elements);
     }
 
@@ -317,6 +385,9 @@ public final class JExprs {
      * @return the method reference expression
      */
     public static JExpr methodRef(final JExpr receiver, final String name) {
+        Assert.checkNotNullParam("receiver", receiver);
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
         return new MethodRefJExpr(receiver, name);
     }
 
@@ -328,6 +399,9 @@ public final class JExprs {
      * @return the method reference expression
      */
     public static JExpr methodRef(final JType type, final String name) {
+        Assert.checkNotNullParam("type", type);
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
         return new MethodRefJExpr(type, name);
     }
 
@@ -344,6 +418,10 @@ public final class JExprs {
      */
     public static JExpr new_(final SourceVersion version, final JType type, final List<JExpr> args,
                              final Consumer<ClassCreator> builder) {
+        Assert.checkNotNullParam("version", version);
+        Assert.checkNotNullParam("type", type);
+        Assert.checkNotNullParam("args", args);
+        Assert.checkNotNullParam("builder", builder);
         final ClassCreatorImpl cc = new ClassCreatorImpl(version, "", false);
         builder.accept(cc);
         cc.finish();
@@ -362,6 +440,9 @@ public final class JExprs {
      */
     public static JExpr switchExpr(final SourceVersion version, final JExpr selector,
                                    final Consumer<SwitchCreator> builder) {
+        Assert.checkNotNullParam("version", version);
+        Assert.checkNotNullParam("selector", selector);
+        Assert.checkNotNullParam("builder", builder);
         version.require(LanguageFeature.SWITCH_EXPRESSIONS);
         final SwitchCreatorImpl sc = new SwitchCreatorImpl(version);
         builder.accept(sc);
@@ -379,6 +460,9 @@ public final class JExprs {
      * @return the lambda expression
      */
     public static JExpr lambda(final String param, final JExpr body) {
+        Assert.checkNotNullParam("param", param);
+        Assert.checkNotEmptyParam("param", param);
+        Assert.checkNotNullParam("body", body);
         return new LambdaJExpr(List.of(new LambdaJExpr.LambdaParam(param)), body);
     }
 
@@ -390,6 +474,9 @@ public final class JExprs {
      * @return the lambda expression
      */
     public static JExpr lambda(final List<String> params, final JExpr body) {
+        Assert.checkNotNullParam("params", params);
+        Assert.checkNotEmptyParam("params", params);
+        Assert.checkNotNullParam("body", body);
         return new LambdaJExpr(
             params.stream().map(LambdaJExpr.LambdaParam::new).toList(),
             body
@@ -406,6 +493,10 @@ public final class JExprs {
      */
     public static JExpr lambda(final SourceVersion version, final String param,
                                final Consumer<BlockCreator> body) {
+        Assert.checkNotNullParam("version", version);
+        Assert.checkNotNullParam("param", param);
+        Assert.checkNotEmptyParam("param", param);
+        Assert.checkNotNullParam("body", body);
         final BlockCreatorImpl bc = new BlockCreatorImpl(version);
         body.accept(bc);
         bc.finish();
@@ -422,6 +513,10 @@ public final class JExprs {
      */
     public static JExpr lambda(final SourceVersion version, final List<String> params,
                                final Consumer<BlockCreator> body) {
+        Assert.checkNotNullParam("version", version);
+        Assert.checkNotNullParam("params", params);
+        Assert.checkNotEmptyParam("params", params);
+        Assert.checkNotNullParam("body", body);
         final BlockCreatorImpl bc = new BlockCreatorImpl(version);
         body.accept(bc);
         bc.finish();
@@ -439,6 +534,9 @@ public final class JExprs {
      * @return the lambda expression
      */
     public static JExpr lambdaTyped(final List<LambdaJExpr.LambdaParam> params, final JExpr body) {
+        Assert.checkNotNullParam("params", params);
+        Assert.checkNotEmptyParam("params", params);
+        Assert.checkNotNullParam("body", body);
         return new LambdaJExpr(params, body);
     }
 
@@ -452,6 +550,10 @@ public final class JExprs {
      */
     public static JExpr lambdaTyped(final SourceVersion version, final List<LambdaJExpr.LambdaParam> params,
                                     final Consumer<BlockCreator> body) {
+        Assert.checkNotNullParam("version", version);
+        Assert.checkNotNullParam("params", params);
+        Assert.checkNotEmptyParam("params", params);
+        Assert.checkNotNullParam("body", body);
         final BlockCreatorImpl bc = new BlockCreatorImpl(version);
         body.accept(bc);
         bc.finish();

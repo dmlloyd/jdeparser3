@@ -3,6 +3,8 @@ package org.jboss.jdeparser.impl;
 import java.io.IOException;
 import java.util.function.Consumer;
 
+import io.smallrye.common.constraint.Assert;
+
 import org.jboss.jdeparser.JExpr;
 import org.jboss.jdeparser.JType;
 import org.jboss.jdeparser.SourceVersion;
@@ -67,6 +69,8 @@ public final class FieldCreatorImpl extends AbstractCreator implements FieldCrea
     @Override
     public void type(final JType type) {
         checkActive();
+        Assert.checkNotNullParam("type", type);
+        registerUsedType(type);
         this.type = type;
     }
 
@@ -74,6 +78,7 @@ public final class FieldCreatorImpl extends AbstractCreator implements FieldCrea
     @Override
     public void init(final JExpr init) {
         checkActive();
+        Assert.checkNotNullParam("init", init);
         this.init = init;
     }
 
@@ -81,6 +86,7 @@ public final class FieldCreatorImpl extends AbstractCreator implements FieldCrea
     @Override
     public void setAccess(final AccessLevel access) {
         checkActive();
+        Assert.checkNotNullParam("access", access);
         modifiers.setAccess(access);
     }
 
@@ -88,6 +94,7 @@ public final class FieldCreatorImpl extends AbstractCreator implements FieldCrea
     @Override
     public void addFlag(final ModifierFlag flag) {
         checkActive();
+        Assert.checkNotNullParam("flag", flag);
         modifiers.addFlag(flag);
     }
 
@@ -95,6 +102,7 @@ public final class FieldCreatorImpl extends AbstractCreator implements FieldCrea
     @Override
     public void removeFlag(final ModifierFlag flag) {
         checkActive();
+        Assert.checkNotNullParam("flag", flag);
         modifiers.removeFlag(flag);
     }
 
@@ -102,7 +110,11 @@ public final class FieldCreatorImpl extends AbstractCreator implements FieldCrea
     @Override
     public void annotate(final JType annotationType, final Consumer<AnnotationCreator> builder) {
         checkActive();
+        Assert.checkNotNullParam("annotationType", annotationType);
+        Assert.checkNotNullParam("builder", builder);
+        registerUsedType(annotationType);
         final AnnotationCreatorImpl ac = new AnnotationCreatorImpl(version(), annotationType);
+        ac.sourceFile(sourceFile());
         nest(() -> builder.accept(ac));
         ac.finish();
         annotations.add(ac);
@@ -112,6 +124,8 @@ public final class FieldCreatorImpl extends AbstractCreator implements FieldCrea
     @Override
     public void annotate(final JType annotationType) {
         checkActive();
+        Assert.checkNotNullParam("annotationType", annotationType);
+        registerUsedType(annotationType);
         annotations.add(new AnnotationCreatorImpl(version(), annotationType));
     }
 
@@ -119,10 +133,29 @@ public final class FieldCreatorImpl extends AbstractCreator implements FieldCrea
     @Override
     public void docComment(final Consumer<DocCommentCreator> builder) {
         checkActive();
-        final DocCommentCreatorImpl dc = new DocCommentCreatorImpl(version());
+        Assert.checkNotNullParam("builder", builder);
+        final DocCommentCreatorImpl dc = getOrCreateDocComment();
         nest(() -> builder.accept(dc));
         dc.finish();
-        this.docComment = dc;
+    }
+
+    /**
+     * Returns the existing doc comment creator, or creates one on demand.
+     * <p>
+     * If a creator already exists from a prior call, it is reopened
+     * for further configuration.
+     *
+     * @return the doc comment creator
+     */
+    private DocCommentCreatorImpl getOrCreateDocComment() {
+        DocCommentCreatorImpl dc = this.docComment;
+        if (dc == null) {
+            dc = new DocCommentCreatorImpl(version(), sourceFile(), DocContext.FIELD);
+            this.docComment = dc;
+        } else {
+            dc.reopen();
+        }
+        return dc;
     }
 
     /** {@inheritDoc} */

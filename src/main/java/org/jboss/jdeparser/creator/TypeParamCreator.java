@@ -8,11 +8,11 @@ import org.jboss.jdeparser.impl.TypeParamCreatorImpl;
 /**
  * A creator for configuring a type parameter on a generic type or method.
  * <p>
- * Extends {@link DocCommentableCreator} so that documentation set here is
- * automatically generated as a {@code @param <T>} tag in the enclosing
- * type or method Javadoc.
+ * Extends {@link DocCommentableCreator DocCommentableCreator&lt;DocInlineCreator&gt;}
+ * so that documentation set here is contributed as inline content
+ * within the enclosing element's Javadoc comment.
  */
-public sealed interface TypeParamCreator extends DocCommentableCreator permits TypeParamCreatorImpl {
+public sealed interface TypeParamCreator extends DocCommentableCreator<DocInlineCreator> permits TypeParamCreatorImpl {
 
     /**
      * Adds an upper bound to this type parameter (e.g., {@code T extends Comparable & Serializable}).

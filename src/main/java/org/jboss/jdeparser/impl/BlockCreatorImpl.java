@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+import io.smallrye.common.constraint.Assert;
+
 import org.jboss.jdeparser.JExpr;
 import org.jboss.jdeparser.JLabel;
 import org.jboss.jdeparser.JType;
@@ -65,6 +67,7 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
     @Override
     public void emit(final JExpr expr) {
         checkActive();
+        Assert.checkNotNullParam("expr", expr);
         content.add(w -> {
             AbstractJExpr.writeExpr(w, expr);
             w.write(Tokens.$PUNCT.SEMI);
@@ -78,6 +81,11 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
     @Override
     public JVar var(final JType type, final String name, final JExpr init) {
         checkActive();
+        Assert.checkNotNullParam("type", type);
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
+        Assert.checkNotNullParam("init", init);
+        registerUsedType(type);
         final NameJExpr var = new NameJExpr(name);
         content.add(w -> {
             AbstractJExpr.writeType(w, type);
@@ -95,6 +103,9 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
     @Override
     public JVar var(final String name, final JExpr init) {
         checkActive();
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
+        Assert.checkNotNullParam("init", init);
         version().require(LanguageFeature.VAR_LOCAL_VARIABLE);
         final NameJExpr var = new NameJExpr(name);
         content.add(w -> {
@@ -115,7 +126,10 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
     @Override
     public void if_(final JExpr condition, final Consumer<BlockCreator> body) {
         checkActive();
+        Assert.checkNotNullParam("condition", condition);
+        Assert.checkNotNullParam("body", body);
         final BlockCreatorImpl block = new BlockCreatorImpl(version());
+        block.sourceFile(sourceFile());
         nest(() -> body.accept(block));
         block.finish();
         content.add(w -> {
@@ -135,10 +149,15 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
     public void ifElse(final JExpr condition, final Consumer<BlockCreator> ifBody,
                         final Consumer<BlockCreator> elseBody) {
         checkActive();
+        Assert.checkNotNullParam("condition", condition);
+        Assert.checkNotNullParam("ifBody", ifBody);
+        Assert.checkNotNullParam("elseBody", elseBody);
         final BlockCreatorImpl ifBlock = new BlockCreatorImpl(version());
+        ifBlock.sourceFile(sourceFile());
         nest(() -> ifBody.accept(ifBlock));
         ifBlock.finish();
         final BlockCreatorImpl elseBlock = new BlockCreatorImpl(version());
+        elseBlock.sourceFile(sourceFile());
         nest(() -> elseBody.accept(elseBlock));
         elseBlock.finish();
         content.add(w -> {
@@ -160,7 +179,10 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
     @Override
     public void while_(final JExpr condition, final Consumer<BlockCreator> body) {
         checkActive();
+        Assert.checkNotNullParam("condition", condition);
+        Assert.checkNotNullParam("body", body);
         final BlockCreatorImpl block = new BlockCreatorImpl(version());
+        block.sourceFile(sourceFile());
         nest(() -> body.accept(block));
         block.finish();
         content.add(w -> {
@@ -179,7 +201,10 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
     @Override
     public void doWhile(final Consumer<BlockCreator> body, final JExpr condition) {
         checkActive();
+        Assert.checkNotNullParam("body", body);
+        Assert.checkNotNullParam("condition", condition);
         final BlockCreatorImpl block = new BlockCreatorImpl(version());
+        block.sourceFile(sourceFile());
         nest(() -> body.accept(block));
         block.finish();
         content.add(w -> {
@@ -200,7 +225,9 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
     @Override
     public void for_(final Consumer<ForCreator> builder) {
         checkActive();
+        Assert.checkNotNullParam("builder", builder);
         final ForCreatorImpl fc = new ForCreatorImpl(version());
+        fc.sourceFile(sourceFile());
         nest(() -> builder.accept(fc));
         fc.finish();
         content.add(fc);
@@ -211,8 +238,15 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
     public JVar forEach(final JType type, final String name, final JExpr iterable,
                          final Consumer<BlockCreator> body) {
         checkActive();
+        Assert.checkNotNullParam("type", type);
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
+        Assert.checkNotNullParam("iterable", iterable);
+        Assert.checkNotNullParam("body", body);
+        registerUsedType(type);
         final NameJExpr var = new NameJExpr(name);
         final BlockCreatorImpl block = new BlockCreatorImpl(version());
+        block.sourceFile(sourceFile());
         nest(() -> body.accept(block));
         block.finish();
         content.add(w -> {
@@ -238,7 +272,10 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
     @Override
     public void switch_(final JExpr selector, final Consumer<SwitchCreator> builder) {
         checkActive();
+        Assert.checkNotNullParam("selector", selector);
+        Assert.checkNotNullParam("builder", builder);
         final SwitchCreatorImpl sc = new SwitchCreatorImpl(version());
+        sc.sourceFile(sourceFile());
         nest(() -> builder.accept(sc));
         sc.finish();
         content.add(w -> {
@@ -257,7 +294,9 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
     @Override
     public void try_(final Consumer<TryCreator> builder) {
         checkActive();
+        Assert.checkNotNullParam("builder", builder);
         final TryCreatorImpl tc = new TryCreatorImpl(version());
+        tc.sourceFile(sourceFile());
         nest(() -> builder.accept(tc));
         tc.finish();
         content.add(tc);
@@ -267,7 +306,10 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
     @Override
     public void synchronized_(final JExpr monitor, final Consumer<BlockCreator> body) {
         checkActive();
+        Assert.checkNotNullParam("monitor", monitor);
+        Assert.checkNotNullParam("body", body);
         final BlockCreatorImpl block = new BlockCreatorImpl(version());
+        block.sourceFile(sourceFile());
         nest(() -> body.accept(block));
         block.finish();
         content.add(w -> {
@@ -286,7 +328,9 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
     @Override
     public void block(final Consumer<BlockCreator> body) {
         checkActive();
+        Assert.checkNotNullParam("body", body);
         final BlockCreatorImpl block = new BlockCreatorImpl(version());
+        block.sourceFile(sourceFile());
         nest(() -> body.accept(block));
         block.finish();
         content.add(w -> {
@@ -299,8 +343,12 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
     @Override
     public JLabel labeled(final String name, final BiConsumer<JLabel, BlockCreator> body) {
         checkActive();
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
+        Assert.checkNotNullParam("body", body);
         final JLabel label = new JLabelImpl(name);
         final BlockCreatorImpl block = new BlockCreatorImpl(version());
+        block.sourceFile(sourceFile());
         nest(() -> body.accept(label, block));
         block.finish();
         content.add(w -> {
@@ -330,8 +378,10 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
     @Override
     public void return_(final JExpr value) {
         checkActive();
+        Assert.checkNotNullParam("value", value);
         content.add(w -> {
             w.write(Tokens.$KW.RETURN);
+            w.addWordSpace();
             AbstractJExpr.writeExpr(w, value);
             w.write(Tokens.$PUNCT.SEMI);
             w.nl();
@@ -342,8 +392,10 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
     @Override
     public void throw_(final JExpr exception) {
         checkActive();
+        Assert.checkNotNullParam("exception", exception);
         content.add(w -> {
             w.write(Tokens.$KW.THROW);
+            w.addWordSpace();
             AbstractJExpr.writeExpr(w, exception);
             w.write(Tokens.$PUNCT.SEMI);
             w.nl();
@@ -365,6 +417,7 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
     @Override
     public void break_(final JLabel label) {
         checkActive();
+        Assert.checkNotNullParam("label", label);
         content.add(w -> {
             w.write(Tokens.$KW.BREAK);
             w.writeName(label.name());
@@ -388,6 +441,7 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
     @Override
     public void continue_(final JLabel label) {
         checkActive();
+        Assert.checkNotNullParam("label", label);
         content.add(w -> {
             w.write(Tokens.$KW.CONTINUE);
             w.writeName(label.name());
@@ -400,8 +454,10 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
     @Override
     public void assert_(final JExpr condition) {
         checkActive();
+        Assert.checkNotNullParam("condition", condition);
         content.add(w -> {
             w.write(Tokens.$KW.ASSERT);
+            w.addWordSpace();
             AbstractJExpr.writeExpr(w, condition);
             w.write(Tokens.$PUNCT.SEMI);
             w.nl();
@@ -412,8 +468,11 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
     @Override
     public void assert_(final JExpr condition, final JExpr message) {
         checkActive();
+        Assert.checkNotNullParam("condition", condition);
+        Assert.checkNotNullParam("message", message);
         content.add(w -> {
             w.write(Tokens.$KW.ASSERT);
+            w.addWordSpace();
             AbstractJExpr.writeExpr(w, condition);
             w.write(FormatPreferences.Space.BEFORE_COLON);
             w.write(Tokens.$PUNCT.COLON);
@@ -428,9 +487,11 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
     @Override
     public void yield_(final JExpr value) {
         checkActive();
+        Assert.checkNotNullParam("value", value);
         version().require(LanguageFeature.SWITCH_EXPRESSIONS);
         content.add(w -> {
             w.write(Tokens.$KW.YIELD);
+            w.addWordSpace();
             AbstractJExpr.writeExpr(w, value);
             w.write(Tokens.$PUNCT.SEMI);
             w.nl();
@@ -451,21 +512,14 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
 
     /** {@inheritDoc} */
     @Override
-    public void callThis(final JExpr... args) {
+    public void callThis(final List<JExpr> args) {
         checkActive();
-        final List<JExpr> argList = List.of(args);
+        Assert.checkNotNullParam("args", args);
+        final List<JExpr> argList = List.copyOf(args);
         content.add(w -> {
             w.write(Tokens.$KW.THIS);
             w.write(Tokens.$PAREN.OPEN);
-            boolean first = true;
-            for (JExpr arg : argList) {
-                if (!first) {
-                    w.write(Tokens.$PUNCT.COMMA);
-                    w.write(FormatPreferences.Space.AFTER_COMMA);
-                }
-                first = false;
-                AbstractJExpr.writeExpr(w, arg);
-            }
+            AbstractJExpr.writeList(w, argList, FormatPreferences.Space.AFTER_COMMA);
             w.write(Tokens.$PAREN.CLOSE);
             w.write(Tokens.$PUNCT.SEMI);
             w.nl();
@@ -474,21 +528,14 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
 
     /** {@inheritDoc} */
     @Override
-    public void callSuper(final JExpr... args) {
+    public void callSuper(final List<JExpr> args) {
         checkActive();
-        final List<JExpr> argList = List.of(args);
+        Assert.checkNotNullParam("args", args);
+        final List<JExpr> argList = List.copyOf(args);
         content.add(w -> {
             w.write(Tokens.$KW.SUPER);
             w.write(Tokens.$PAREN.OPEN);
-            boolean first = true;
-            for (JExpr arg : argList) {
-                if (!first) {
-                    w.write(Tokens.$PUNCT.COMMA);
-                    w.write(FormatPreferences.Space.AFTER_COMMA);
-                }
-                first = false;
-                AbstractJExpr.writeExpr(w, arg);
-            }
+            AbstractJExpr.writeList(w, argList, FormatPreferences.Space.AFTER_COMMA);
             w.write(Tokens.$PAREN.CLOSE);
             w.write(Tokens.$PUNCT.SEMI);
             w.nl();
@@ -501,7 +548,11 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
     @Override
     public void localClass(final String name, final Consumer<ClassCreator> builder) {
         checkActive();
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
+        Assert.checkNotNullParam("builder", builder);
         final ClassCreatorImpl cc = new ClassCreatorImpl(version(), name, false);
+        cc.sourceFile(sourceFile());
         nest(() -> builder.accept(cc));
         cc.finish();
         content.add(w -> {
@@ -514,8 +565,12 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
     @Override
     public void localInterface(final String name, final Consumer<InterfaceCreator> builder) {
         checkActive();
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
+        Assert.checkNotNullParam("builder", builder);
         version().require(LanguageFeature.LOCAL_INTERFACES);
         final InterfaceCreatorImpl ic = new InterfaceCreatorImpl(version(), name);
+        ic.sourceFile(sourceFile());
         nest(() -> builder.accept(ic));
         ic.finish();
         content.add(w -> {
@@ -530,6 +585,7 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
     @Override
     public void lineComment(final String comment) {
         checkActive();
+        Assert.checkNotNullParam("comment", comment);
         content.add(w -> {
             w.write(Tokens.$COMMENT_TOK.LINE);
             w.sp();
@@ -542,6 +598,7 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
     @Override
     public void blockComment(final String comment) {
         checkActive();
+        Assert.checkNotNullParam("comment", comment);
         content.add(w -> {
             w.write(Tokens.$COMMENT_TOK.OPEN);
             w.sp();
@@ -556,6 +613,6 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
     @Override
     public void blankLine() {
         checkActive();
-        content.add(w -> w.nl());
+        content.add(SourceFileWriter::nl);
     }
 }

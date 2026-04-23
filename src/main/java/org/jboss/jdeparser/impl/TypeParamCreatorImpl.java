@@ -5,9 +5,11 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import io.smallrye.common.constraint.Assert;
+
 import org.jboss.jdeparser.JType;
 import org.jboss.jdeparser.SourceVersion;
-import org.jboss.jdeparser.creator.DocCommentCreator;
+import org.jboss.jdeparser.creator.DocInlineCreator;
 import org.jboss.jdeparser.creator.TypeParamCreator;
 
 /**
@@ -27,8 +29,8 @@ public final class TypeParamCreatorImpl extends AbstractCreator implements TypeP
     /** The upper bound(s), or empty if unbounded. */
     private JType bounds;
 
-    /** Optional doc comment for this type parameter. */
-    private DocCommentCreatorImpl docComment;
+    /** Optional inline doc comment for this type parameter. */
+    private DocInlineCreatorImpl docComment;
 
     /**
      * Constructs a new type parameter creator.
@@ -51,11 +53,11 @@ public final class TypeParamCreatorImpl extends AbstractCreator implements TypeP
     }
 
     /**
-     * Returns the doc comment creator, if documentation was configured.
+     * Returns the inline doc comment creator, if documentation was configured.
      *
-     * @return the doc comment, or {@code null}
+     * @return the inline doc comment, or {@code null}
      */
-    public DocCommentCreatorImpl docComment() {
+    public DocInlineCreatorImpl docComment() {
         return docComment;
     }
 
@@ -63,7 +65,11 @@ public final class TypeParamCreatorImpl extends AbstractCreator implements TypeP
     @Override
     public void extends_(List<JType> bounds) {
         checkActive();
+        Assert.checkNotNullParam("bounds", bounds);
         bounds = List.copyOf(bounds);
+        for (JType bound : bounds) {
+            registerUsedType(bound);
+        }
         JType ourBounds = this.bounds;
         if (ourBounds == null) {
             this.bounds = switch (bounds.size()) {
@@ -90,12 +96,31 @@ public final class TypeParamCreatorImpl extends AbstractCreator implements TypeP
 
     /** {@inheritDoc} */
     @Override
-    public void docComment(final Consumer<DocCommentCreator> builder) {
+    public void docComment(final Consumer<DocInlineCreator> builder) {
         checkActive();
-        final DocCommentCreatorImpl dc = new DocCommentCreatorImpl(version());
+        Assert.checkNotNullParam("builder", builder);
+        final DocInlineCreatorImpl dc = getOrCreateDocComment();
         nest(() -> builder.accept(dc));
         dc.finish();
-        this.docComment = dc;
+    }
+
+    /**
+     * Returns the existing inline doc comment creator, or creates one on demand.
+     * <p>
+     * If a creator already exists from a prior call, it is reopened for
+     * further configuration.
+     *
+     * @return the inline doc comment creator
+     */
+    private DocInlineCreatorImpl getOrCreateDocComment() {
+        DocInlineCreatorImpl dc = this.docComment;
+        if (dc == null) {
+            dc = new DocInlineCreatorImpl(version(), sourceFile(), null);
+            this.docComment = dc;
+        } else {
+            dc.reopen();
+        }
+        return dc;
     }
 
     /** {@inheritDoc} */

@@ -3,6 +3,8 @@ package org.jboss.jdeparser.impl;
 import java.io.IOException;
 import java.util.EnumSet;
 
+import io.smallrye.common.constraint.Assert;
+
 import org.jboss.jdeparser.creator.AccessLevel;
 import org.jboss.jdeparser.creator.ModifierFlag;
 import org.jboss.jdeparser.creator.ModifierLocation;
@@ -73,6 +75,7 @@ public final class ModifierHolder {
      * @throws IllegalArgumentException if the level is not valid for this location
      */
     public void setAccess(final AccessLevel level) {
+        Assert.checkNotNullParam("level", level);
         if (!location.supports(level)) {
             throw new IllegalArgumentException(level + " is not valid for " + location);
         }
@@ -88,6 +91,7 @@ public final class ModifierHolder {
      *                                  or conflicts with an existing flag
      */
     public void addFlag(final ModifierFlag flag) {
+        Assert.checkNotNullParam("flag", flag);
         if (!location.supports(flag)) {
             throw new IllegalArgumentException(flag + " is not valid for " + location);
         }
@@ -105,6 +109,7 @@ public final class ModifierHolder {
      * @param flag the flag to remove
      */
     public void removeFlag(final ModifierFlag flag) {
+        Assert.checkNotNullParam("flag", flag);
         flags.remove(flag);
     }
 

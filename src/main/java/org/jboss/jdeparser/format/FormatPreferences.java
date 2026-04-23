@@ -5,6 +5,8 @@ import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Properties;
 
+import io.smallrye.common.constraint.Assert;
+
 /**
  * Configuration controlling the formatting of generated Java source code.
  * <p>
@@ -661,6 +663,8 @@ public final class FormatPreferences {
          * @return this builder
          */
         public Builder indent(final Indentation indentation, final int size) {
+            Assert.checkNotNullParam("indentation", indentation);
+            Assert.checkMinimumParameter("size", 0, size);
             indents.put(indentation, size);
             return this;
         }
@@ -674,6 +678,7 @@ public final class FormatPreferences {
          * @return this builder
          */
         public Builder indentAbsolute(final Indentation indentation) {
+            Assert.checkNotNullParam("indentation", indentation);
             absoluteIndents.add(indentation);
             return this;
         }
@@ -685,6 +690,7 @@ public final class FormatPreferences {
          * @return this builder
          */
         public Builder indentRelative(final Indentation indentation) {
+            Assert.checkNotNullParam("indentation", indentation);
             absoluteIndents.remove(indentation);
             return this;
         }
@@ -699,6 +705,8 @@ public final class FormatPreferences {
          * @return this builder
          */
         public Builder space(final Space space, final SpaceType type) {
+            Assert.checkNotNullParam("space", space);
+            Assert.checkNotNullParam("type", type);
             spaceTypes.put(space, type);
             return this;
         }
@@ -712,6 +720,7 @@ public final class FormatPreferences {
          * @return this builder
          */
         public Builder addOption(final Opt opt) {
+            Assert.checkNotNullParam("opt", opt);
             options.add(opt);
             return this;
         }
@@ -723,6 +732,7 @@ public final class FormatPreferences {
          * @return this builder
          */
         public Builder removeOption(final Opt opt) {
+            Assert.checkNotNullParam("opt", opt);
             options.remove(opt);
             return this;
         }
@@ -737,6 +747,8 @@ public final class FormatPreferences {
          * @return this builder
          */
         public Builder wrapMode(final Wrapping wrapping, final WrappingMode mode) {
+            Assert.checkNotNullParam("wrapping", wrapping);
+            Assert.checkNotNullParam("mode", mode);
             wrappingModes.put(wrapping, mode);
             return this;
         }
@@ -750,6 +762,7 @@ public final class FormatPreferences {
          * @return this builder
          */
         public Builder lineLength(final int lineLength) {
+            Assert.checkMinimumParameter("lineLength", 1, lineLength);
             this.lineLength = lineLength;
             return this;
         }
@@ -772,6 +785,7 @@ public final class FormatPreferences {
          * @return this builder
          */
         public Builder tabWidth(final int tabWidth) {
+            Assert.checkMinimumParameter("tabWidth", 1, tabWidth);
             this.tabWidth = tabWidth;
             return this;
         }
@@ -804,6 +818,7 @@ public final class FormatPreferences {
          * @return this builder
          */
         public Builder fromProperties(final Properties properties) {
+            Assert.checkNotNullParam("properties", properties);
             String val;
             if ((val = properties.getProperty("line-length")) != null) {
                 this.lineLength = Integer.parseInt(val);

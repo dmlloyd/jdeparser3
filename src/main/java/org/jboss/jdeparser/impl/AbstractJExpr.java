@@ -3,9 +3,12 @@ package org.jboss.jdeparser.impl;
 import java.io.IOException;
 import java.util.List;
 
+import io.smallrye.common.constraint.Assert;
+
 import org.jboss.jdeparser.JExpr;
 import org.jboss.jdeparser.JType;
 import org.jboss.jdeparser.JVar;
+import org.jboss.jdeparser.format.FormatPreferences;
 
 /**
  * Abstract base class for all expression nodes.
@@ -56,7 +59,7 @@ public abstract non-sealed class AbstractJExpr implements JExpr, Writable {
                                        final Assoc side) throws IOException {
         final AbstractJExpr asub = (AbstractJExpr) sub;
         final boolean needParens = asub.precedence().ordinal() < parentPrec.ordinal()
-            || (asub.precedence() == parentPrec && parentAssoc != side);
+            || asub.precedence() == parentPrec && parentAssoc != side;
         if (needParens) {
             writer.write(Tokens.$PAREN.OPEN);
             asub.write(writer);
@@ -88,6 +91,41 @@ public abstract non-sealed class AbstractJExpr implements JExpr, Writable {
         ((AbstractJType) type).write(writer);
     }
 
+    /**
+     * Writes a comma-separated list of writable items.
+     *
+     * @param writer the source file writer
+     * @param items  the items to write
+     * @param space  the spacing rule to apply after each comma
+     * @throws IOException if an I/O error occurs
+     */
+    protected static void writeList(final SourceFileWriter writer, final List<?> items,
+                                    final FormatPreferences.Space space) throws IOException {
+        writeList(writer, items, Tokens.$PUNCT.COMMA, space);
+    }
+
+    /**
+     * Writes a comma-separated list of writable items.
+     *
+     * @param writer the source file writer
+     * @param items  the items to write
+     * @param token  the token of the delimiter
+     * @param space  the spacing rule to apply after each delimiter
+     * @throws IOException if an I/O error occurs
+     */
+    protected static void writeList(final SourceFileWriter writer, final List<?> items, final Token token,
+                                    final FormatPreferences.Space space) throws IOException {
+        int size = items.size();
+        if (size > 0) {
+            ((Writable) items.get(0)).write(writer);
+            for (int i = 1; i < size; i++) {
+                writer.write(token);
+                writer.write(space);
+                ((Writable) items.get(i)).write(writer);
+            }
+        }
+    }
+
     // ── Precedence and associativity ──────────────────────────────────────
 
     /**
@@ -109,30 +147,35 @@ public abstract non-sealed class AbstractJExpr implements JExpr, Writable {
     /** {@inheritDoc} */
     @Override
     public JExpr add(final JExpr other) {
+        Assert.checkNotNullParam("other", other);
         return new BinaryJExpr(this, Tokens.$BINOP.PLUS, other, Prec.ADDITIVE, Assoc.LEFT);
     }
 
     /** {@inheritDoc} */
     @Override
     public JExpr sub(final JExpr other) {
+        Assert.checkNotNullParam("other", other);
         return new BinaryJExpr(this, Tokens.$BINOP.MINUS, other, Prec.ADDITIVE, Assoc.LEFT);
     }
 
     /** {@inheritDoc} */
     @Override
     public JExpr mul(final JExpr other) {
+        Assert.checkNotNullParam("other", other);
         return new BinaryJExpr(this, Tokens.$BINOP.TIMES, other, Prec.MULTIPLICATIVE, Assoc.LEFT);
     }
 
     /** {@inheritDoc} */
     @Override
     public JExpr div(final JExpr other) {
+        Assert.checkNotNullParam("other", other);
         return new BinaryJExpr(this, Tokens.$BINOP.DIV, other, Prec.MULTIPLICATIVE, Assoc.LEFT);
     }
 
     /** {@inheritDoc} */
     @Override
     public JExpr mod(final JExpr other) {
+        Assert.checkNotNullParam("other", other);
         return new BinaryJExpr(this, Tokens.$BINOP.MOD, other, Prec.MULTIPLICATIVE, Assoc.LEFT);
     }
 
@@ -153,18 +196,21 @@ public abstract non-sealed class AbstractJExpr implements JExpr, Writable {
     /** {@inheritDoc} */
     @Override
     public JExpr bitAnd(final JExpr other) {
+        Assert.checkNotNullParam("other", other);
         return new BinaryJExpr(this, Tokens.$BINOP.BIT_AND, other, Prec.BITWISE_AND, Assoc.LEFT);
     }
 
     /** {@inheritDoc} */
     @Override
     public JExpr bitOr(final JExpr other) {
+        Assert.checkNotNullParam("other", other);
         return new BinaryJExpr(this, Tokens.$BINOP.BIT_OR, other, Prec.BITWISE_OR, Assoc.LEFT);
     }
 
     /** {@inheritDoc} */
     @Override
     public JExpr bitXor(final JExpr other) {
+        Assert.checkNotNullParam("other", other);
         return new BinaryJExpr(this, Tokens.$BINOP.BIT_XOR, other, Prec.BITWISE_XOR, Assoc.LEFT);
     }
 
@@ -179,18 +225,21 @@ public abstract non-sealed class AbstractJExpr implements JExpr, Writable {
     /** {@inheritDoc} */
     @Override
     public JExpr shl(final JExpr other) {
+        Assert.checkNotNullParam("other", other);
         return new BinaryJExpr(this, Tokens.$BINOP.SHL, other, Prec.SHIFT, Assoc.LEFT);
     }
 
     /** {@inheritDoc} */
     @Override
     public JExpr shr(final JExpr other) {
+        Assert.checkNotNullParam("other", other);
         return new BinaryJExpr(this, Tokens.$BINOP.SHR, other, Prec.SHIFT, Assoc.LEFT);
     }
 
     /** {@inheritDoc} */
     @Override
     public JExpr ushr(final JExpr other) {
+        Assert.checkNotNullParam("other", other);
         return new BinaryJExpr(this, Tokens.$BINOP.USHR, other, Prec.SHIFT, Assoc.LEFT);
     }
 
@@ -199,12 +248,14 @@ public abstract non-sealed class AbstractJExpr implements JExpr, Writable {
     /** {@inheritDoc} */
     @Override
     public JExpr eq(final JExpr other) {
+        Assert.checkNotNullParam("other", other);
         return new BinaryJExpr(this, Tokens.$BINOP.EQ, other, Prec.EQUALITY, Assoc.NONE);
     }
 
     /** {@inheritDoc} */
     @Override
     public JExpr ne(final JExpr other) {
+        Assert.checkNotNullParam("other", other);
         return new BinaryJExpr(this, Tokens.$BINOP.NE, other, Prec.EQUALITY, Assoc.NONE);
     }
 
@@ -213,24 +264,28 @@ public abstract non-sealed class AbstractJExpr implements JExpr, Writable {
     /** {@inheritDoc} */
     @Override
     public JExpr lt(final JExpr other) {
+        Assert.checkNotNullParam("other", other);
         return new BinaryJExpr(this, Tokens.$BINOP.LT, other, Prec.RELATIONAL, Assoc.NONE);
     }
 
     /** {@inheritDoc} */
     @Override
     public JExpr gt(final JExpr other) {
+        Assert.checkNotNullParam("other", other);
         return new BinaryJExpr(this, Tokens.$BINOP.GT, other, Prec.RELATIONAL, Assoc.NONE);
     }
 
     /** {@inheritDoc} */
     @Override
     public JExpr le(final JExpr other) {
+        Assert.checkNotNullParam("other", other);
         return new BinaryJExpr(this, Tokens.$BINOP.LE, other, Prec.RELATIONAL, Assoc.NONE);
     }
 
     /** {@inheritDoc} */
     @Override
     public JExpr ge(final JExpr other) {
+        Assert.checkNotNullParam("other", other);
         return new BinaryJExpr(this, Tokens.$BINOP.GE, other, Prec.RELATIONAL, Assoc.NONE);
     }
 
@@ -239,12 +294,14 @@ public abstract non-sealed class AbstractJExpr implements JExpr, Writable {
     /** {@inheritDoc} */
     @Override
     public JExpr and(final JExpr other) {
+        Assert.checkNotNullParam("other", other);
         return new BinaryJExpr(this, Tokens.$BINOP.LOGICAL_AND, other, Prec.LOGICAL_AND, Assoc.LEFT);
     }
 
     /** {@inheritDoc} */
     @Override
     public JExpr or(final JExpr other) {
+        Assert.checkNotNullParam("other", other);
         return new BinaryJExpr(this, Tokens.$BINOP.LOGICAL_OR, other, Prec.LOGICAL_OR, Assoc.LEFT);
     }
 
@@ -259,18 +316,23 @@ public abstract non-sealed class AbstractJExpr implements JExpr, Writable {
     /** {@inheritDoc} */
     @Override
     public JExpr cast(final JType type) {
+        Assert.checkNotNullParam("type", type);
         return new CastJExpr(type, this);
     }
 
     /** {@inheritDoc} */
     @Override
     public JExpr instanceof_(final JType type) {
+        Assert.checkNotNullParam("type", type);
         return new InstanceOfJExpr(this, type, null);
     }
 
     /** {@inheritDoc} */
     @Override
     public JExpr instanceof_(final JType type, final String bindingVar) {
+        Assert.checkNotNullParam("type", type);
+        Assert.checkNotNullParam("bindingVar", bindingVar);
+        Assert.checkNotEmptyParam("bindingVar", bindingVar);
         return new InstanceOfJExpr(this, type, bindingVar);
     }
 
@@ -279,6 +341,8 @@ public abstract non-sealed class AbstractJExpr implements JExpr, Writable {
     /** {@inheritDoc} */
     @Override
     public JExpr cond(final JExpr ifTrue, final JExpr ifFalse) {
+        Assert.checkNotNullParam("ifTrue", ifTrue);
+        Assert.checkNotNullParam("ifFalse", ifFalse);
         return new CondJExpr(this, ifTrue, ifFalse);
     }
 
@@ -295,6 +359,8 @@ public abstract non-sealed class AbstractJExpr implements JExpr, Writable {
     /** {@inheritDoc} */
     @Override
     public JVar field(final String name) {
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
         return new FieldRefJExpr(this, name);
     }
 
@@ -302,13 +368,10 @@ public abstract non-sealed class AbstractJExpr implements JExpr, Writable {
 
     /** {@inheritDoc} */
     @Override
-    public JExpr call(final String name, final JExpr... args) {
-        return call(name, List.of(args));
-    }
-
-    /** {@inheritDoc} */
-    @Override
     public JExpr call(final String name, final List<JExpr> args) {
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
+        Assert.checkNotNullParam("args", args);
         return new CallJExpr(this, name, args);
     }
 
@@ -317,6 +380,7 @@ public abstract non-sealed class AbstractJExpr implements JExpr, Writable {
     /** {@inheritDoc} */
     @Override
     public JVar idx(final JExpr index) {
+        Assert.checkNotNullParam("index", index);
         return new ArrayLookupJExpr(this, index);
     }
 

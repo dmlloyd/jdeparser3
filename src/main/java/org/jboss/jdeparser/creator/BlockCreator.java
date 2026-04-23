@@ -1,5 +1,6 @@
 package org.jboss.jdeparser.creator;
 
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -225,14 +226,32 @@ public sealed interface BlockCreator permits BlockCreatorImpl {
      *
      * @param args the constructor arguments
      */
-    void callThis(JExpr... args);
+    default void callThis(JExpr... args) {
+        callThis(List.of(args));
+    }
+
+    /**
+     * Adds a {@code this(...)} constructor delegation call.
+     *
+     * @param args the constructor arguments as a list
+     */
+    void callThis(List<JExpr> args);
 
     /**
      * Adds a {@code super(...)} constructor delegation call.
      *
      * @param args the constructor arguments
      */
-    void callSuper(JExpr... args);
+    default void callSuper(JExpr... args) {
+        callSuper(List.of(args));
+    }
+
+    /**
+     * Adds a {@code super(...)} constructor delegation call.
+     *
+     * @param args the constructor arguments as a list
+     */
+    void callSuper(List<JExpr> args);
 
     // ---- Local types ----
 

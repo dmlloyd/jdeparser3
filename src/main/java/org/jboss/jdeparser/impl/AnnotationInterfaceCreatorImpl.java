@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+import io.smallrye.common.constraint.Assert;
+
 import org.jboss.jdeparser.JExpr;
 import org.jboss.jdeparser.JType;
 import org.jboss.jdeparser.SourceVersion;
@@ -66,6 +68,11 @@ public final class AnnotationInterfaceCreatorImpl extends AbstractCreator implem
     @Override
     public void element(final String name, final JType type, final JExpr defaultValue) {
         checkActive();
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
+        Assert.checkNotNullParam("type", type);
+        Assert.checkNotNullParam("defaultValue", defaultValue);
+        registerUsedType(type);
         members.add(new AnnotationElement(name, type, defaultValue));
     }
 
@@ -73,6 +80,10 @@ public final class AnnotationInterfaceCreatorImpl extends AbstractCreator implem
     @Override
     public void element(final String name, final JType type) {
         checkActive();
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
+        Assert.checkNotNullParam("type", type);
+        registerUsedType(type);
         members.add(new AnnotationElement(name, type, null));
     }
 
@@ -80,7 +91,11 @@ public final class AnnotationInterfaceCreatorImpl extends AbstractCreator implem
     @Override
     public void constant(final String name, final Consumer<FieldCreator> builder) {
         checkActive();
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
+        Assert.checkNotNullParam("builder", builder);
         final FieldCreatorImpl fc = new FieldCreatorImpl(version(), name, ModifierLocation.INTERFACE_FIELD);
+        fc.sourceFile(sourceFile());
         nest(() -> builder.accept(fc));
         fc.finish();
         members.add(fc);
@@ -90,6 +105,7 @@ public final class AnnotationInterfaceCreatorImpl extends AbstractCreator implem
     @Override
     public void setAccess(final AccessLevel access) {
         checkActive();
+        Assert.checkNotNullParam("access", access);
         modifiers.setAccess(access);
     }
 
@@ -97,6 +113,7 @@ public final class AnnotationInterfaceCreatorImpl extends AbstractCreator implem
     @Override
     public void addFlag(final ModifierFlag flag) {
         checkActive();
+        Assert.checkNotNullParam("flag", flag);
         modifiers.addFlag(flag);
     }
 
@@ -104,6 +121,7 @@ public final class AnnotationInterfaceCreatorImpl extends AbstractCreator implem
     @Override
     public void removeFlag(final ModifierFlag flag) {
         checkActive();
+        Assert.checkNotNullParam("flag", flag);
         modifiers.removeFlag(flag);
     }
 
@@ -111,7 +129,11 @@ public final class AnnotationInterfaceCreatorImpl extends AbstractCreator implem
     @Override
     public void annotate(final JType annotationType, final Consumer<AnnotationCreator> builder) {
         checkActive();
+        Assert.checkNotNullParam("annotationType", annotationType);
+        Assert.checkNotNullParam("builder", builder);
+        registerUsedType(annotationType);
         final AnnotationCreatorImpl ac = new AnnotationCreatorImpl(version(), annotationType);
+        ac.sourceFile(sourceFile());
         nest(() -> builder.accept(ac));
         ac.finish();
         annotations.add(ac);
@@ -121,6 +143,8 @@ public final class AnnotationInterfaceCreatorImpl extends AbstractCreator implem
     @Override
     public void annotate(final JType annotationType) {
         checkActive();
+        Assert.checkNotNullParam("annotationType", annotationType);
+        registerUsedType(annotationType);
         annotations.add(new AnnotationCreatorImpl(version(), annotationType));
     }
 
@@ -128,10 +152,29 @@ public final class AnnotationInterfaceCreatorImpl extends AbstractCreator implem
     @Override
     public void docComment(final Consumer<DocCommentCreator> builder) {
         checkActive();
-        final DocCommentCreatorImpl dc = new DocCommentCreatorImpl(version());
+        Assert.checkNotNullParam("builder", builder);
+        final DocCommentCreatorImpl dc = getOrCreateDocComment();
         nest(() -> builder.accept(dc));
         dc.finish();
-        this.docComment = dc;
+    }
+
+    /**
+     * Returns the existing doc comment creator, or creates one on demand.
+     * <p>
+     * If a creator already exists from a prior call, it is reopened
+     * for further configuration.
+     *
+     * @return the doc comment creator
+     */
+    private DocCommentCreatorImpl getOrCreateDocComment() {
+        DocCommentCreatorImpl dc = this.docComment;
+        if (dc == null) {
+            dc = new DocCommentCreatorImpl(version(), sourceFile(), DocContext.TYPE);
+            this.docComment = dc;
+        } else {
+            dc.reopen();
+        }
+        return dc;
     }
 
     /** {@inheritDoc} */

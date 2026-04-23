@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+import io.smallrye.common.constraint.Assert;
+
 import org.jboss.jdeparser.JExpr;
 import org.jboss.jdeparser.JType;
 import org.jboss.jdeparser.SourceVersion;
@@ -52,6 +54,7 @@ public final class EnumConstantCreatorImpl extends AbstractCreator implements En
     @Override
     public void arg(final JExpr value) {
         checkActive();
+        Assert.checkNotNullParam("value", value);
         args.add(value);
     }
 
@@ -59,7 +62,9 @@ public final class EnumConstantCreatorImpl extends AbstractCreator implements En
     @Override
     public void body(final Consumer<ClassCreator> builder) {
         checkActive();
+        Assert.checkNotNullParam("builder", builder);
         final ClassCreatorImpl cc = new ClassCreatorImpl(version(), name, false);
+        cc.sourceFile(sourceFile());
         nest(() -> builder.accept(cc));
         cc.finish();
         this.body = cc;
@@ -69,7 +74,11 @@ public final class EnumConstantCreatorImpl extends AbstractCreator implements En
     @Override
     public void annotate(final JType annotationType, final Consumer<AnnotationCreator> builder) {
         checkActive();
+        Assert.checkNotNullParam("annotationType", annotationType);
+        Assert.checkNotNullParam("builder", builder);
+        registerUsedType(annotationType);
         final AnnotationCreatorImpl ac = new AnnotationCreatorImpl(version(), annotationType);
+        ac.sourceFile(sourceFile());
         nest(() -> builder.accept(ac));
         ac.finish();
         annotations.add(ac);
@@ -79,6 +88,8 @@ public final class EnumConstantCreatorImpl extends AbstractCreator implements En
     @Override
     public void annotate(final JType annotationType) {
         checkActive();
+        Assert.checkNotNullParam("annotationType", annotationType);
+        registerUsedType(annotationType);
         annotations.add(new AnnotationCreatorImpl(version(), annotationType));
     }
 
@@ -86,10 +97,29 @@ public final class EnumConstantCreatorImpl extends AbstractCreator implements En
     @Override
     public void docComment(final Consumer<DocCommentCreator> builder) {
         checkActive();
-        final DocCommentCreatorImpl dc = new DocCommentCreatorImpl(version());
+        Assert.checkNotNullParam("builder", builder);
+        final DocCommentCreatorImpl dc = getOrCreateDocComment();
         nest(() -> builder.accept(dc));
         dc.finish();
-        this.docComment = dc;
+    }
+
+    /**
+     * Returns the existing doc comment creator, or creates one on demand.
+     * <p>
+     * If a creator already exists from a prior call, it is reopened
+     * for further configuration.
+     *
+     * @return the doc comment creator
+     */
+    private DocCommentCreatorImpl getOrCreateDocComment() {
+        DocCommentCreatorImpl dc = this.docComment;
+        if (dc == null) {
+            dc = new DocCommentCreatorImpl(version(), sourceFile(), DocContext.FIELD);
+            this.docComment = dc;
+        } else {
+            dc.reopen();
+        }
+        return dc;
     }
 
     /** {@inheritDoc} */
@@ -104,15 +134,7 @@ public final class EnumConstantCreatorImpl extends AbstractCreator implements En
         writer.writeName(name);
         if (!args.isEmpty()) {
             writer.write(Tokens.$PAREN.OPEN);
-            boolean first = true;
-            for (JExpr arg : args) {
-                if (!first) {
-                    writer.write(Tokens.$PUNCT.COMMA);
-                    writer.write(FormatPreferences.Space.AFTER_COMMA);
-                }
-                first = false;
-                AbstractJExpr.writeExpr(writer, arg);
-            }
+            AbstractJExpr.writeList(writer, args, FormatPreferences.Space.AFTER_COMMA);
             writer.write(Tokens.$PAREN.CLOSE);
         }
         if (body != null) {

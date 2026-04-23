@@ -6,9 +6,9 @@ import org.jboss.jdeparser.impl.RecordComponentCreatorImpl;
  * A creator for configuring a record component.
  * <p>
  * Extends {@link AnnotatableCreator} for adding annotations and
- * {@link DocCommentableCreator} so that documentation set here is
- * replicated to both the record type {@code @param} tag and the
- * canonical constructor {@code @param} tag.
+ * {@link DocCommentableCreator DocCommentableCreator&lt;DocInlineCreator&gt;}
+ * so that documentation set here is contributed as inline content
+ * within the enclosing record's Javadoc comment.
  */
-public sealed interface RecordComponentCreator extends AnnotatableCreator, DocCommentableCreator permits RecordComponentCreatorImpl {
+public sealed interface RecordComponentCreator extends AnnotatableCreator, DocCommentableCreator<DocInlineCreator> permits RecordComponentCreatorImpl {
 }

@@ -105,7 +105,7 @@ public final class PrimitiveJType extends AbstractJType {
      * @throws IllegalStateException always, since primitive types cannot have type arguments
      */
     @Override
-    public JType typeArg(final JType... args) {
+    public JType typeArg(final List<JType> args) {
         throw new IllegalStateException("Primitive types cannot have type arguments");
     }
 

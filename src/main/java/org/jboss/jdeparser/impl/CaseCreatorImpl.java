@@ -2,6 +2,8 @@ package org.jboss.jdeparser.impl;
 
 import java.util.function.Consumer;
 
+import io.smallrye.common.constraint.Assert;
+
 import org.jboss.jdeparser.JExpr;
 import org.jboss.jdeparser.SourceVersion;
 import org.jboss.jdeparser.creator.BlockCreator;
@@ -32,6 +34,7 @@ public final class CaseCreatorImpl extends AbstractCreator implements CaseCreato
     @Override
     public void when_(final JExpr guard) {
         checkActive();
+        Assert.checkNotNullParam("guard", guard);
         this.guard = guard;
     }
 
@@ -39,7 +42,9 @@ public final class CaseCreatorImpl extends AbstractCreator implements CaseCreato
     @Override
     public void body(final Consumer<BlockCreator> body) {
         checkActive();
+        Assert.checkNotNullParam("body", body);
         final BlockCreatorImpl bc = new BlockCreatorImpl(version());
+        bc.sourceFile(sourceFile());
         nest(() -> body.accept(bc));
         bc.finish();
         this.body = bc;

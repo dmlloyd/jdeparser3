@@ -3,6 +3,8 @@ package org.jboss.jdeparser.impl;
 import java.io.IOException;
 import java.util.function.Consumer;
 
+import io.smallrye.common.constraint.Assert;
+
 import org.jboss.jdeparser.JType;
 import org.jboss.jdeparser.SourceVersion;
 import org.jboss.jdeparser.creator.AccessLevel;
@@ -37,8 +39,8 @@ public final class ParamCreatorImpl extends AbstractCreator implements ParamCrea
     /** The annotation holder for this parameter. */
     private final AnnotationHolder annotations = new AnnotationHolder();
 
-    /** Optional doc comment for this parameter. */
-    private DocCommentCreatorImpl docComment;
+    /** Optional inline doc comment for this parameter. */
+    private DocInlineCreatorImpl docComment;
 
     /**
      * Constructs a new parameter creator.
@@ -65,11 +67,11 @@ public final class ParamCreatorImpl extends AbstractCreator implements ParamCrea
     }
 
     /**
-     * Returns the doc comment creator, if documentation was configured.
+     * Returns the inline doc comment creator, if documentation was configured.
      *
-     * @return the doc comment, or {@code null}
+     * @return the inline doc comment, or {@code null}
      */
-    public DocCommentCreatorImpl docComment() {
+    public DocInlineCreatorImpl docComment() {
         return docComment;
     }
 
@@ -83,6 +85,7 @@ public final class ParamCreatorImpl extends AbstractCreator implements ParamCrea
     @Override
     public void setAccess(final AccessLevel access) {
         checkActive();
+        Assert.checkNotNullParam("access", access);
         modifiers.setAccess(access);
     }
 
@@ -90,6 +93,7 @@ public final class ParamCreatorImpl extends AbstractCreator implements ParamCrea
     @Override
     public void addFlag(final ModifierFlag flag) {
         checkActive();
+        Assert.checkNotNullParam("flag", flag);
         modifiers.addFlag(flag);
     }
 
@@ -97,6 +101,7 @@ public final class ParamCreatorImpl extends AbstractCreator implements ParamCrea
     @Override
     public void removeFlag(final ModifierFlag flag) {
         checkActive();
+        Assert.checkNotNullParam("flag", flag);
         modifiers.removeFlag(flag);
     }
 
@@ -104,7 +109,11 @@ public final class ParamCreatorImpl extends AbstractCreator implements ParamCrea
     @Override
     public void annotate(final JType annotationType, final Consumer<AnnotationCreator> builder) {
         checkActive();
+        Assert.checkNotNullParam("annotationType", annotationType);
+        Assert.checkNotNullParam("builder", builder);
+        registerUsedType(annotationType);
         final AnnotationCreatorImpl ac = new AnnotationCreatorImpl(version(), annotationType);
+        ac.sourceFile(sourceFile());
         nest(() -> builder.accept(ac));
         ac.finish();
         annotations.add(ac);
@@ -114,6 +123,8 @@ public final class ParamCreatorImpl extends AbstractCreator implements ParamCrea
     @Override
     public void annotate(final JType annotationType) {
         checkActive();
+        Assert.checkNotNullParam("annotationType", annotationType);
+        registerUsedType(annotationType);
         annotations.add(new AnnotationCreatorImpl(version(), annotationType));
     }
 
@@ -121,10 +132,32 @@ public final class ParamCreatorImpl extends AbstractCreator implements ParamCrea
     @Override
     public void docComment(final Consumer<DocCommentCreator> builder) {
         checkActive();
-        final DocCommentCreatorImpl dc = new DocCommentCreatorImpl(version());
-        nest(() -> builder.accept(dc));
+        Assert.checkNotNullParam("builder", builder);
+        final DocInlineCreatorImpl dc = getOrCreateDocComment();
+        nest(() -> builder.accept((DocCommentCreator) dc));
         dc.finish();
-        this.docComment = dc;
+    }
+
+    /**
+     * Returns the existing inline doc comment creator, or creates one on demand.
+     * <p>
+     * A {@link DocCommentCreatorImpl} is created (to satisfy the
+     * {@link DocCommentCreator} API), but stored as {@link DocInlineCreatorImpl}
+     * since only the inline content is used for {@code @param} tag generation.
+     * If a creator already exists from a prior call, it is reopened for
+     * further configuration.
+     *
+     * @return the inline doc comment creator
+     */
+    private DocInlineCreatorImpl getOrCreateDocComment() {
+        DocInlineCreatorImpl dc = this.docComment;
+        if (dc == null) {
+            dc = new DocCommentCreatorImpl(version(), sourceFile(), null);
+            this.docComment = dc;
+        } else {
+            dc.reopen();
+        }
+        return dc;
     }
 
     /** {@inheritDoc} */

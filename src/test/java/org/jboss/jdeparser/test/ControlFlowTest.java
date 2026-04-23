@@ -8,8 +8,10 @@ import org.jboss.jdeparser.JSources;
 import org.jboss.jdeparser.JType;
 import org.jboss.jdeparser.JTypes;
 import org.jboss.jdeparser.SourceVersion;
+import org.jboss.jdeparser.creator.BlockCreator;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -210,7 +212,7 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
         assertTrue(source.contains("try"), "should contain try keyword");
         assertTrue(source.contains("riskyOperation();"), "should contain try body");
         assertTrue(source.contains("catch"), "should contain catch keyword");
-        assertTrue(source.contains("java.lang.Exception e"), "should contain catch parameter");
+        assertTrue(source.contains("Exception e"), "should contain catch parameter");
         assertTrue(source.contains("e.printStackTrace();"), "should contain catch body");
         assertTrue(source.contains("finally"), "should contain finally keyword");
         assertTrue(source.contains("cleanup();"), "should contain finally body");
@@ -374,7 +376,7 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
         });
         sources.writeSources();
         final String source = getSource("com.example", "ThrowStmt");
-        assertTrue(source.contains("throw new java.lang.Exception();"),
+        assertTrue(source.contains("throw new Exception();"),
             "should contain throw with new exception");
     }
 
@@ -397,12 +399,8 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
                             fb.condition(JExprs.$v("i").lt(JExprs.$v("n")));
                             fb.update(JExprs.$v("i").postInc());
                             fb.body(loop -> {
-                                loop.if_(JExprs.$v("i").eq(JExprs.decimal(5)), then -> {
-                                    then.break_();
-                                });
-                                loop.if_(JExprs.$v("i").eq(JExprs.decimal(3)), then -> {
-                                    then.continue_();
-                                });
+                                loop.if_(JExprs.$v("i").eq(JExprs.decimal(5)), BlockCreator::break_);
+                                loop.if_(JExprs.$v("i").eq(JExprs.decimal(3)), BlockCreator::continue_);
                             });
                         });
                     });
@@ -426,9 +424,7 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
         sources.createSourceFile("com.example", "EmptyStmt", sf -> {
             sf.class_("EmptyStmt", cc -> {
                 cc.method("noop", mc -> {
-                    mc.body(b -> {
-                        b.empty();
-                    });
+                    mc.body(BlockCreator::empty);
                 });
             });
         });
@@ -508,6 +504,86 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
         assertTrue(source.contains("{"), "should contain opening brace for nested block");
         assertTrue(source.contains("}"), "should contain closing brace for nested block");
         assertTrue(source.contains("int y = 99;"), "should contain statement inside nested block");
+    }
+
+    /**
+     * Verifies that {@code break;} has no spurious space between the keyword
+     * and the semicolon.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void breakNoExtraSpace() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "BreakSpace", sf -> {
+            sf.class_("BreakSpace", cc -> {
+                cc.method("test", mc -> {
+                    mc.body(b -> {
+                        b.while_(JExpr.TRUE, loop -> {
+                            loop.break_();
+                        });
+                    });
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "BreakSpace");
+        assertTrue(source.contains("break;"), "should contain break; without space");
+        assertFalse(source.contains("break ;"), "should not contain space before semicolon in break");
+    }
+
+    /**
+     * Verifies that {@code continue;} has no spurious space between the keyword
+     * and the semicolon.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void continueNoExtraSpace() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "ContinueSpace", sf -> {
+            sf.class_("ContinueSpace", cc -> {
+                cc.method("test", mc -> {
+                    mc.body(b -> {
+                        b.while_(JExpr.TRUE, loop -> {
+                            loop.continue_();
+                        });
+                    });
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "ContinueSpace");
+        assertTrue(source.contains("continue;"), "should contain continue; without space");
+        assertFalse(source.contains("continue ;"), "should not contain space before semicolon in continue");
+    }
+
+    /**
+     * Verifies that the first method after a constructor body has correct
+     * 4-space indentation, not 5-space indentation caused by a stale
+     * token state from the closing brace.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void noExtraIndentAfterConstructor() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "IndentAfterCtor", sf -> {
+            sf.class_("IndentAfterCtor", cc -> {
+                cc.constructor(ctor -> {
+                    ctor.body(b -> {});
+                });
+                cc.method("foo", mc -> {
+                    mc.body(b -> {});
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "IndentAfterCtor");
+        assertTrue(source.contains("    void foo()"),
+                "method after constructor should have 4-space indentation");
+        assertFalse(source.contains("     void foo()"),
+                "method after constructor should not have 5-space indentation");
     }
 
     /**

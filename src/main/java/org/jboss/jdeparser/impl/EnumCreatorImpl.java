@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+import io.smallrye.common.constraint.Assert;
+
 import org.jboss.jdeparser.JType;
 import org.jboss.jdeparser.SourceVersion;
 import org.jboss.jdeparser.creator.AccessLevel;
@@ -71,6 +73,8 @@ public final class EnumCreatorImpl extends AbstractCreator implements EnumCreato
     @Override
     public void implements_(final JType interfaceType) {
         checkActive();
+        Assert.checkNotNullParam("interfaceType", interfaceType);
+        registerUsedType(interfaceType);
         interfaces.add(interfaceType);
     }
 
@@ -78,7 +82,11 @@ public final class EnumCreatorImpl extends AbstractCreator implements EnumCreato
     @Override
     public void constant(final String name, final Consumer<EnumConstantCreator> builder) {
         checkActive();
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
+        Assert.checkNotNullParam("builder", builder);
         final EnumConstantCreatorImpl ec = new EnumConstantCreatorImpl(version(), name);
+        ec.sourceFile(sourceFile());
         nest(() -> builder.accept(ec));
         ec.finish();
         constants.add(ec);
@@ -88,7 +96,11 @@ public final class EnumCreatorImpl extends AbstractCreator implements EnumCreato
     @Override
     public void field(final String name, final Consumer<FieldCreator> builder) {
         checkActive();
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
+        Assert.checkNotNullParam("builder", builder);
         final FieldCreatorImpl fc = new FieldCreatorImpl(version(), name, ModifierLocation.FIELD);
+        fc.sourceFile(sourceFile());
         nest(() -> builder.accept(fc));
         fc.finish();
         members.add(fc);
@@ -98,7 +110,11 @@ public final class EnumCreatorImpl extends AbstractCreator implements EnumCreato
     @Override
     public void method(final String name, final Consumer<MethodCreator> builder) {
         checkActive();
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
+        Assert.checkNotNullParam("builder", builder);
         final MethodCreatorImpl mc = new MethodCreatorImpl(version(), name, ModifierLocation.METHOD);
+        mc.sourceFile(sourceFile());
         nest(() -> builder.accept(mc));
         mc.finish();
         members.add(mc);
@@ -108,8 +124,10 @@ public final class EnumCreatorImpl extends AbstractCreator implements EnumCreato
     @Override
     public void constructor(final Consumer<ConstructorCreator> builder) {
         checkActive();
+        Assert.checkNotNullParam("builder", builder);
         final ConstructorCreatorImpl cc = new ConstructorCreatorImpl(version());
         cc.setClassName(name);
+        cc.sourceFile(sourceFile());
         nest(() -> builder.accept(cc));
         cc.finish();
         members.add(cc);
@@ -119,6 +137,7 @@ public final class EnumCreatorImpl extends AbstractCreator implements EnumCreato
     @Override
     public void setAccess(final AccessLevel access) {
         checkActive();
+        Assert.checkNotNullParam("access", access);
         modifiers.setAccess(access);
     }
 
@@ -126,6 +145,7 @@ public final class EnumCreatorImpl extends AbstractCreator implements EnumCreato
     @Override
     public void addFlag(final ModifierFlag flag) {
         checkActive();
+        Assert.checkNotNullParam("flag", flag);
         modifiers.addFlag(flag);
     }
 
@@ -133,6 +153,7 @@ public final class EnumCreatorImpl extends AbstractCreator implements EnumCreato
     @Override
     public void removeFlag(final ModifierFlag flag) {
         checkActive();
+        Assert.checkNotNullParam("flag", flag);
         modifiers.removeFlag(flag);
     }
 
@@ -140,7 +161,11 @@ public final class EnumCreatorImpl extends AbstractCreator implements EnumCreato
     @Override
     public void annotate(final JType annotationType, final Consumer<AnnotationCreator> builder) {
         checkActive();
+        Assert.checkNotNullParam("annotationType", annotationType);
+        Assert.checkNotNullParam("builder", builder);
+        registerUsedType(annotationType);
         final AnnotationCreatorImpl ac = new AnnotationCreatorImpl(version(), annotationType);
+        ac.sourceFile(sourceFile());
         nest(() -> builder.accept(ac));
         ac.finish();
         annotations.add(ac);
@@ -150,6 +175,8 @@ public final class EnumCreatorImpl extends AbstractCreator implements EnumCreato
     @Override
     public void annotate(final JType annotationType) {
         checkActive();
+        Assert.checkNotNullParam("annotationType", annotationType);
+        registerUsedType(annotationType);
         annotations.add(new AnnotationCreatorImpl(version(), annotationType));
     }
 
@@ -157,10 +184,29 @@ public final class EnumCreatorImpl extends AbstractCreator implements EnumCreato
     @Override
     public void docComment(final Consumer<DocCommentCreator> builder) {
         checkActive();
-        final DocCommentCreatorImpl dc = new DocCommentCreatorImpl(version());
+        Assert.checkNotNullParam("builder", builder);
+        final DocCommentCreatorImpl dc = getOrCreateDocComment();
         nest(() -> builder.accept(dc));
         dc.finish();
-        this.docComment = dc;
+    }
+
+    /**
+     * Returns the existing doc comment creator, or creates one on demand.
+     * <p>
+     * If a creator already exists from a prior call, it is reopened
+     * for further configuration.
+     *
+     * @return the doc comment creator
+     */
+    private DocCommentCreatorImpl getOrCreateDocComment() {
+        DocCommentCreatorImpl dc = this.docComment;
+        if (dc == null) {
+            dc = new DocCommentCreatorImpl(version(), sourceFile(), DocContext.TYPE);
+            this.docComment = dc;
+        } else {
+            dc.reopen();
+        }
+        return dc;
     }
 
     /** {@inheritDoc} */
@@ -223,14 +269,6 @@ public final class EnumCreatorImpl extends AbstractCreator implements EnumCreato
      * @throws IOException if an I/O error occurs
      */
     private static void writeTypeList(final SourceFileWriter writer, final List<JType> types) throws IOException {
-        boolean first = true;
-        for (JType t : types) {
-            if (!first) {
-                writer.write(Tokens.$PUNCT.COMMA);
-                writer.write(FormatPreferences.Space.AFTER_COMMA);
-            }
-            first = false;
-            AbstractJExpr.writeType(writer, t);
-        }
+        AbstractJExpr.writeList(writer, types, FormatPreferences.Space.AFTER_COMMA);
     }
 }

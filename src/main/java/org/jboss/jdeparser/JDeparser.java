@@ -1,5 +1,7 @@
 package org.jboss.jdeparser;
 
+import io.smallrye.common.constraint.Assert;
+
 import org.jboss.jdeparser.format.FormatPreferences;
 import org.jboss.jdeparser.format.JFiler;
 import org.jboss.jdeparser.impl.JSourcesImpl;
@@ -38,6 +40,9 @@ public final class JDeparser {
      */
     public static JSources createSources(final JFiler filer, final FormatPreferences preferences,
                                          final SourceVersion sourceVersion) {
+        Assert.checkNotNullParam("filer", filer);
+        Assert.checkNotNullParam("preferences", preferences);
+        Assert.checkNotNullParam("sourceVersion", sourceVersion);
         return new JSourcesImpl(filer, preferences, sourceVersion);
     }
 }

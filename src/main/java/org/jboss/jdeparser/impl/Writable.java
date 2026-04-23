@@ -9,6 +9,9 @@ import java.io.IOException;
  * The formatting engine calls {@link #write(SourceFileWriter)} to emit source
  * code; implementations use the writer's spacing, indentation, and token
  * state machine methods to produce correctly formatted output.
+ * <p>
+ * Writing an element <em>should not</em> mutate its internal state; some elements
+ * may be written more than once.
  */
 @FunctionalInterface
 public interface Writable {

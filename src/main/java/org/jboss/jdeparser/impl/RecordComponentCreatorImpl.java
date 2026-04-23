@@ -3,10 +3,12 @@ package org.jboss.jdeparser.impl;
 import java.io.IOException;
 import java.util.function.Consumer;
 
+import io.smallrye.common.constraint.Assert;
+
 import org.jboss.jdeparser.JType;
 import org.jboss.jdeparser.SourceVersion;
 import org.jboss.jdeparser.creator.AnnotationCreator;
-import org.jboss.jdeparser.creator.DocCommentCreator;
+import org.jboss.jdeparser.creator.DocInlineCreator;
 import org.jboss.jdeparser.creator.RecordComponentCreator;
 
 /**
@@ -30,8 +32,8 @@ public final class RecordComponentCreatorImpl extends AbstractCreator implements
     /** The annotation holder. */
     private final AnnotationHolder annotations = new AnnotationHolder();
 
-    /** Optional doc comment. */
-    private DocCommentCreatorImpl docComment;
+    /** Optional inline doc comment. */
+    private DocInlineCreatorImpl docComment;
 
     /**
      * Constructs a new record component creator.
@@ -56,11 +58,11 @@ public final class RecordComponentCreatorImpl extends AbstractCreator implements
     }
 
     /**
-     * Returns the optional doc comment creator, if one was configured.
+     * Returns the optional inline doc comment creator, if one was configured.
      *
-     * @return the doc comment creator, or {@code null} if none
+     * @return the inline doc comment creator, or {@code null} if none
      */
-    public DocCommentCreatorImpl docComment() {
+    public DocInlineCreatorImpl docComment() {
         return docComment;
     }
 
@@ -68,7 +70,11 @@ public final class RecordComponentCreatorImpl extends AbstractCreator implements
     @Override
     public void annotate(final JType annotationType, final Consumer<AnnotationCreator> builder) {
         checkActive();
+        Assert.checkNotNullParam("annotationType", annotationType);
+        Assert.checkNotNullParam("builder", builder);
+        registerUsedType(annotationType);
         final AnnotationCreatorImpl ac = new AnnotationCreatorImpl(version(), annotationType);
+        ac.sourceFile(sourceFile());
         nest(() -> builder.accept(ac));
         ac.finish();
         annotations.add(ac);
@@ -78,17 +84,38 @@ public final class RecordComponentCreatorImpl extends AbstractCreator implements
     @Override
     public void annotate(final JType annotationType) {
         checkActive();
+        Assert.checkNotNullParam("annotationType", annotationType);
+        registerUsedType(annotationType);
         annotations.add(new AnnotationCreatorImpl(version(), annotationType));
     }
 
     /** {@inheritDoc} */
     @Override
-    public void docComment(final Consumer<DocCommentCreator> builder) {
+    public void docComment(final Consumer<DocInlineCreator> builder) {
         checkActive();
-        final DocCommentCreatorImpl dc = new DocCommentCreatorImpl(version());
+        Assert.checkNotNullParam("builder", builder);
+        final DocInlineCreatorImpl dc = getOrCreateDocComment();
         nest(() -> builder.accept(dc));
         dc.finish();
-        this.docComment = dc;
+    }
+
+    /**
+     * Returns the existing inline doc comment creator, or creates one on demand.
+     * <p>
+     * If a creator already exists from a prior call, it is reopened for
+     * further configuration.
+     *
+     * @return the inline doc comment creator
+     */
+    private DocInlineCreatorImpl getOrCreateDocComment() {
+        DocInlineCreatorImpl dc = this.docComment;
+        if (dc == null) {
+            dc = new DocInlineCreatorImpl(version(), sourceFile(), null);
+            this.docComment = dc;
+        } else {
+            dc.reopen();
+        }
+        return dc;
     }
 
     /** {@inheritDoc} */

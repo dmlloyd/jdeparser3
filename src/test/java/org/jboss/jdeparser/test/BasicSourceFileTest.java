@@ -6,8 +6,8 @@ import org.jboss.jdeparser.JExpr;
 import org.jboss.jdeparser.JExprs;
 import org.jboss.jdeparser.JSources;
 import org.jboss.jdeparser.JType;
-import org.jboss.jdeparser.JTypes;
 import org.jboss.jdeparser.SourceVersion;
+import org.jboss.jdeparser.creator.ModifiableCreator;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -27,9 +27,7 @@ class BasicSourceFileTest extends AbstractGeneratingTestCase {
     void emptyClass() throws IOException {
         final JSources sources = createSources(SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "Empty", sf -> {
-            sf.class_("Empty", cc -> {
-                cc.public_();
-            });
+            sf.class_("Empty", ModifiableCreator::public_);
         });
         sources.writeSources();
         final String source = getSource("com.example", "Empty");
@@ -58,7 +56,7 @@ class BasicSourceFileTest extends AbstractGeneratingTestCase {
         });
         sources.writeSources();
         final String source = getSource("com.example", "Holder");
-        assertTrue(source.contains("private final java.lang.String name;"), "should contain field");
+        assertTrue(source.contains("private final String name;"), "should contain field");
     }
 
     /**
@@ -83,7 +81,7 @@ class BasicSourceFileTest extends AbstractGeneratingTestCase {
         });
         sources.writeSources();
         final String source = getSource("com.example", "Greeter");
-        assertTrue(source.contains("public java.lang.String greet()"), "should contain method signature");
+        assertTrue(source.contains("public String greet()"), "should contain method signature");
         assertTrue(source.contains("return \"Hello\""), "should contain return statement");
     }
 
@@ -114,7 +112,7 @@ class BasicSourceFileTest extends AbstractGeneratingTestCase {
         });
         sources.writeSources();
         final String source = getSource("com.example", "Person");
-        assertTrue(source.contains("Person(java.lang.String name)"), "should contain constructor");
+        assertTrue(source.contains("Person(String name)"), "should contain constructor");
         assertTrue(source.contains("this.name = name;"), "should contain assignment");
     }
 

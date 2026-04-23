@@ -38,8 +38,11 @@ public interface Indent {
      * @param next        the next element in the delegation chain
      * @param preferences the formatting preferences (for indent size, tabs, etc.)
      * @param lineBuffer  the line buffer to append indentation to
+     * @return {@code true} if the indent contributes visible (non-whitespace)
+     *         content that should appear on otherwise-blank lines and that
+     *         requires a deferred trailing space before subsequent content
      */
-    void addIndent(Indent next, FormatPreferences preferences, StringBuilder lineBuffer);
+    boolean addIndent(Indent next, FormatPreferences preferences, StringBuilder lineBuffer);
 
     /**
      * Post-processes content that was just written to the line buffer,

@@ -3,7 +3,7 @@ package com.example;
 public record Range(int min, int max) {
     Range {
         if (min > max) {
-            throw new java.lang.IllegalArgumentException("min > max");
+            throw new IllegalArgumentException("min > max");
         }
     }
 

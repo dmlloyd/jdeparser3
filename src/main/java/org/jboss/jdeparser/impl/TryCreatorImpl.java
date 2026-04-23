@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+import io.smallrye.common.constraint.Assert;
+
 import org.jboss.jdeparser.JExpr;
 import org.jboss.jdeparser.JType;
 import org.jboss.jdeparser.SourceVersion;
@@ -46,6 +48,11 @@ public final class TryCreatorImpl extends AbstractCreator implements TryCreator,
     @Override
     public void with(final JType type, final String name, final JExpr init) {
         checkActive();
+        Assert.checkNotNullParam("type", type);
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
+        Assert.checkNotNullParam("init", init);
+        registerUsedType(type);
         resources.add(new Resource(type, name, init));
     }
 
@@ -53,7 +60,9 @@ public final class TryCreatorImpl extends AbstractCreator implements TryCreator,
     @Override
     public void body(final Consumer<BlockCreator> body) {
         checkActive();
+        Assert.checkNotNullParam("body", body);
         final BlockCreatorImpl bc = new BlockCreatorImpl(version());
+        bc.sourceFile(sourceFile());
         nest(() -> body.accept(bc));
         bc.finish();
         this.body = bc;
@@ -63,7 +72,13 @@ public final class TryCreatorImpl extends AbstractCreator implements TryCreator,
     @Override
     public void catch_(final JType exceptionType, final String name, final Consumer<BlockCreator> body) {
         checkActive();
+        Assert.checkNotNullParam("exceptionType", exceptionType);
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
+        Assert.checkNotNullParam("body", body);
+        registerUsedType(exceptionType);
         final BlockCreatorImpl bc = new BlockCreatorImpl(version());
+        bc.sourceFile(sourceFile());
         nest(() -> body.accept(bc));
         bc.finish();
         catches.add(new CatchClause(List.of(exceptionType), name, bc));
@@ -73,7 +88,16 @@ public final class TryCreatorImpl extends AbstractCreator implements TryCreator,
     @Override
     public void catch_(final List<JType> exceptionTypes, final String name, final Consumer<BlockCreator> body) {
         checkActive();
+        Assert.checkNotNullParam("exceptionTypes", exceptionTypes);
+        Assert.checkNotEmptyParam("exceptionTypes", exceptionTypes);
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
+        Assert.checkNotNullParam("body", body);
+        for (JType exceptionType : exceptionTypes) {
+            registerUsedType(exceptionType);
+        }
         final BlockCreatorImpl bc = new BlockCreatorImpl(version());
+        bc.sourceFile(sourceFile());
         nest(() -> body.accept(bc));
         bc.finish();
         catches.add(new CatchClause(List.copyOf(exceptionTypes), name, bc));
@@ -83,7 +107,9 @@ public final class TryCreatorImpl extends AbstractCreator implements TryCreator,
     @Override
     public void finally_(final Consumer<BlockCreator> body) {
         checkActive();
+        Assert.checkNotNullParam("body", body);
         final BlockCreatorImpl bc = new BlockCreatorImpl(version());
+        bc.sourceFile(sourceFile());
         nest(() -> body.accept(bc));
         bc.finish();
         this.finallyBody = bc;
@@ -122,16 +148,7 @@ public final class TryCreatorImpl extends AbstractCreator implements TryCreator,
             writer.write(Tokens.$KW.CATCH);
             writer.write(FormatPreferences.Space.BEFORE_PAREN_CATCH);
             writer.write(Tokens.$PAREN.OPEN);
-            boolean first = true;
-            for (JType t : c.types) {
-                if (!first) {
-                    writer.write(FormatPreferences.Space.AROUND_MULTI_CATCH_OR);
-                    writer.writeEscaped('|');
-                    writer.write(FormatPreferences.Space.AROUND_MULTI_CATCH_OR);
-                }
-                first = false;
-                AbstractJExpr.writeType(writer, t);
-            }
+            AbstractJExpr.writeList(writer, c.types, Tokens.$PUNCT.BAR, FormatPreferences.Space.AROUND_MULTI_CATCH_OR);
             writer.sp();
             writer.writeName(c.name);
             writer.write(Tokens.$PAREN.CLOSE);

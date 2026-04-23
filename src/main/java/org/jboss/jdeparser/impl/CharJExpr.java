@@ -76,10 +76,10 @@ public final class CharJExpr extends AbstractJExpr {
                 if (cp >= 0x20 && cp < 0x7F) {
                     yield String.valueOf((char) cp);
                 } else if (cp <= 0xFFFF) {
-                    yield String.format("\\u%04x", cp);
+                    yield String.format("\\u%04x", Integer.valueOf(cp));
                 } else {
                     final char[] chars = Character.toChars(cp);
-                    yield String.format("\\u%04x\\u%04x", (int) chars[0], (int) chars[1]);
+                    yield String.format("\\u%04x\\u%04x", Integer.valueOf(chars[0]), Integer.valueOf(chars[1]));
                 }
             }
         };

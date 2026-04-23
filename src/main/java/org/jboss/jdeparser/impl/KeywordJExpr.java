@@ -13,23 +13,24 @@ import java.io.IOException;
 public final class KeywordJExpr extends AbstractJExpr {
 
     /** The {@code this} keyword expression. */
-    public static final KeywordJExpr THIS = new KeywordJExpr("this");
+    public static final KeywordJExpr THIS = new KeywordJExpr(Tokens.$KW.THIS);
 
     /** The {@code super} keyword expression. */
-    public static final KeywordJExpr SUPER = new KeywordJExpr("super");
+    public static final KeywordJExpr SUPER = new KeywordJExpr(Tokens.$KW.SUPER);
 
     /** The {@code null} literal expression. */
-    public static final KeywordJExpr NULL = new KeywordJExpr("null");
+    public static final KeywordJExpr NULL = new KeywordJExpr(Tokens.$KW.NULL);
 
-    private final String keyword;
+    /** The keyword token for this expression. */
+    private final Tokens.$KW token;
 
     /**
      * Constructs a new keyword expression.
      *
-     * @param keyword the keyword text (must not be {@code null})
+     * @param token the keyword token (must not be {@code null})
      */
-    private KeywordJExpr(final String keyword) {
-        this.keyword = keyword;
+    private KeywordJExpr(final Tokens.$KW token) {
+        this.token = token;
     }
 
     /**
@@ -53,22 +54,17 @@ public final class KeywordJExpr extends AbstractJExpr {
     }
 
     /**
-     * Returns the keyword text of this expression.
+     * Returns the keyword token of this expression.
      *
-     * @return the keyword (never {@code null})
+     * @return the keyword token (never {@code null})
      */
-    public String keyword() {
-        return keyword;
+    public Tokens.$KW token() {
+        return token;
     }
 
     /** {@inheritDoc} */
     @Override
     public void write(final SourceFileWriter writer) throws IOException {
-        writer.write(switch (keyword) {
-            case "this" -> Tokens.$KW.THIS;
-            case "super" -> Tokens.$KW.SUPER;
-            case "null" -> Tokens.$KW.NULL;
-            default -> throw new AssertionError("Unknown keyword: " + keyword);
-        });
+        writer.write(token);
     }
 }

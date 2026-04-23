@@ -7,6 +7,7 @@
  */
 module org.jboss.jdeparser {
     requires java.compiler;
+    requires io.smallrye.common.constraint;
 
     exports org.jboss.jdeparser;
     exports org.jboss.jdeparser.creator;

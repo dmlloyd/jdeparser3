@@ -6,6 +6,7 @@ import org.jboss.jdeparser.impl.AbstractJType;
 import org.jboss.jdeparser.impl.IntersectionJType;
 import org.jboss.jdeparser.impl.PrimitiveJType;
 import org.jboss.jdeparser.impl.ReferenceJType;
+import org.jboss.jdeparser.impl.WildcardJType;
 
 /**
  * The core type interface for representing Java types in generated source code.
@@ -72,6 +73,11 @@ public sealed interface JType permits AbstractJType {
     JType OBJECT = ReferenceJType.OBJECT;
 
     /**
+     * The unbounded wildcard type ({@code ?}).
+     */
+    JType WILDCARD = WildcardJType.UNBOUNDED;
+
+    /**
      * Returns a type representing an array of this type ({@code this[]}).
      *
      * @return the array type
@@ -85,7 +91,18 @@ public sealed interface JType permits AbstractJType {
      * @param args the type arguments to apply
      * @return the parameterized type
      */
-    JType typeArg(JType... args);
+    default JType typeArg(JType... args) {
+        return typeArg(List.of(args));
+    }
+
+    /**
+     * Returns a parameterized type by applying the given type arguments to this type
+     * (e.g., {@code This<A, B>}).
+     *
+     * @param args the type arguments to apply as a list
+     * @return the parameterized type
+     */
+    JType typeArg(List<JType> args);
 
     /**
      * Returns the boxed (wrapper) type corresponding to this primitive type.
@@ -147,7 +164,9 @@ public sealed interface JType permits AbstractJType {
      * @param args the method arguments
      * @return the static method call expression
      */
-    JExpr call(String name, JExpr... args);
+    default JExpr call(String name, JExpr... args) {
+        return call(name, List.of(args));
+    }
 
     /**
      * Returns an expression representing a static method call on this type ({@code This.name(args...)}).
@@ -166,12 +185,36 @@ public sealed interface JType permits AbstractJType {
     JExpr classLiteral();
 
     /**
+     * Returns a Javadoc program element reference for a member of this type
+     * ({@code This#member}).
+     * <p>
+     * The returned reference can be used in {@code {@link}}, {@code {@linkplain}},
+     * and {@code @see} tags via the {@link org.jboss.jdeparser.creator.DocCommentCreator}
+     * API.
+     *
+     * @param member the member identifier (e.g., {@code "length()"},
+     *               {@code "CASE_INSENSITIVE_ORDER"})
+     * @return the doc reference
+     */
+    JDocReference docRef(String member);
+
+    /**
      * Returns an intersection type composed of all the given types ({@code A & B & C}).
      *
      * @param types the types to intersect
      * @return the intersection type
      */
     static JType allOf(JType... types) {
-        return new IntersectionJType(List.of(types));
+        return allOf(List.of(types));
+    }
+
+    /**
+     * Returns an intersection type composed of all the given types ({@code A & B & C}).
+     *
+     * @param types the types to intersect as a list
+     * @return the intersection type
+     */
+    static JType allOf(List<JType> types) {
+        return new IntersectionJType(types);
     }
 }

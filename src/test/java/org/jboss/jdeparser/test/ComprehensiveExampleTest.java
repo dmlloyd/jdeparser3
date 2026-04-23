@@ -8,6 +8,7 @@ import org.jboss.jdeparser.JSources;
 import org.jboss.jdeparser.JType;
 import org.jboss.jdeparser.JTypes;
 import org.jboss.jdeparser.SourceVersion;
+import org.jboss.jdeparser.creator.BlockCreator;
 import org.jboss.jdeparser.creator.ModifierFlag;
 import org.junit.jupiter.api.Test;
 
@@ -59,10 +60,10 @@ class ComprehensiveExampleTest extends AbstractGeneratingTestCase {
         sources.writeSources();
         final String source = getSource("com.example", "Greeter");
         assertTrue(source.contains("public final class Greeter"), "class declaration");
-        assertTrue(source.contains("private final java.lang.String name;"), "field");
-        assertTrue(source.contains("public Greeter(java.lang.String name)"), "constructor");
+        assertTrue(source.contains("private final String name;"), "field");
+        assertTrue(source.contains("public Greeter(String name)"), "constructor");
         assertTrue(source.contains("this.name = name;"), "assignment");
-        assertTrue(source.contains("public java.lang.String greet()"), "method");
+        assertTrue(source.contains("public String greet()"), "method");
         assertTrue(source.contains("return \"Hello, \".concat(name);"), "return");
     }
 
@@ -168,15 +169,13 @@ class ComprehensiveExampleTest extends AbstractGeneratingTestCase {
                 cc.implements_(JTypes.typeNamed("java.io.Serializable"));
                 cc.method("doStuff", mc -> {
                     mc.public_();
-                    mc.body(b -> {
-                        b.callSuper();
-                    });
+                    mc.body(BlockCreator::callSuper);
                 });
             });
         });
         sources.writeSources();
         final String source = getSource("com.example", "Child");
-        assertTrue(source.contains("extends com.example.Parent"), "extends");
+        assertTrue(source.contains("extends Parent"), "extends");
         assertTrue(source.contains("implements java.io.Serializable"), "implements");
         assertTrue(source.contains("super();"), "super call");
     }
@@ -204,7 +203,7 @@ class ComprehensiveExampleTest extends AbstractGeneratingTestCase {
         final String source = getSource("com.example", "Shape");
         assertTrue(source.contains("public sealed interface Shape"), "sealed interface");
         assertTrue(source.contains("permits"), "permits");
-        assertTrue(source.contains("com.example.Circle"), "permitted type");
+        assertTrue(source.contains("Circle"), "permitted type");
     }
 
     /**

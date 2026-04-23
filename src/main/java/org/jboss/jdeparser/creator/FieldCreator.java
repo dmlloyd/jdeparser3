@@ -22,4 +22,18 @@ public sealed interface FieldCreator extends ModifiableCreator permits FieldCrea
      * @param init the initializer expression
      */
     void init(JExpr init);
+
+    /**
+     * Adds the {@code volatile} modifier.
+     */
+    default void volatile_() {
+        addFlag(ModifierFlag.VOLATILE);
+    }
+
+    /**
+     * Adds the {@code transient} modifier.
+     */
+    default void transient_() {
+        addFlag(ModifierFlag.TRANSIENT);
+    }
 }

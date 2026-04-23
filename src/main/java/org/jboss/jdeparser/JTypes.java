@@ -2,10 +2,9 @@ package org.jboss.jdeparser;
 
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.NoType;
-import javax.lang.model.type.PrimitiveType;
-import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+
+import io.smallrye.common.constraint.Assert;
 
 import org.jboss.jdeparser.impl.ReferenceJType;
 
@@ -24,6 +23,7 @@ public final class JTypes {
      * @return the corresponding type
      */
     public static JType typeOf(final Class<?> clazz) {
+        Assert.checkNotNullParam("clazz", clazz);
         if (clazz.isPrimitive()) {
             if (clazz == void.class) return JType.VOID;
             if (clazz == boolean.class) return JType.BOOLEAN;
@@ -49,6 +49,8 @@ public final class JTypes {
      * @return the corresponding type
      */
     public static JType typeNamed(final String qualifiedName) {
+        Assert.checkNotNullParam("qualifiedName", qualifiedName);
+        Assert.checkNotEmptyParam("qualifiedName", qualifiedName);
         return new ReferenceJType(qualifiedName);
     }
 
@@ -60,8 +62,9 @@ public final class JTypes {
      * @throws IllegalArgumentException if the mirror kind is not supported
      */
     public static JType typeOf(final TypeMirror mirror) {
+        Assert.checkNotNullParam("mirror", mirror);
         return switch (mirror.getKind()) {
-            case VOID -> JType.VOID;
+            case VOID, NONE -> JType.VOID;
             case BOOLEAN -> JType.BOOLEAN;
             case BYTE -> JType.BYTE;
             case SHORT -> JType.SHORT;
@@ -82,7 +85,6 @@ public final class JTypes {
                 }
                 yield raw.typeArg(typeArgs.stream().map(JTypes::typeOf).toArray(JType[]::new));
             }
-            case NONE -> JType.VOID;
             default -> throw new IllegalArgumentException("Unsupported type mirror kind: " + mirror.getKind());
         };
     }

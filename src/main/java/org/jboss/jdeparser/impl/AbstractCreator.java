@@ -1,5 +1,6 @@
 package org.jboss.jdeparser.impl;
 
+import org.jboss.jdeparser.JType;
 import org.jboss.jdeparser.SourceVersion;
 
 /**
@@ -33,6 +34,9 @@ public abstract class AbstractCreator {
 
     /** The source version for feature gating. */
     private final SourceVersion version;
+
+    /** The enclosing source file creator, for type registration. */
+    private SourceFileCreatorImpl sourceFile;
 
     /** The current lifecycle state. */
     private int state = ST_ACTIVE;
@@ -100,5 +104,52 @@ public abstract class AbstractCreator {
     public void finish() {
         checkActive();
         state = ST_DONE;
+    }
+
+    /**
+     * Transitions this creator from the DONE state back to ACTIVE,
+     * allowing it to accept further configuration.
+     * <p>
+     * This is used internally to allow on-demand doc comment creators to
+     * be reused across multiple configuration calls (e.g., when a type
+     * parameter's doc comment contributes a tag to an already-finished
+     * parent doc comment).
+     * <p>
+     * Has no effect if the creator is already ACTIVE or NESTED.
+     */
+    void reopen() {
+        if (state == ST_DONE) {
+            state = ST_ACTIVE;
+        }
+    }
+
+    /**
+     * Sets the enclosing source file creator for type registration.
+     *
+     * @param sourceFile the source file creator
+     */
+    void sourceFile(final SourceFileCreatorImpl sourceFile) {
+        this.sourceFile = sourceFile;
+    }
+
+    /**
+     * Returns the enclosing source file creator.
+     *
+     * @return the source file creator, or {@code null} if not set
+     */
+    SourceFileCreatorImpl sourceFile() {
+        return sourceFile;
+    }
+
+    /**
+     * Registers a type as used within the enclosing source file,
+     * enabling correct import resolution and conflict detection.
+     *
+     * @param type the type to register
+     */
+    protected void registerUsedType(final JType type) {
+        if (sourceFile != null) {
+            sourceFile.registerUsedType(type);
+        }
     }
 }

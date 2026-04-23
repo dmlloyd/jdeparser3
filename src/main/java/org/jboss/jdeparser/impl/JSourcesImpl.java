@@ -3,8 +3,15 @@ package org.jboss.jdeparser.impl;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
+
+import io.smallrye.common.constraint.Assert;
 
 import org.jboss.jdeparser.JSources;
 import org.jboss.jdeparser.SourceVersion;
@@ -30,6 +37,9 @@ public final class JSourcesImpl implements JSources {
     /** The collected source files. */
     private final List<SourceFileCreatorImpl> sourceFiles = new ArrayList<>();
 
+    /** Defined type simple names indexed by package name. */
+    private final Map<String, Set<String>> definedTypesByPackage = new LinkedHashMap<>();
+
     /**
      * Constructs a new source file collection.
      *
@@ -47,10 +57,25 @@ public final class JSourcesImpl implements JSources {
     @Override
     public void createSourceFile(final String packageName, final String fileName,
                                   final Consumer<SourceFileCreator> builder) {
-        final SourceFileCreatorImpl sf = new SourceFileCreatorImpl(sourceVersion, packageName, fileName);
+        Assert.checkNotNullParam("packageName", packageName);
+        Assert.checkNotNullParam("fileName", fileName);
+        Assert.checkNotEmptyParam("fileName", fileName);
+        Assert.checkNotNullParam("builder", builder);
+        final SourceFileCreatorImpl sf = new SourceFileCreatorImpl(this, sourceVersion, packageName, fileName);
+        definedTypesByPackage.computeIfAbsent(packageName, k -> new LinkedHashSet<>()).add(fileName);
         builder.accept(sf);
         sf.finish();
         sourceFiles.add(sf);
+    }
+
+    /**
+     * Returns the set of simple type names defined in the given package.
+     *
+     * @param packageName the package name
+     * @return the set of simple names, or an empty set if none
+     */
+    Set<String> getDefinedSimpleNames(final String packageName) {
+        return definedTypesByPackage.getOrDefault(packageName, Collections.emptySet());
     }
 
     /** {@inheritDoc} */

@@ -1,5 +1,7 @@
 package org.jboss.jdeparser.impl;
 
+import io.smallrye.common.constraint.Assert;
+
 import org.jboss.jdeparser.JLabel;
 
 /**
@@ -16,8 +18,7 @@ public record JLabelImpl(String name) implements JLabel {
      * @throws IllegalArgumentException if {@code name} is {@code null}
      */
     public JLabelImpl {
-        if (name == null) {
-            throw new IllegalArgumentException("Label name must not be null");
-        }
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
     }
 }

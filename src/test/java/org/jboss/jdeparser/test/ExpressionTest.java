@@ -1,14 +1,18 @@
 package org.jboss.jdeparser.test;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.jboss.jdeparser.JExpr;
 import org.jboss.jdeparser.JExprs;
 import org.jboss.jdeparser.JSources;
 import org.jboss.jdeparser.JType;
+import org.jboss.jdeparser.JTypes;
 import org.jboss.jdeparser.SourceVersion;
+import org.jboss.jdeparser.impl.LambdaJExpr;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -121,7 +125,7 @@ class ExpressionTest extends AbstractGeneratingTestCase {
         });
         sources.writeSources();
         final String source = getSource("com.example", "Check");
-        assertTrue(source.contains("obj instanceof java.lang.String"),
+        assertTrue(source.contains("obj instanceof String"),
             "should contain instanceof expression");
     }
 
@@ -167,7 +171,7 @@ class ExpressionTest extends AbstractGeneratingTestCase {
         });
         sources.writeSources();
         final String source = getSource("com.example", "Create");
-        assertTrue(source.contains("new java.lang.Object()"), "should contain new expression");
+        assertTrue(source.contains("new Object()"), "should contain new expression");
     }
 
     /**
@@ -210,7 +214,7 @@ class ExpressionTest extends AbstractGeneratingTestCase {
         });
         sources.writeSources();
         final String source = getSource("com.example", "Ref");
-        assertTrue(source.contains("java.lang.String::valueOf"), "should contain method reference");
+        assertTrue(source.contains("String::valueOf"), "should contain method reference");
     }
 
     /**
@@ -235,5 +239,930 @@ class ExpressionTest extends AbstractGeneratingTestCase {
         final String source = getSource("com.example", "Assign");
         assertTrue(source.contains("x = 42;"), "should contain simple assignment");
         assertTrue(source.contains("x += 1;"), "should contain compound assignment");
+    }
+
+    // ---- Numeric literal coverage ----
+
+    /**
+     * Verifies that a decimal {@code long} literal includes the {@code L} suffix.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void decimalLong() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "DecLong", sf -> {
+            sf.class_("DecLong", cc -> {
+                cc.field("val", fc -> {
+                    fc.type(JType.LONG);
+                    fc.init(JExprs.decimal(100L));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "DecLong");
+        assertTrue(source.contains("100L"), "should contain long literal with L suffix");
+    }
+
+    /**
+     * Verifies that a negative decimal {@code long} literal is rendered
+     * as a unary negation.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void decimalLongNegative() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "DecLongNeg", sf -> {
+            sf.class_("DecLongNeg", cc -> {
+                cc.field("val", fc -> {
+                    fc.type(JType.LONG);
+                    fc.init(JExprs.decimal(-42L));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "DecLongNeg");
+        assertTrue(source.contains("-42L"), "should contain negative long literal");
+    }
+
+    /**
+     * Verifies that a decimal {@code float} literal includes the {@code f} suffix.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void decimalFloat() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "DecFloat", sf -> {
+            sf.class_("DecFloat", cc -> {
+                cc.field("val", fc -> {
+                    fc.type(JType.FLOAT);
+                    fc.init(JExprs.decimal(3.14f));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "DecFloat");
+        assertTrue(source.contains("3.14f"), "should contain float literal with f suffix");
+    }
+
+    /**
+     * Verifies that a negative decimal {@code float} literal is rendered
+     * as a unary negation.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void decimalFloatNegative() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "DecFloatNeg", sf -> {
+            sf.class_("DecFloatNeg", cc -> {
+                cc.field("val", fc -> {
+                    fc.type(JType.FLOAT);
+                    fc.init(JExprs.decimal(-1.5f));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "DecFloatNeg");
+        assertTrue(source.contains("-1.5f"), "should contain negative float literal");
+    }
+
+    /**
+     * Verifies that {@code Float.NaN} is rejected as a float literal.
+     */
+    @Test
+    void decimalFloatNaN() {
+        assertThrows(IllegalArgumentException.class, () -> JExprs.decimal(Float.NaN));
+    }
+
+    /**
+     * Verifies that {@code Float.POSITIVE_INFINITY} is rejected as a float literal.
+     */
+    @Test
+    void decimalFloatInfinity() {
+        assertThrows(IllegalArgumentException.class, () -> JExprs.decimal(Float.POSITIVE_INFINITY));
+    }
+
+    /**
+     * Verifies that a decimal {@code double} literal is rendered correctly.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void decimalDouble() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "DecDouble", sf -> {
+            sf.class_("DecDouble", cc -> {
+                cc.field("val", fc -> {
+                    fc.type(JType.DOUBLE);
+                    fc.init(JExprs.decimal(2.718));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "DecDouble");
+        assertTrue(source.contains("2.718"), "should contain double literal");
+    }
+
+    /**
+     * Verifies that a negative decimal {@code double} literal is rendered
+     * as a unary negation.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void decimalDoubleNegative() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "DecDoubleNeg", sf -> {
+            sf.class_("DecDoubleNeg", cc -> {
+                cc.field("val", fc -> {
+                    fc.type(JType.DOUBLE);
+                    fc.init(JExprs.decimal(-9.81));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "DecDoubleNeg");
+        assertTrue(source.contains("-9.81"), "should contain negative double literal");
+    }
+
+    /**
+     * Verifies that {@code Double.NaN} is rejected as a double literal.
+     */
+    @Test
+    void decimalDoubleNaN() {
+        assertThrows(IllegalArgumentException.class, () -> JExprs.decimal(Double.NaN));
+    }
+
+    /**
+     * Verifies that {@code Double.NEGATIVE_INFINITY} is rejected as a double literal.
+     */
+    @Test
+    void decimalDoubleInfinity() {
+        assertThrows(IllegalArgumentException.class, () -> JExprs.decimal(Double.NEGATIVE_INFINITY));
+    }
+
+    /**
+     * Verifies that a negative decimal {@code int} literal is rendered
+     * as a unary negation.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void decimalIntNegative() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "DecIntNeg", sf -> {
+            sf.class_("DecIntNeg", cc -> {
+                cc.field("val", fc -> {
+                    fc.type(JType.INT);
+                    fc.init(JExprs.decimal(-7));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "DecIntNeg");
+        assertTrue(source.contains("-7"), "should contain negative int literal");
+    }
+
+    /**
+     * Verifies that a hexadecimal {@code int} literal includes the {@code 0x} prefix.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void hexInt() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "HexInt", sf -> {
+            sf.class_("HexInt", cc -> {
+                cc.field("val", fc -> {
+                    fc.type(JType.INT);
+                    fc.init(JExprs.hex(0xFF));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "HexInt");
+        assertTrue(source.contains("0xff"), "should contain hex int literal with 0x prefix");
+    }
+
+    /**
+     * Verifies that a hexadecimal {@code long} literal includes the {@code 0x}
+     * prefix and {@code L} suffix.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void hexLong() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "HexLong", sf -> {
+            sf.class_("HexLong", cc -> {
+                cc.field("val", fc -> {
+                    fc.type(JType.LONG);
+                    fc.init(JExprs.hex(0xCAFEBABEL));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "HexLong");
+        assertTrue(source.contains("0xcafebabeL"), "should contain hex long literal with 0x prefix and L suffix");
+    }
+
+    /**
+     * Verifies that an octal {@code int} literal includes the {@code 0} prefix.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void octalInt() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "OctInt", sf -> {
+            sf.class_("OctInt", cc -> {
+                cc.field("val", fc -> {
+                    fc.type(JType.INT);
+                    fc.init(JExprs.octal(077));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "OctInt");
+        assertTrue(source.contains("077"), "should contain octal int literal with 0 prefix");
+    }
+
+    /**
+     * Verifies that an octal {@code long} literal includes the {@code 0} prefix
+     * and {@code L} suffix.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void octalLong() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "OctLong", sf -> {
+            sf.class_("OctLong", cc -> {
+                cc.field("val", fc -> {
+                    fc.type(JType.LONG);
+                    fc.init(JExprs.octal(0777L));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "OctLong");
+        assertTrue(source.contains("0777L"), "should contain octal long literal with 0 prefix and L suffix");
+    }
+
+    /**
+     * Verifies that a binary {@code int} literal includes the {@code 0b} prefix.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void binaryInt() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "BinInt", sf -> {
+            sf.class_("BinInt", cc -> {
+                cc.field("val", fc -> {
+                    fc.type(JType.INT);
+                    fc.init(JExprs.binary(0b1010));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "BinInt");
+        assertTrue(source.contains("0b1010"), "should contain binary int literal with 0b prefix");
+    }
+
+    /**
+     * Verifies that a binary {@code long} literal includes the {@code 0b} prefix
+     * and {@code L} suffix.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void binaryLong() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "BinLong", sf -> {
+            sf.class_("BinLong", cc -> {
+                cc.field("val", fc -> {
+                    fc.type(JType.LONG);
+                    fc.init(JExprs.binary(0b11001100L));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "BinLong");
+        assertTrue(source.contains("0b11001100L"), "should contain binary long literal with 0b prefix and L suffix");
+    }
+
+    /**
+     * Verifies that a hexadecimal {@code float} literal is rendered in
+     * hex floating-point notation with the {@code f} suffix.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void hexFloat() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "HexFloat", sf -> {
+            sf.class_("HexFloat", cc -> {
+                cc.field("val", fc -> {
+                    fc.type(JType.FLOAT);
+                    fc.init(JExprs.hex(1.0f));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "HexFloat");
+        assertTrue(source.contains("0x1.0p0f"), "should contain hex float literal");
+    }
+
+    /**
+     * Verifies that {@code Float.NaN} is rejected for hex float literals.
+     */
+    @Test
+    void hexFloatNaN() {
+        assertThrows(IllegalArgumentException.class, () -> JExprs.hex(Float.NaN));
+    }
+
+    /**
+     * Verifies that a hexadecimal {@code double} literal is rendered in
+     * hex floating-point notation.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void hexDouble() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "HexDouble", sf -> {
+            sf.class_("HexDouble", cc -> {
+                cc.field("val", fc -> {
+                    fc.type(JType.DOUBLE);
+                    fc.init(JExprs.hex(1.0));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "HexDouble");
+        assertTrue(source.contains("0x1.0p0"), "should contain hex double literal");
+    }
+
+    /**
+     * Verifies that {@code Double.POSITIVE_INFINITY} is rejected for hex double literals.
+     */
+    @Test
+    void hexDoubleInfinity() {
+        assertThrows(IllegalArgumentException.class, () -> JExprs.hex(Double.POSITIVE_INFINITY));
+    }
+
+    /**
+     * Verifies that negative zero float ({@code -0.0f}) is rendered correctly
+     * as a literal without going through the unary negation path, since
+     * {@code -0.0f < 0} is {@code false} in IEEE 754.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void decimalFloatNegativeZero() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "NegZeroFloat", sf -> {
+            sf.class_("NegZeroFloat", cc -> {
+                cc.field("val", fc -> {
+                    fc.type(JType.FLOAT);
+                    fc.init(JExprs.decimal(-0.0f));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "NegZeroFloat");
+        assertTrue(source.contains("-0.0f"), "should contain negative zero float literal");
+    }
+
+    /**
+     * Verifies that negative zero double ({@code -0.0}) is rendered correctly
+     * as a literal without going through the unary negation path, since
+     * {@code -0.0 < 0} is {@code false} in IEEE 754.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void decimalDoubleNegativeZero() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "NegZeroDouble", sf -> {
+            sf.class_("NegZeroDouble", cc -> {
+                cc.field("val", fc -> {
+                    fc.type(JType.DOUBLE);
+                    fc.init(JExprs.decimal(-0.0));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "NegZeroDouble");
+        assertTrue(source.contains("-0.0"), "should contain negative zero double literal");
+    }
+
+    // ---- Other literal coverage ----
+
+    /**
+     * Verifies that a character literal is rendered with single quotes and
+     * proper content.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void charLiteral() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "CharLit", sf -> {
+            sf.class_("CharLit", cc -> {
+                cc.field("ch", fc -> {
+                    fc.type(JType.CHAR);
+                    fc.init(JExprs.ch('A'));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "CharLit");
+        assertTrue(source.contains("'A'"), "should contain char literal");
+    }
+
+    /**
+     * Verifies that special characters in char literals are properly escaped.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void charLiteralEscaped() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "CharEsc", sf -> {
+            sf.class_("CharEsc", cc -> {
+                cc.field("nl", fc -> {
+                    fc.type(JType.CHAR);
+                    fc.init(JExprs.ch('\n'));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "CharEsc");
+        assertTrue(source.contains("'\\n'"), "should contain escaped newline char literal");
+    }
+
+    /**
+     * Verifies that a non-BMP character is rendered as a Unicode escape pair.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void charLiteralSupplementary() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "CharSupp", sf -> {
+            sf.class_("CharSupp", cc -> {
+                cc.field("emoji", fc -> {
+                    fc.type(JType.CHAR);
+                    // U+1F600 (grinning face) — a supplementary character
+                    fc.init(JExprs.ch(0x1F600));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "CharSupp");
+        assertTrue(source.contains("'\\ud83d\\ude00'"),
+                "should contain surrogate pair Unicode escape for supplementary character");
+    }
+
+    /**
+     * Verifies that a text block literal is rendered with triple-quote
+     * delimiters.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void textBlockLiteral() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "TextBlock", sf -> {
+            sf.class_("TextBlock", cc -> {
+                cc.field("json", fc -> {
+                    fc.type(JType.STRING);
+                    fc.init(JExprs.textBlock("{ \"key\": \"value\" }\n"));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "TextBlock");
+        assertTrue(source.contains("\"\"\""), "should contain text block delimiters");
+        assertTrue(source.contains("{ \"key\": \"value\" }"), "should contain text block content");
+    }
+
+    // ---- Variable reference coverage ----
+
+    /**
+     * Verifies that a qualified {@code this} expression is rendered as
+     * {@code Outer.this}.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void qualifiedThis() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "QualThis", sf -> {
+            sf.class_("QualThis", cc -> {
+                cc.field("ref", fc -> {
+                    fc.type(JType.OBJECT);
+                    fc.init(JExprs.qualifiedThis(JTypes.typeNamed("com.example.QualThis")));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "QualThis");
+        assertTrue(source.contains("QualThis.this"), "should contain qualified this expression");
+    }
+
+    // ---- Method call coverage ----
+
+    /**
+     * Verifies that a static method call is rendered as {@code Type.method(args)}.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void staticMethodCall() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "StaticCall", sf -> {
+            sf.class_("StaticCall", cc -> {
+                cc.method("run", mc -> {
+                    mc.body(b -> {
+                        b.emit(JExprs.callStatic(JType.STRING, "valueOf", JExprs.decimal(42)));
+                    });
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "StaticCall");
+        assertTrue(source.contains("String.valueOf(42)"), "should contain static method call");
+    }
+
+    // ---- Object creation coverage ----
+
+    /**
+     * Verifies that an array creation with dimension sizes is rendered as
+     * {@code new Type[n]}.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void newArrayWithDimensions() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "NewArr", sf -> {
+            sf.class_("NewArr", cc -> {
+                cc.field("arr", fc -> {
+                    fc.type(JType.INT.array());
+                    fc.init(JExprs.newArray(JType.INT, JExprs.decimal(10)));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "NewArr");
+        assertTrue(source.contains("new int[10]"), "should contain array creation with dimension");
+    }
+
+    /**
+     * Verifies that an array initializer created from a {@link List} renders
+     * the same as the varargs variant.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void newArrayInitFromList() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "NewArrList", sf -> {
+            sf.class_("NewArrList", cc -> {
+                cc.field("arr", fc -> {
+                    fc.type(JType.INT.array());
+                    fc.init(JExprs.newArrayInit(JType.INT,
+                        List.of(JExprs.decimal(1), JExprs.decimal(2))));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "NewArrList");
+        assertTrue(source.contains("new int[]"), "should contain array creation");
+        assertTrue(source.contains("{ 1, 2 }"), "should contain initializer elements");
+    }
+
+    // ---- Method reference coverage ----
+
+    /**
+     * Verifies that a method reference on an expression is rendered as
+     * {@code expr::method}.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void methodRefOnExpression() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "ExprRef", sf -> {
+            sf.class_("ExprRef", cc -> {
+                cc.field("fn", fc -> {
+                    fc.type(JType.OBJECT);
+                    fc.init(JExprs.methodRef(JExprs.$v("obj"), "toString"));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "ExprRef");
+        assertTrue(source.contains("obj::toString"), "should contain method reference on expression");
+    }
+
+    // ---- Anonymous class coverage ----
+
+    /**
+     * Verifies that an anonymous class expression is rendered as
+     * {@code new Type() { ... }}.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void anonymousClass() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "AnonClass", sf -> {
+            sf.class_("AnonClass", cc -> {
+                cc.field("r", fc -> {
+                    fc.type(JTypes.typeNamed("java.lang.Runnable"));
+                    fc.init(JExprs.new_(SourceVersion.JAVA_17, JTypes.typeNamed("java.lang.Runnable"),
+                        List.of(), acc -> {
+                            acc.method("run", mc -> {
+                                mc.public_();
+                                mc.body(b -> {});
+                            });
+                        }));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "AnonClass");
+        assertTrue(source.contains("new Runnable()"), "should contain anonymous class creation");
+        assertTrue(source.contains("public void run()"), "should contain overridden method");
+    }
+
+    // ---- Switch expression coverage ----
+
+    /**
+     * Verifies that a switch expression is rendered with {@code switch (selector) { cases }}.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void switchExpression() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "SwitchExpr", sf -> {
+            sf.class_("SwitchExpr", cc -> {
+                cc.method("classify", mc -> {
+                    mc.param("x", JType.INT);
+                    mc.returning(JType.STRING);
+                    mc.body(b -> {
+                        b.return_(JExprs.switchExpr(SourceVersion.JAVA_17, JExprs.$v("x"), sw -> {
+                            sw.case_(JExpr.ZERO, body -> {
+                                body.yield_(JExprs.str("zero"));
+                            });
+                            sw.default_(body -> {
+                                body.yield_(JExprs.str("other"));
+                            });
+                        }));
+                    });
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "SwitchExpr");
+        assertTrue(source.contains("switch (x)"), "should contain switch expression selector");
+        assertTrue(source.contains("case 0:"), "should contain case label");
+        assertTrue(source.contains("yield \"zero\""), "should contain yield statement");
+    }
+
+    // ---- Lambda expression coverage ----
+
+    /**
+     * Verifies that an expression-body lambda with a single untyped parameter
+     * is rendered as {@code x -> expr}.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void lambdaSingleParamExpression() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "Lambda1", sf -> {
+            sf.class_("Lambda1", cc -> {
+                cc.field("fn", fc -> {
+                    fc.type(JType.OBJECT);
+                    fc.init(JExprs.lambda("x", JExprs.$v("x").mul(JExprs.decimal(2))));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "Lambda1");
+        assertTrue(source.contains("x -> x * 2"), "should contain single-param expression lambda");
+    }
+
+    /**
+     * Verifies that an expression-body lambda with multiple untyped parameters
+     * is rendered as {@code (x, y) -> expr}.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void lambdaMultiParamExpression() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "Lambda2", sf -> {
+            sf.class_("Lambda2", cc -> {
+                cc.field("fn", fc -> {
+                    fc.type(JType.OBJECT);
+                    fc.init(JExprs.lambda(List.of("a", "b"), JExprs.$v("a").add(JExprs.$v("b"))));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "Lambda2");
+        assertTrue(source.contains("(a, b) -> a + b"), "should contain multi-param expression lambda");
+    }
+
+    /**
+     * Verifies that a block-body lambda with a single untyped parameter
+     * is rendered as {@code x -> { stmts }}.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void lambdaSingleParamBlock() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "Lambda3", sf -> {
+            sf.class_("Lambda3", cc -> {
+                cc.field("fn", fc -> {
+                    fc.type(JType.OBJECT);
+                    fc.init(JExprs.lambda(SourceVersion.JAVA_17, "x", b -> {
+                        b.return_(JExprs.$v("x"));
+                    }));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "Lambda3");
+        assertTrue(source.contains("x -> {"), "should contain single-param block lambda");
+        assertTrue(source.contains("return x;"), "should contain block body return statement");
+    }
+
+    /**
+     * Verifies that a block-body lambda with multiple untyped parameters
+     * is rendered as {@code (x, y) -> { stmts }}.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void lambdaMultiParamBlock() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "Lambda4", sf -> {
+            sf.class_("Lambda4", cc -> {
+                cc.field("fn", fc -> {
+                    fc.type(JType.OBJECT);
+                    fc.init(JExprs.lambda(SourceVersion.JAVA_17, List.of("a", "b"), b -> {
+                        b.return_(JExprs.$v("a").add(JExprs.$v("b")));
+                    }));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "Lambda4");
+        assertTrue(source.contains("(a, b) -> {"), "should contain multi-param block lambda");
+        assertTrue(source.contains("return a + b;"), "should contain block body return statement");
+    }
+
+    /**
+     * Verifies that an expression-body lambda with typed parameters
+     * is rendered as {@code (Type1 x, Type2 y) -> expr}.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void lambdaTypedExpression() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "LambdaTyped1", sf -> {
+            sf.class_("LambdaTyped1", cc -> {
+                cc.field("fn", fc -> {
+                    fc.type(JType.OBJECT);
+                    fc.init(JExprs.lambdaTyped(
+                        List.of(new LambdaJExpr.LambdaParam("x", JType.INT)),
+                        JExprs.$v("x").mul(JExprs.decimal(2))
+                    ));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "LambdaTyped1");
+        assertTrue(source.contains("(int x) -> x * 2"),
+                "should contain typed-param expression lambda");
+    }
+
+    // ---- Wildcard type coverage ----
+
+    /**
+     * Verifies that an unbounded wildcard type argument is rendered as
+     * {@code List<?>}.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void unboundedWildcard() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "WildcardTest", sf -> {
+            sf.class_("WildcardTest", cc -> {
+                cc.field("items", fc -> {
+                    fc.type(JTypes.typeNamed("java.util.List").typeArg(JType.WILDCARD));
+                    fc.init(JExpr.NULL);
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "WildcardTest");
+        assertTrue(source.contains("List<?> items"), "should contain unbounded wildcard type");
+    }
+
+    /**
+     * Verifies that an upper-bounded wildcard type argument is rendered as
+     * {@code List<? extends Number>}.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void upperBoundedWildcard() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "UpperWild", sf -> {
+            sf.class_("UpperWild", cc -> {
+                cc.field("nums", fc -> {
+                    fc.type(JTypes.typeNamed("java.util.List").typeArg(
+                        JTypes.typeNamed("java.lang.Number").wildcardExtends()));
+                    fc.init(JExpr.NULL);
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "UpperWild");
+        assertTrue(source.contains("List<? extends Number> nums"),
+            "should contain upper-bounded wildcard type");
+    }
+
+    /**
+     * Verifies that a lower-bounded wildcard type argument is rendered as
+     * {@code List<? super Integer>}.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void lowerBoundedWildcard() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "LowerWild", sf -> {
+            sf.class_("LowerWild", cc -> {
+                cc.field("nums", fc -> {
+                    fc.type(JTypes.typeNamed("java.util.List").typeArg(
+                        JTypes.typeNamed("java.lang.Integer").wildcardSuper()));
+                    fc.init(JExpr.NULL);
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "LowerWild");
+        assertTrue(source.contains("List<? super Integer> nums"),
+            "should contain lower-bounded wildcard type");
+    }
+
+    /**
+     * Verifies that a block-body lambda with typed parameters
+     * is rendered as {@code (Type1 x) -> { stmts }}.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void lambdaTypedBlock() throws IOException {
+        final JSources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "LambdaTyped2", sf -> {
+            sf.class_("LambdaTyped2", cc -> {
+                cc.field("fn", fc -> {
+                    fc.type(JType.OBJECT);
+                    fc.init(JExprs.lambdaTyped(
+                        SourceVersion.JAVA_17,
+                        List.of(
+                            new LambdaJExpr.LambdaParam("s", JType.STRING),
+                            new LambdaJExpr.LambdaParam("n", JType.INT)
+                        ),
+                        b -> {
+                            b.return_(JExprs.$v("s").call("substring", JExprs.$v("n")));
+                        }
+                    ));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "LambdaTyped2");
+        assertTrue(source.contains("(String s, int n) -> {"),
+                "should contain typed-param block lambda");
+        assertTrue(source.contains("return s.substring(n);"),
+                "should contain block body return");
     }
 }

@@ -1,5 +1,6 @@
 package org.jboss.jdeparser.creator;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 import org.jboss.jdeparser.JExpr;
@@ -34,5 +35,15 @@ public sealed interface AnnotationCreator permits AnnotationCreatorImpl {
      * @param name   the member name
      * @param values the value expressions forming the array initializer
      */
-    void memberArray(String name, JExpr... values);
+    default void memberArray(String name, JExpr... values) {
+        memberArray(name, List.of(values));
+    }
+
+    /**
+     * Sets a named member of the annotation to an array of values.
+     *
+     * @param name   the member name
+     * @param values the value expressions forming the array initializer as a list
+     */
+    void memberArray(String name, List<JExpr> values);
 }

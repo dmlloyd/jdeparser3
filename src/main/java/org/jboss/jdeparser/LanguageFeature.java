@@ -20,11 +20,26 @@ public enum LanguageFeature {
     PRIVATE_INTERFACE_METHODS(SourceVersion.JAVA_9),
     /** Diamond operator ({@code <>}) in anonymous inner classes. */
     DIAMOND_ANONYMOUS_CLASSES(SourceVersion.JAVA_9),
+    /** The {@code @hidden} Javadoc tag. */
+    DOC_HIDDEN(SourceVersion.JAVA_9),
+    /** The {@code {@index}} Javadoc inline tag. */
+    DOC_INDEX(SourceVersion.JAVA_9),
+    /** The {@code @provides} Javadoc tag (module declarations). */
+    DOC_PROVIDES(SourceVersion.JAVA_9),
+    /** The {@code @uses} Javadoc tag (module declarations). */
+    DOC_USES(SourceVersion.JAVA_9),
 
     // ---- Java 10 ----
 
     /** Local variable type inference ({@code var}). */
     VAR_LOCAL_VARIABLE(SourceVersion.JAVA_10),
+    /** The {@code {@summary}} Javadoc inline tag. */
+    DOC_SUMMARY(SourceVersion.JAVA_10),
+
+    // ---- Java 12 ----
+
+    /** The {@code {@systemProperty}} Javadoc inline tag. */
+    DOC_SYSTEM_PROPERTY(SourceVersion.JAVA_12),
 
     // ---- Java 14 ----
 
@@ -40,6 +55,8 @@ public enum LanguageFeature {
 
     /** Record declarations. */
     RECORDS(SourceVersion.JAVA_16),
+    /** The {@code {@return}} Javadoc inline tag. */
+    DOC_RETURN_INLINE(SourceVersion.JAVA_16),
     /** Pattern matching for {@code instanceof} with binding variables. */
     PATTERN_MATCHING_INSTANCEOF(SourceVersion.JAVA_16),
     /** Local enum and interface declarations inside method bodies. */

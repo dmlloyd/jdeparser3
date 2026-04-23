@@ -86,7 +86,7 @@ class TypeDeclarationTest extends AbstractGeneratingTestCase {
         sources.writeSources();
         final String source = getSource("com.example", "Greeter");
         assertTrue(source.contains("public interface Greeter"), "should contain interface declaration");
-        assertTrue(source.contains("java.lang.String greet(java.lang.String name);"),
+        assertTrue(source.contains("String greet(String name);"),
             "should contain abstract method");
     }
 
@@ -131,7 +131,7 @@ class TypeDeclarationTest extends AbstractGeneratingTestCase {
         final String source = getSource("com.example", "MyAnnotation");
         assertTrue(source.contains("public @interface MyAnnotation"),
             "should contain annotation type");
-        assertTrue(source.contains("java.lang.String value();"), "should contain value element");
+        assertTrue(source.contains("String value();"), "should contain value element");
         assertTrue(source.contains("int count() default 0;"), "should contain count element with default");
     }
 }

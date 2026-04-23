@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.function.UnaryOperator;
 
 import org.jboss.jdeparser.SourceVersion;
 import org.jboss.jdeparser.format.FormatPreferences;
@@ -90,17 +91,21 @@ public final class SourceFileWriter implements Closeable {
     /** The current spacing state. */
     private int spaceState = SS_NEW_LINE;
 
+    /** Resolves fully qualified class names to their written form. */
+    private UnaryOperator<String> classNameResolver = UnaryOperator.identity();
+
     /**
      * Sentinel indent element that traverses the indent stack backwards
      * using an integer index, creating a delegation chain.
      */
     private final Indent nextIndent = new Indent() {
         @Override
-        public void addIndent(final Indent next, final FormatPreferences preferences, final StringBuilder lineBuffer) {
+        public boolean addIndent(final Indent next, final FormatPreferences preferences, final StringBuilder lineBuffer) {
             if (traverseIdx > 0) {
                 final Indent indent = indentStack.get(--traverseIdx);
-                indent.addIndent(this, preferences, lineBuffer);
+                return indent.addIndent(this, preferences, lineBuffer);
             }
+            return false;
         }
 
         @Override
@@ -255,14 +260,19 @@ public final class SourceFileWriter implements Closeable {
                 return;
             }
             case SS_NEW_LINE -> {
-                // second consecutive newline: write blank line
+                // second consecutive newline: write blank line, including
+                // any visible indent content (e.g., comment continuation " *")
+                if (addIndent()) {
+                    countingWriter.write(lineBuffer, 0, lineBuffer.length());
+                }
+                lineBuffer.setLength(0);
                 countingWriter.write(lineSep);
                 spaceState = SS_2_NEW_LINE;
                 return;
             }
             default -> {
                 // flush line buffer and write newline
-                if (lineBuffer.length() > 0) {
+                if (! lineBuffer.isEmpty()) {
                     countingWriter.write(lineBuffer, 0, lineBuffer.length());
                     lineBuffer.setLength(0);
                 }
@@ -301,7 +311,9 @@ public final class SourceFileWriter implements Closeable {
                 spaceState = SS_NONE;
             }
             case SS_NEW_LINE, SS_2_NEW_LINE -> {
-                addIndent();
+                if (addIndent()) {
+                    lineBuffer.append(' ');
+                }
                 spaceState = SS_NONE;
             }
             // SS_NONE, SS_ADDED: nothing to do
@@ -371,14 +383,40 @@ public final class SourceFileWriter implements Closeable {
     }
 
     /**
-     * Writes a class/type name, adding a space if the previous token is
-     * a word, keyword, or number.
+     * Sets the class name resolver used by {@link #writeClass(String)} and
+     * {@link #resolveClassName(String)} to convert fully qualified class names
+     * into their output form.
      *
-     * @param className the class name to write
+     * @param resolver the resolver function
+     */
+    public void setClassNameResolver(final UnaryOperator<String> resolver) {
+        this.classNameResolver = resolver;
+    }
+
+    /**
+     * Resolves a fully qualified class name to its output form using the
+     * configured class name resolver.
+     * <p>
+     * This is used by doc comment writers to resolve type names in
+     * {@code {@link}} and {@code @throws} tags at write time.
+     *
+     * @param qualifiedName the fully qualified class name
+     * @return the resolved class name
+     */
+    public String resolveClassName(final String qualifiedName) {
+        return classNameResolver.apply(qualifiedName);
+    }
+
+    /**
+     * Writes a class/type name, applying the configured class name resolver
+     * to map the qualified name to its output form, and adding a space if the
+     * previous token is a word, keyword, or number.
+     *
+     * @param className the class name to write (typically fully qualified)
      */
     public void writeClass(final String className) {
         addWordSpace();
-        writeEscapedWord(className);
+        writeEscapedWord(classNameResolver.apply(className));
         state = Tokens.$WORD;
     }
 
@@ -488,10 +526,14 @@ public final class SourceFileWriter implements Closeable {
     /**
      * Applies indentation to the line buffer by traversing the indent
      * stack from top to bottom via the delegation chain.
+     *
+     * @return {@code true} if the indent includes visible content (e.g.,
+     *         a comment continuation prefix) that requires a deferred
+     *         trailing space before subsequent content
      */
-    private void addIndent() {
+    private boolean addIndent() {
         traverseIdx = indentStack.size();
-        nextIndent.addIndent(nextIndent, format, lineBuffer);
+        return nextIndent.addIndent(nextIndent, format, lineBuffer);
     }
 
     // ── Lifecycle ───────────────────────────────────────────────────────
@@ -503,7 +545,7 @@ public final class SourceFileWriter implements Closeable {
      * @throws IOException if an I/O error occurs
      */
     public void flush() throws IOException {
-        if (lineBuffer.length() > 0) {
+        if (! lineBuffer.isEmpty()) {
             countingWriter.write(lineBuffer, 0, lineBuffer.length());
             lineBuffer.setLength(0);
         }

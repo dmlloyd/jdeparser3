@@ -3,6 +3,8 @@ package org.jboss.jdeparser.impl;
 import java.io.IOException;
 import java.util.List;
 
+import io.smallrye.common.constraint.Assert;
+
 import org.jboss.jdeparser.JExpr;
 import org.jboss.jdeparser.JType;
 import org.jboss.jdeparser.JVar;
@@ -32,6 +34,7 @@ public final class IntersectionJType extends AbstractJType {
      *                                  or if any of the types is itself an {@link IntersectionJType}
      */
     public IntersectionJType(final List<JType> types) {
+        Assert.checkNotNullParam("types", types);
         if (types.size() < 2) {
             throw new IllegalArgumentException("Intersection types require at least 2 types");
         }
@@ -68,7 +71,7 @@ public final class IntersectionJType extends AbstractJType {
      * @throws IllegalStateException always, since intersection types cannot have type arguments
      */
     @Override
-    public JType typeArg(final JType... args) {
+    public JType typeArg(final List<JType> args) {
         throw new IllegalStateException("Intersection types cannot have type arguments");
     }
 
@@ -165,15 +168,6 @@ public final class IntersectionJType extends AbstractJType {
     /** {@inheritDoc} */
     @Override
     public void write(SourceFileWriter writer) throws IOException {
-        boolean first = true;
-        for (JType type : types) {
-            if (!first) {
-                writer.write(FormatPreferences.Space.AROUND_TYPE_BOUND_AND);
-                writer.writeEscaped('&');
-                writer.write(FormatPreferences.Space.AROUND_TYPE_BOUND_AND);
-            }
-            first = false;
-            AbstractJExpr.writeType(writer, type);
-        }
+        AbstractJExpr.writeList(writer, types, Tokens.$PUNCT.AMP, FormatPreferences.Space.AROUND_TYPE_BOUND_AND);
     }
 }

@@ -3,6 +3,8 @@ package org.jboss.jdeparser.impl;
 import java.io.IOException;
 import java.util.function.Consumer;
 
+import io.smallrye.common.constraint.Assert;
+
 import org.jboss.jdeparser.JExpr;
 import org.jboss.jdeparser.JType;
 import org.jboss.jdeparser.JVar;
@@ -50,6 +52,11 @@ public final class ForCreatorImpl extends AbstractCreator implements ForCreator,
     @Override
     public JVar init(final JType type, final String name, final JExpr init) {
         checkActive();
+        Assert.checkNotNullParam("type", type);
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
+        Assert.checkNotNullParam("init", init);
+        registerUsedType(type);
         this.initType = type;
         this.initName = name;
         this.initExpr = init;
@@ -60,6 +67,7 @@ public final class ForCreatorImpl extends AbstractCreator implements ForCreator,
     @Override
     public void condition(final JExpr condition) {
         checkActive();
+        Assert.checkNotNullParam("condition", condition);
         this.condition = condition;
     }
 
@@ -67,6 +75,7 @@ public final class ForCreatorImpl extends AbstractCreator implements ForCreator,
     @Override
     public void update(final JExpr update) {
         checkActive();
+        Assert.checkNotNullParam("update", update);
         this.update = update;
     }
 
@@ -74,7 +83,9 @@ public final class ForCreatorImpl extends AbstractCreator implements ForCreator,
     @Override
     public void body(final Consumer<BlockCreator> body) {
         checkActive();
+        Assert.checkNotNullParam("body", body);
         final BlockCreatorImpl bc = new BlockCreatorImpl(version());
+        bc.sourceFile(sourceFile());
         nest(() -> body.accept(bc));
         bc.finish();
         this.body = bc;

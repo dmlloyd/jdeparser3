@@ -65,6 +65,10 @@ public enum Tokens implements Token {
         COMMA(","),
         /** Ellipsis ({@code ...}). */
         ELLIPSIS("..."),
+        /** Ampersand ({@code &}) in type alternation */
+        AMP("&"),
+        /** Bar ({@code |}) in type alternation */
+        BAR("|"),
         ;
 
         /** The punctuation text. */
@@ -713,7 +717,7 @@ public enum Tokens implements Token {
                     || prev instanceof $KW
                     || prev == $PAREN.CLOSE || prev == $ANGLE.CLOSE
                     || prev == $BRACE.CLOSE || prev == $BRACKET.CLOSE) {
-                writer.sp();
+                writer.ntsp();
             }
             if (before != null) {
                 writer.write(before);

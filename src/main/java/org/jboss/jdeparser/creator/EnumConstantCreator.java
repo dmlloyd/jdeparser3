@@ -11,7 +11,7 @@ import org.jboss.jdeparser.impl.EnumConstantCreatorImpl;
  * Supports constructor arguments and an optional anonymous class body
  * for overriding methods.
  */
-public sealed interface EnumConstantCreator extends AnnotatableCreator, DocCommentableCreator permits EnumConstantCreatorImpl {
+public sealed interface EnumConstantCreator extends AnnotatableCreator, DocCommentableCreator<DocCommentCreator> permits EnumConstantCreatorImpl {
 
     /**
      * Adds a constructor argument to this enum constant.

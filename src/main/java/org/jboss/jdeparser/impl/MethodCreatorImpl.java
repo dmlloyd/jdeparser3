@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+import io.smallrye.common.constraint.Assert;
+
 import org.jboss.jdeparser.JType;
 import org.jboss.jdeparser.SourceVersion;
 import org.jboss.jdeparser.creator.AccessLevel;
@@ -82,6 +84,8 @@ public final class MethodCreatorImpl extends AbstractCreator implements MethodCr
     @Override
     public void returning(final JType type) {
         checkActive();
+        Assert.checkNotNullParam("type", type);
+        registerUsedType(type);
         this.returnType = type;
     }
 
@@ -89,6 +93,10 @@ public final class MethodCreatorImpl extends AbstractCreator implements MethodCr
     @Override
     public void param(final String name, final JType type) {
         checkActive();
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
+        Assert.checkNotNullParam("type", type);
+        registerUsedType(type);
         params.add(new ParamCreatorImpl(version(), name, type, false));
     }
 
@@ -96,26 +104,46 @@ public final class MethodCreatorImpl extends AbstractCreator implements MethodCr
     @Override
     public void param(final String name, final JType type, final Consumer<ParamCreator> builder) {
         checkActive();
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
+        Assert.checkNotNullParam("type", type);
+        Assert.checkNotNullParam("builder", builder);
+        registerUsedType(type);
         final ParamCreatorImpl pc = new ParamCreatorImpl(version(), name, type, false);
+        pc.sourceFile(sourceFile());
         nest(() -> builder.accept(pc));
         pc.finish();
         params.add(pc);
+        if (pc.docComment() != null) {
+            getOrCreateDocComment().addParamTag(name, pc.docComment());
+        }
     }
 
     /** {@inheritDoc} */
     @Override
     public void varargParam(final String name, final JType type, final Consumer<ParamCreator> builder) {
         checkActive();
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
+        Assert.checkNotNullParam("type", type);
+        Assert.checkNotNullParam("builder", builder);
+        registerUsedType(type);
         final ParamCreatorImpl pc = new ParamCreatorImpl(version(), name, type, true);
+        pc.sourceFile(sourceFile());
         nest(() -> builder.accept(pc));
         pc.finish();
         params.add(pc);
+        if (pc.docComment() != null) {
+            getOrCreateDocComment().addParamTag(name, pc.docComment());
+        }
     }
 
     /** {@inheritDoc} */
     @Override
     public void throws_(final JType exceptionType) {
         checkActive();
+        Assert.checkNotNullParam("exceptionType", exceptionType);
+        registerUsedType(exceptionType);
         throwsTypes.add(exceptionType);
     }
 
@@ -123,16 +151,24 @@ public final class MethodCreatorImpl extends AbstractCreator implements MethodCr
     @Override
     public void typeParam(final String name, final Consumer<TypeParamCreator> builder) {
         checkActive();
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
+        Assert.checkNotNullParam("builder", builder);
         final TypeParamCreatorImpl tp = new TypeParamCreatorImpl(version(), name);
+        tp.sourceFile(sourceFile());
         nest(() -> builder.accept(tp));
         tp.finish();
         typeParams.add(tp);
+        if (tp.docComment() != null) {
+            getOrCreateDocComment().addTypeParamTag(name, tp.docComment());
+        }
     }
 
     /** {@inheritDoc} */
     @Override
     public void body(final Consumer<BlockCreator> builder) {
         checkActive();
+        Assert.checkNotNullParam("builder", builder);
         if (modifiers.hasFlag(ModifierFlag.ABSTRACT)) {
             throw new IllegalStateException("Abstract methods cannot have a body");
         }
@@ -140,6 +176,7 @@ public final class MethodCreatorImpl extends AbstractCreator implements MethodCr
             throw new IllegalStateException("Native methods cannot have a body");
         }
         final BlockCreatorImpl bc = new BlockCreatorImpl(version());
+        bc.sourceFile(sourceFile());
         nest(() -> builder.accept(bc));
         bc.finish();
         this.body = bc;
@@ -149,6 +186,7 @@ public final class MethodCreatorImpl extends AbstractCreator implements MethodCr
     @Override
     public void setAccess(final AccessLevel access) {
         checkActive();
+        Assert.checkNotNullParam("access", access);
         modifiers.setAccess(access);
     }
 
@@ -156,6 +194,7 @@ public final class MethodCreatorImpl extends AbstractCreator implements MethodCr
     @Override
     public void addFlag(final ModifierFlag flag) {
         checkActive();
+        Assert.checkNotNullParam("flag", flag);
         modifiers.addFlag(flag);
     }
 
@@ -163,6 +202,7 @@ public final class MethodCreatorImpl extends AbstractCreator implements MethodCr
     @Override
     public void removeFlag(final ModifierFlag flag) {
         checkActive();
+        Assert.checkNotNullParam("flag", flag);
         modifiers.removeFlag(flag);
     }
 
@@ -170,7 +210,11 @@ public final class MethodCreatorImpl extends AbstractCreator implements MethodCr
     @Override
     public void annotate(final JType annotationType, final Consumer<AnnotationCreator> builder) {
         checkActive();
+        Assert.checkNotNullParam("annotationType", annotationType);
+        Assert.checkNotNullParam("builder", builder);
+        registerUsedType(annotationType);
         final AnnotationCreatorImpl ac = new AnnotationCreatorImpl(version(), annotationType);
+        ac.sourceFile(sourceFile());
         nest(() -> builder.accept(ac));
         ac.finish();
         annotations.add(ac);
@@ -180,6 +224,8 @@ public final class MethodCreatorImpl extends AbstractCreator implements MethodCr
     @Override
     public void annotate(final JType annotationType) {
         checkActive();
+        Assert.checkNotNullParam("annotationType", annotationType);
+        registerUsedType(annotationType);
         annotations.add(new AnnotationCreatorImpl(version(), annotationType));
     }
 
@@ -187,17 +233,38 @@ public final class MethodCreatorImpl extends AbstractCreator implements MethodCr
     @Override
     public void docComment(final Consumer<DocCommentCreator> builder) {
         checkActive();
-        final DocCommentCreatorImpl dc = new DocCommentCreatorImpl(version());
+        Assert.checkNotNullParam("builder", builder);
+        final DocCommentCreatorImpl dc = getOrCreateDocComment();
         nest(() -> builder.accept(dc));
         dc.finish();
-        this.docComment = dc;
+    }
+
+    /**
+     * Returns the existing doc comment creator, or creates one on demand.
+     * <p>
+     * If a creator already exists from a prior call (e.g., from a type
+     * parameter or method parameter contributing a tag), it is reopened
+     * for further configuration.
+     *
+     * @return the doc comment creator
+     */
+    private DocCommentCreatorImpl getOrCreateDocComment() {
+        DocCommentCreatorImpl dc = this.docComment;
+        if (dc == null) {
+            dc = new DocCommentCreatorImpl(version(), sourceFile(), DocContext.METHOD);
+            this.docComment = dc;
+        } else {
+            dc.reopen();
+        }
+        return dc;
     }
 
     /** {@inheritDoc} */
     @Override
     public void write(final SourceFileWriter writer) throws IOException {
-        // aggregate @param tags from sub-creators into the doc comment
-        writeDocComment(writer);
+        if (docComment != null) {
+            docComment.write(writer);
+        }
         annotations.writeWithNewlines(writer);
         modifiers.write(writer);
         writeTypeParams(writer);
@@ -219,30 +286,6 @@ public final class MethodCreatorImpl extends AbstractCreator implements MethodCr
     }
 
     /**
-     * Writes the Javadoc, aggregating {@code @param} tags from parameters
-     * and type parameters.
-     *
-     * @param writer the writer
-     * @throws IOException if an I/O error occurs
-     */
-    private void writeDocComment(final SourceFileWriter writer) throws IOException {
-        if (docComment == null) {
-            return;
-        }
-        for (TypeParamCreatorImpl tp : typeParams) {
-            if (tp.docComment() != null) {
-                docComment.addTypeParamTag(tp.name(), "");
-            }
-        }
-        for (ParamCreatorImpl p : params) {
-            if (p.docComment() != null) {
-                docComment.addParamTag(p.name(), "");
-            }
-        }
-        docComment.write(writer);
-    }
-
-    /**
      * Writes the type parameter list: {@code <T, U extends Bound>}.
      *
      * @param writer the writer
@@ -252,16 +295,9 @@ public final class MethodCreatorImpl extends AbstractCreator implements MethodCr
         if (typeParams.isEmpty()) {
             return;
         }
+        writer.addWordSpace();
         writer.write(Tokens.$ANGLE.OPEN);
-        boolean first = true;
-        for (TypeParamCreatorImpl tp : typeParams) {
-            if (!first) {
-                writer.write(Tokens.$PUNCT.COMMA);
-                writer.write(FormatPreferences.Space.COMMA_TYPE_ARGUMENT);
-            }
-            first = false;
-            tp.write(writer);
-        }
+        AbstractJExpr.writeList(writer, typeParams, FormatPreferences.Space.COMMA_TYPE_ARGUMENT);
         writer.write(Tokens.$ANGLE.CLOSE);
         writer.sp();
     }
@@ -274,15 +310,7 @@ public final class MethodCreatorImpl extends AbstractCreator implements MethodCr
      */
     private void writeParams(final SourceFileWriter writer) throws IOException {
         writer.write(Tokens.$PAREN.OPEN);
-        boolean first = true;
-        for (ParamCreatorImpl p : params) {
-            if (!first) {
-                writer.write(Tokens.$PUNCT.COMMA);
-                writer.write(FormatPreferences.Space.AFTER_COMMA);
-            }
-            first = false;
-            p.write(writer);
-        }
+        AbstractJExpr.writeList(writer, params, FormatPreferences.Space.AFTER_COMMA);
         writer.write(Tokens.$PAREN.CLOSE);
     }
 
@@ -297,14 +325,6 @@ public final class MethodCreatorImpl extends AbstractCreator implements MethodCr
             return;
         }
         writer.write(Tokens.$KW.THROWS);
-        boolean first = true;
-        for (JType t : throwsTypes) {
-            if (!first) {
-                writer.write(Tokens.$PUNCT.COMMA);
-                writer.write(FormatPreferences.Space.AFTER_COMMA);
-            }
-            first = false;
-            AbstractJExpr.writeType(writer, t);
-        }
+        AbstractJExpr.writeList(writer, throwsTypes, FormatPreferences.Space.AFTER_COMMA);
     }
 }

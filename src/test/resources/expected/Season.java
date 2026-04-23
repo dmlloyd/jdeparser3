@@ -6,13 +6,13 @@ public enum Season {
     AUTUMN("cool"),
     WINTER("cold");
 
-    private final java.lang.String description;
+    private final String description;
 
-    Season(java.lang.String description) {
+    Season(String description) {
         this.description = description;
     }
 
-    public java.lang.String getDescription() {
+    public String getDescription() {
         return description;
     }
 }

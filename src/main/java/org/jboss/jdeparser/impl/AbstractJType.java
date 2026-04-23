@@ -3,6 +3,9 @@ package org.jboss.jdeparser.impl;
 import java.io.IOException;
 import java.util.List;
 
+import io.smallrye.common.constraint.Assert;
+
+import org.jboss.jdeparser.JDocReference;
 import org.jboss.jdeparser.JExpr;
 import org.jboss.jdeparser.JType;
 import org.jboss.jdeparser.JVar;
@@ -48,8 +51,10 @@ public abstract non-sealed class AbstractJType implements JType, Writable {
      * Returns a new parameterized type applying the given type arguments to this type.
      */
     @Override
-    public JType typeArg(final JType... args) {
-        return new NarrowedJType(this, List.of(args));
+    public JType typeArg(final List<JType> args) {
+        Assert.checkNotNullParam("args", args);
+        Assert.checkNotEmptyParam("args", args);
+        return new NarrowedJType(this, args);
     }
 
     /**
@@ -109,6 +114,8 @@ public abstract non-sealed class AbstractJType implements JType, Writable {
      */
     @Override
     public JType nestedType(final String name) {
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
         return new NestedJType(this, name);
     }
 
@@ -119,17 +126,9 @@ public abstract non-sealed class AbstractJType implements JType, Writable {
      */
     @Override
     public JVar field(final String name) {
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
         return new TypeFieldRefJExpr(this, name);
-    }
-
-    /**
-     * {@inheritDoc}
-     * <p>
-     * Delegates to {@link #call(String, List)} after wrapping the varargs array.
-     */
-    @Override
-    public JExpr call(final String name, final JExpr... args) {
-        return call(name, List.of(args));
     }
 
     /**
@@ -139,6 +138,9 @@ public abstract non-sealed class AbstractJType implements JType, Writable {
      */
     @Override
     public JExpr call(final String name, final List<JExpr> args) {
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
+        Assert.checkNotNullParam("args", args);
         return new TypeCallJExpr(this, name, args);
     }
 
@@ -150,5 +152,17 @@ public abstract non-sealed class AbstractJType implements JType, Writable {
     @Override
     public JExpr classLiteral() {
         return new ClassLiteralJExpr(this);
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Returns a doc reference combining this type with a member identifier.
+     */
+    @Override
+    public JDocReference docRef(final String member) {
+        Assert.checkNotNullParam("member", member);
+        Assert.checkNotEmptyParam("member", member);
+        return new DocReferenceImpl(this, member);
     }
 }

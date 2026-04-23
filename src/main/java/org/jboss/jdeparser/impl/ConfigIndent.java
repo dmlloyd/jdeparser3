@@ -50,16 +50,18 @@ public final class ConfigIndent implements Indent {
      * configured indent (as spaces or tabs depending on preferences).
      */
     @Override
-    public void addIndent(final Indent next, final FormatPreferences preferences, final StringBuilder lineBuffer) {
+    public boolean addIndent(final Indent next, final FormatPreferences preferences, final StringBuilder lineBuffer) {
         // relative: accumulate parent indentation first; absolute: skip parent
+        boolean visible = false;
         if (!preferences.isIndentAbsolute(indentation)) {
-            next.addIndent(next, preferences, lineBuffer);
+            visible = next.addIndent(next, preferences, lineBuffer);
         }
         final int indent = preferences.getIndent(indentation);
         if (preferences.useTabs()) {
             final int tabWidth = preferences.tabWidth();
             final int tabs = indent / tabWidth;
             final int spaces = indent % tabWidth;
+            lineBuffer.ensureCapacity(lineBuffer.length() + spaces + tabs);
             for (int i = 0; i < tabs; i++) {
                 lineBuffer.append('\t');
             }
@@ -67,10 +69,12 @@ public final class ConfigIndent implements Indent {
                 lineBuffer.append(' ');
             }
         } else {
+            lineBuffer.ensureCapacity(lineBuffer.length() + indent);
             for (int i = 0; i < indent; i++) {
                 lineBuffer.append(' ');
             }
         }
+        return visible;
     }
 
     /**

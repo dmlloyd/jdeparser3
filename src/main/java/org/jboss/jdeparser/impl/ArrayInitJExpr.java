@@ -67,15 +67,7 @@ public final class ArrayInitJExpr extends AbstractJExpr {
         writer.write(FormatPreferences.Space.BEFORE_BRACE_ARRAY_INIT);
         writer.write(Tokens.$BRACE.OPEN);
         writer.write(FormatPreferences.Space.WITHIN_BRACES_ARRAY_INIT);
-        boolean first = true;
-        for (JExpr elem : elements) {
-            if (!first) {
-                writer.write(Tokens.$PUNCT.COMMA);
-                writer.write(FormatPreferences.Space.AFTER_COMMA);
-            }
-            first = false;
-            writeExpr(writer, elem);
-        }
+        writeList(writer, elements, FormatPreferences.Space.AFTER_COMMA);
         writer.write(FormatPreferences.Space.WITHIN_BRACES_ARRAY_INIT);
         writer.write(Tokens.$BRACE.CLOSE);
     }

@@ -2,7 +2,6 @@ package org.jboss.jdeparser.test;
 
 import org.jboss.jdeparser.JExpr;
 import org.jboss.jdeparser.JType;
-import org.jboss.jdeparser.JSources;
 import org.jboss.jdeparser.SourceVersion;
 import org.jboss.jdeparser.impl.BlockCreatorImpl;
 import org.jboss.jdeparser.impl.ClassCreatorImpl;
@@ -35,9 +34,9 @@ class BorrowPatternTest {
     @Test
     void finishedClassThrows() {
         final ClassCreatorImpl cc = new ClassCreatorImpl(SourceVersion.JAVA_17, "Test", false);
-        assertDoesNotThrow(() -> cc.public_());
+        assertDoesNotThrow(cc::public_);
         cc.finish();
-        assertThrows(IllegalStateException.class, () -> cc.public_(),
+        assertThrows(IllegalStateException.class, cc::public_,
             "finished class should reject modifications");
     }
 
@@ -50,7 +49,7 @@ class BorrowPatternTest {
         final ClassCreatorImpl cc = new ClassCreatorImpl(SourceVersion.JAVA_17, "Test", false);
         cc.method("m", mc -> {
             // parent (cc) should be inactive during this callback
-            assertThrows(IllegalStateException.class, () -> cc.public_(),
+            assertThrows(IllegalStateException.class, cc::public_,
                 "parent should be inactive during nested callback");
 
             mc.body(b -> {
@@ -61,7 +60,7 @@ class BorrowPatternTest {
             });
         });
         // parent should be active again after nest completes
-        assertDoesNotThrow(() -> cc.final_(),
+        assertDoesNotThrow(cc::final_,
             "parent should be active again after nested callback");
     }
 }
