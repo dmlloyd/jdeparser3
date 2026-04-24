@@ -66,6 +66,37 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
         writer.write(Tokens.$BRACE.CLOSE);
     }
 
+    /**
+     * Writes this block as a statement body, using braces or a single indented
+     * statement depending on the {@link FormatPreferences.Opt#SINGLE_STATEMENT_BRACES} option.
+     * <p>
+     * When the option is enabled (or the block has zero or more than one statement),
+     * the block is rendered with braces as usual.  When the option is disabled and
+     * the block has exactly one statement, the single statement is rendered without
+     * braces on an indented continuation line.
+     * <p>
+     * This method should only be called from statement positions where a single
+     * statement is syntactically valid without braces (e.g., {@code if}, {@code while},
+     * {@code for}).
+     *
+     * @param writer      the writer
+     * @param beforeBrace the space to write before the opening brace (used only when braces are rendered)
+     * @throws IOException if an I/O error occurs
+     */
+    public void writeStatementBody(final SourceFileWriter writer,
+                                   final FormatPreferences.Space beforeBrace) throws IOException {
+        if (content.size() == 1
+                && !writer.getFormat().hasOption(FormatPreferences.Opt.SINGLE_STATEMENT_BRACES)) {
+            writer.nl();
+            writer.pushIndent(FormatPreferences.Indentation.LINE);
+            content.get(0).write(writer);
+            writer.popIndent(FormatPreferences.Indentation.LINE);
+        } else {
+            writer.write(beforeBrace);
+            writeBlock(writer);
+        }
+    }
+
     // ── Statement-expressions ──────────────────────────────────────────
 
     /** {@inheritDoc} */
@@ -137,8 +168,7 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
             w.write(Tokens.$PAREN.OPEN);
             AbstractJExpr.writeExpr(w, condition);
             w.write(Tokens.$PAREN.CLOSE);
-            w.write(FormatPreferences.Space.BEFORE_BRACE_IF);
-            block.writeBlock(w);
+            block.writeStatementBody(w, FormatPreferences.Space.BEFORE_BRACE_IF);
             w.nl();
         });
     }
@@ -165,11 +195,9 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
             w.write(Tokens.$PAREN.OPEN);
             AbstractJExpr.writeExpr(w, condition);
             w.write(Tokens.$PAREN.CLOSE);
-            w.write(FormatPreferences.Space.BEFORE_BRACE_IF);
-            ifBlock.writeBlock(w);
+            ifBlock.writeStatementBody(w, FormatPreferences.Space.BEFORE_BRACE_IF);
             w.write(Tokens.$KW.ELSE);
-            w.write(FormatPreferences.Space.BEFORE_BRACE_ELSE);
-            elseBlock.writeBlock(w);
+            elseBlock.writeStatementBody(w, FormatPreferences.Space.BEFORE_BRACE_ELSE);
             w.nl();
         });
     }
@@ -190,8 +218,7 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
             w.write(Tokens.$PAREN.OPEN);
             AbstractJExpr.writeExpr(w, condition);
             w.write(Tokens.$PAREN.CLOSE);
-            w.write(FormatPreferences.Space.BEFORE_BRACE_WHILE);
-            block.writeBlock(w);
+            block.writeStatementBody(w, FormatPreferences.Space.BEFORE_BRACE_WHILE);
             w.nl();
         });
     }
@@ -208,8 +235,7 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
         block.finish();
         content.add(w -> {
             w.write(Tokens.$KW.DO);
-            w.write(FormatPreferences.Space.BEFORE_BRACE_DO);
-            block.writeBlock(w);
+            block.writeStatementBody(w, FormatPreferences.Space.BEFORE_BRACE_DO);
             w.write(Tokens.$KW.WHILE);
             w.write(FormatPreferences.Space.BEFORE_PAREN_WHILE);
             w.write(Tokens.$PAREN.OPEN);
@@ -260,8 +286,7 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
             w.write(FormatPreferences.Space.AFTER_COLON);
             AbstractJExpr.writeExpr(w, iterable);
             w.write(Tokens.$PAREN.CLOSE);
-            w.write(FormatPreferences.Space.BEFORE_BRACE_FOR);
-            block.writeBlock(w);
+            block.writeStatementBody(w, FormatPreferences.Space.BEFORE_BRACE_FOR);
             w.nl();
         });
         return var;

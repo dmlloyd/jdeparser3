@@ -3484,6 +3484,184 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
             "NEVER wrap should have all constants on same line");
     }
 
+    // ── Batch 20: SINGLE_STATEMENT_BRACES ────────────────────────────────
+
+    /**
+     * Verifies that disabling {@link Opt#SINGLE_STATEMENT_BRACES} omits braces
+     * around a single-statement {@code if} body.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void singleStatementBracesIf() throws IOException {
+        final JSources defaultSources = createSources(SourceVersion.JAVA_17);
+        defaultSources.createSourceFile("com.example", "Cls1", sf -> {
+            sf.class_("Cls1", cc -> {
+                cc.method("run", mc -> {
+                    mc.body(b -> {
+                        b.if_(JExpr.$v("x").gt(JExpr.ZERO), ifBody -> {
+                            ifBody.return_();
+                        });
+                    });
+                });
+            });
+        });
+        defaultSources.writeSources();
+        final String defaultOutput = getSource("com.example", "Cls1");
+        assertTrue(defaultOutput.contains(") {"), "default (ON) should have braces");
+        assertTrue(defaultOutput.contains("return;"), "default should contain return");
+
+        clearSources();
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .removeOption(Opt.SINGLE_STATEMENT_BRACES)
+            .build();
+        final JSources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
+        modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
+            sf.class_("Cls2", cc -> {
+                cc.method("run", mc -> {
+                    mc.body(b -> {
+                        b.if_(JExpr.$v("x").gt(JExpr.ZERO), ifBody -> {
+                            ifBody.return_();
+                        });
+                    });
+                });
+            });
+        });
+        modifiedSources.writeSources();
+        final String modifiedOutput = getSource("com.example", "Cls2");
+        assertFalse(modifiedOutput.contains(") {" + System.lineSeparator() + "            return;"),
+            "modified (OFF) should not have braces around single statement if body");
+        assertTrue(modifiedOutput.contains("return;"), "modified should still contain return");
+        assertFalse(modifiedOutput.contains("} "), "modified should not have closing brace for if body");
+    }
+
+    /**
+     * Verifies that disabling {@link Opt#SINGLE_STATEMENT_BRACES} omits braces
+     * around single-statement {@code if-else} bodies.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void singleStatementBracesIfElse() throws IOException {
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .removeOption(Opt.SINGLE_STATEMENT_BRACES)
+            .build();
+        final JSources sources = createSources(prefs, SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "Cls1", sf -> {
+            sf.class_("Cls1", cc -> {
+                cc.method("run", mc -> {
+                    mc.body(b -> {
+                        b.ifElse(JExpr.$v("x").gt(JExpr.ZERO),
+                            ifBody -> ifBody.return_(JExpr.$v("x")),
+                            elseBody -> elseBody.return_(JExpr.ZERO));
+                    });
+                });
+            });
+        });
+        sources.writeSources();
+        final String output = getSource("com.example", "Cls1");
+        assertTrue(output.contains("return x;"), "should contain if-body return");
+        assertTrue(output.contains("return 0;"), "should contain else-body return");
+        assertTrue(output.contains("else"), "should contain else keyword");
+        assertFalse(output.contains("} else"), "should not have } else (no braces on if body)");
+    }
+
+    /**
+     * Verifies that disabling {@link Opt#SINGLE_STATEMENT_BRACES} omits braces
+     * around a single-statement {@code while} body.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void singleStatementBracesWhile() throws IOException {
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .removeOption(Opt.SINGLE_STATEMENT_BRACES)
+            .build();
+        final JSources sources = createSources(prefs, SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "Cls1", sf -> {
+            sf.class_("Cls1", cc -> {
+                cc.method("run", mc -> {
+                    mc.body(b -> {
+                        b.while_(JExpr.$v("x").gt(JExpr.ZERO), body -> {
+                            body.emit(JExpr.$v("x").dec());
+                        });
+                    });
+                });
+            });
+        });
+        sources.writeSources();
+        final String output = getSource("com.example", "Cls1");
+        assertTrue(output.contains("x--"), "should contain decrement");
+        assertTrue(output.lines().noneMatch(l -> l.contains("while") && l.contains("{")),
+            "should not have braces on while line");
+    }
+
+    /**
+     * Verifies that disabling {@link Opt#SINGLE_STATEMENT_BRACES} omits braces
+     * around a single-statement {@code for} loop body.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void singleStatementBracesFor() throws IOException {
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .removeOption(Opt.SINGLE_STATEMENT_BRACES)
+            .build();
+        final JSources sources = createSources(prefs, SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "Cls1", sf -> {
+            sf.class_("Cls1", cc -> {
+                cc.method("run", mc -> {
+                    mc.body(b -> {
+                        b.for_(fc -> {
+                            fc.init(JType.INT, "i", JExpr.ZERO);
+                            fc.condition(JExpr.$v("i").lt(JExpr.$v("n")));
+                            fc.update(JExpr.$v("i").inc());
+                            fc.body(body -> {
+                                body.emit(JExpr.callPlain("process", JExpr.$v("i")));
+                            });
+                        });
+                    });
+                });
+            });
+        });
+        sources.writeSources();
+        final String output = getSource("com.example", "Cls1");
+        assertTrue(output.contains("process(i)"), "should contain process call");
+        assertTrue(output.lines().noneMatch(l -> l.contains("for") && l.contains("{")),
+            "should not have braces on for line");
+    }
+
+    /**
+     * Verifies that disabling {@link Opt#SINGLE_STATEMENT_BRACES} still renders
+     * braces when the block contains more than one statement.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void singleStatementBracesMultiStatement() throws IOException {
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .removeOption(Opt.SINGLE_STATEMENT_BRACES)
+            .build();
+        final JSources sources = createSources(prefs, SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "Cls1", sf -> {
+            sf.class_("Cls1", cc -> {
+                cc.method("run", mc -> {
+                    mc.body(b -> {
+                        b.if_(JExpr.$v("x").gt(JExpr.ZERO), ifBody -> {
+                            ifBody.emit(JExpr.callPlain("a"));
+                            ifBody.emit(JExpr.callPlain("b"));
+                        });
+                    });
+                });
+            });
+        });
+        sources.writeSources();
+        final String output = getSource("com.example", "Cls1");
+        assertTrue(output.contains(") {"), "multi-statement block should still have braces");
+        assertTrue(output.contains("a()"), "should contain first call");
+        assertTrue(output.contains("b()"), "should contain second call");
+    }
+
     /**
      * Verifies that setting {@link Wrapping#RECORD_COMPONENT_LIST} to
      * {@link WrappingMode#ALWAYS_WRAP} places each record component on its own line.

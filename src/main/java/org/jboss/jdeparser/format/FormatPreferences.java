@@ -350,6 +350,15 @@ public final class FormatPreferences {
         ENUM_EMPTY_PARENS,
         /** Use compact formatting for classes with only initializer blocks. */
         COMPACT_INIT_ONLY_CLASS,
+        /**
+         * Always render braces around single-statement bodies in statement
+         * positions (e.g., {@code if}, {@code while}, {@code for}).
+         * <p>
+         * When enabled (default), a block with exactly one statement is still
+         * rendered with braces.  When disabled, the single statement is rendered
+         * without braces, indented on the following line.
+         */
+        SINGLE_STATEMENT_BRACES,
         ;
     }
 
@@ -643,6 +652,7 @@ public final class FormatPreferences {
 
             // option defaults
             options.add(Opt.COMPACT_INIT_ONLY_CLASS);
+            options.add(Opt.SINGLE_STATEMENT_BRACES);
 
             // wrapping defaults
             wrappingModes.put(Wrapping.EXCEPTION_LIST, WrappingMode.WRAP_ONLY_IF_LONG);
