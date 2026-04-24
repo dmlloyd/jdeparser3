@@ -10,6 +10,7 @@ import org.jboss.jdeparser.SourceVersion;
 import org.jboss.jdeparser.creator.BlockCreator;
 import org.jboss.jdeparser.format.FormatPreferences;
 import org.jboss.jdeparser.format.FormatPreferences.Indentation;
+import org.jboss.jdeparser.format.FormatPreferences.Opt;
 import org.jboss.jdeparser.format.FormatPreferences.Space;
 import org.jboss.jdeparser.format.FormatPreferences.SpaceType;
 import org.junit.jupiter.api.Test;
@@ -2964,5 +2965,205 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         modifiedSources.writeSources();
         final String modifiedOutput = getSource("com.example", "Empty2");
         assertTrue(modifiedOutput.contains("Empty2 { }"), "SPACE should produce empty class braces with space inside");
+    }
+
+    // ── Batch 16: Opt ──────────────────────────────────────────────────
+
+    /**
+     * Verifies that enabling {@link Opt#ENUM_TRAILING_COMMA} adds a comma
+     * after the last enum constant before the semicolon.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void enumTrailingComma() throws IOException {
+        final JSources defaultSources = createSources(SourceVersion.JAVA_17);
+        defaultSources.createSourceFile("com.example", "Color", sf -> {
+            sf.enum_("Color", ec -> {
+                ec.constant("RED", c -> {});
+                ec.constant("GREEN", c -> {});
+            });
+        });
+        defaultSources.writeSources();
+        final String defaultOutput = getSource("com.example", "Color");
+        assertTrue(defaultOutput.contains("GREEN;"), "default should not have trailing comma");
+        assertFalse(defaultOutput.contains("GREEN,;"), "default should not have trailing comma before semicolon");
+
+        clearSources();
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .addOption(Opt.ENUM_TRAILING_COMMA)
+            .build();
+        final JSources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
+        modifiedSources.createSourceFile("com.example", "Color2", sf -> {
+            sf.enum_("Color2", ec -> {
+                ec.constant("RED", c -> {});
+                ec.constant("GREEN", c -> {});
+            });
+        });
+        modifiedSources.writeSources();
+        final String modifiedOutput = getSource("com.example", "Color2");
+        assertTrue(modifiedOutput.contains("GREEN,;"), "modified should have trailing comma before semicolon");
+    }
+
+    /**
+     * Verifies that enabling {@link Opt#ENUM_EMPTY_PARENS} adds empty
+     * parentheses to enum constants with no constructor arguments.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void enumEmptyParens() throws IOException {
+        final JSources defaultSources = createSources(SourceVersion.JAVA_17);
+        defaultSources.createSourceFile("com.example", "Color", sf -> {
+            sf.enum_("Color", ec -> {
+                ec.constant("RED", c -> {});
+            });
+        });
+        defaultSources.writeSources();
+        final String defaultOutput = getSource("com.example", "Color");
+        assertFalse(defaultOutput.contains("RED()"), "default should not have empty parens");
+
+        clearSources();
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .addOption(Opt.ENUM_EMPTY_PARENS)
+            .build();
+        final JSources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
+        modifiedSources.createSourceFile("com.example", "Color2", sf -> {
+            sf.enum_("Color2", ec -> {
+                ec.constant("RED", c -> {});
+            });
+        });
+        modifiedSources.writeSources();
+        final String modifiedOutput = getSource("com.example", "Color2");
+        assertTrue(modifiedOutput.contains("RED()"), "modified should have empty parens on constant");
+    }
+
+    /**
+     * Verifies that {@link Opt#COMPACT_INIT_ONLY_CLASS} (enabled by default) produces
+     * compact double-brace formatting for anonymous classes with a single instance
+     * initializer, and that disabling it produces the expanded form.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void compactInitOnlyClass() throws IOException {
+        final JSources defaultSources = createSources(SourceVersion.JAVA_17);
+        defaultSources.createSourceFile("com.example", "Cls1", sf -> {
+            sf.class_("Cls1", cc -> {
+                cc.field("obj", fc -> {
+                    fc.type(JType.OBJECT);
+                    fc.init(JType.OBJECT.new_(SourceVersion.JAVA_17, List.of(), body -> {
+                        body.instanceInit(init -> {
+                            init.emit(JExpr.callPlain("init"));
+                        });
+                    }));
+                });
+            });
+        });
+        defaultSources.writeSources();
+        final String defaultOutput = getSource("com.example", "Cls1");
+        assertTrue(defaultOutput.contains("() {{"), "default (compact) should have adjacent opening braces");
+        assertTrue(defaultOutput.contains("}}"), "default (compact) should have adjacent closing braces");
+
+        clearSources();
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .removeOption(Opt.COMPACT_INIT_ONLY_CLASS)
+            .build();
+        final JSources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
+        modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
+            sf.class_("Cls2", cc -> {
+                cc.field("obj", fc -> {
+                    fc.type(JType.OBJECT);
+                    fc.init(JType.OBJECT.new_(SourceVersion.JAVA_17, List.of(), body -> {
+                        body.instanceInit(init -> {
+                            init.emit(JExpr.callPlain("init"));
+                        });
+                    }));
+                });
+            });
+        });
+        modifiedSources.writeSources();
+        final String modifiedOutput = getSource("com.example", "Cls2");
+        assertFalse(modifiedOutput.contains("() {{"), "non-compact should not have adjacent opening braces");
+        assertFalse(modifiedOutput.contains("}}"), "non-compact should not have adjacent closing braces");
+    }
+
+    // ── Batch 17: Enum constant WITHIN_PAREN ───────────────────────────
+
+    /**
+     * Verifies that setting {@link Space#WITHIN_PAREN_METHOD_CALL} to {@link SpaceType#SPACE}
+     * adds spaces inside the parentheses of enum constant constructor arguments.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void spaceWithinParenEnumConstantArgs() throws IOException {
+        final JSources defaultSources = createSources(SourceVersion.JAVA_17);
+        defaultSources.createSourceFile("com.example", "Color", sf -> {
+            sf.enum_("Color", ec -> {
+                ec.constant("RED", c -> {
+                    c.arg(JExpr.decimal(1));
+                    c.arg(JExpr.decimal(2));
+                });
+            });
+        });
+        defaultSources.writeSources();
+        final String defaultOutput = getSource("com.example", "Color");
+        assertTrue(defaultOutput.contains("RED(1, 2)"), "default should have no space inside parens");
+
+        clearSources();
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .space(Space.WITHIN_PAREN_METHOD_CALL, SpaceType.SPACE)
+            .build();
+        final JSources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
+        modifiedSources.createSourceFile("com.example", "Color2", sf -> {
+            sf.enum_("Color2", ec -> {
+                ec.constant("RED", c -> {
+                    c.arg(JExpr.decimal(1));
+                    c.arg(JExpr.decimal(2));
+                });
+            });
+        });
+        modifiedSources.writeSources();
+        final String modifiedOutput = getSource("com.example", "Color2");
+        assertTrue(modifiedOutput.contains("RED( 1, 2 )"), "modified should have space inside parens");
+    }
+
+    /**
+     * Verifies that setting {@link Space#WITHIN_PAREN_METHOD_CALL_EMPTY} to {@link SpaceType#SPACE}
+     * adds a space inside the empty parentheses of enum constants when
+     * {@link Opt#ENUM_EMPTY_PARENS} is enabled.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void spaceWithinParenEnumConstantEmpty() throws IOException {
+        final FormatPreferences defaultPrefs = FormatPreferences.builder()
+            .addOption(Opt.ENUM_EMPTY_PARENS)
+            .build();
+        final JSources defaultSources = createSources(defaultPrefs, SourceVersion.JAVA_17);
+        defaultSources.createSourceFile("com.example", "Color", sf -> {
+            sf.enum_("Color", ec -> {
+                ec.constant("RED", c -> {});
+            });
+        });
+        defaultSources.writeSources();
+        final String defaultOutput = getSource("com.example", "Color");
+        assertTrue(defaultOutput.contains("RED()"), "default should have empty parens with no space inside");
+
+        clearSources();
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .addOption(Opt.ENUM_EMPTY_PARENS)
+            .space(Space.WITHIN_PAREN_METHOD_CALL_EMPTY, SpaceType.SPACE)
+            .build();
+        final JSources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
+        modifiedSources.createSourceFile("com.example", "Color2", sf -> {
+            sf.enum_("Color2", ec -> {
+                ec.constant("RED", c -> {});
+            });
+        });
+        modifiedSources.writeSources();
+        final String modifiedOutput = getSource("com.example", "Color2");
+        assertTrue(modifiedOutput.contains("RED( )"), "modified should have space inside empty parens");
     }
 }

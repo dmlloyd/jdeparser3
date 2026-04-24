@@ -180,7 +180,7 @@ public final class ClassCreatorImpl extends AbstractCreator implements ClassCrea
         bc.sourceFile(sourceFile());
         nest(() -> builder.accept(bc));
         bc.finish();
-        members.add(bc::writeBlock);
+        members.add(new InitBlockMember(bc));
     }
 
     /** {@inheritDoc} */
@@ -388,6 +388,33 @@ public final class ClassCreatorImpl extends AbstractCreator implements ClassCrea
      */
     boolean hasMembers() {
         return !members.isEmpty();
+    }
+
+    /**
+     * If the body consists of exactly one instance initializer, returns its
+     * block for compact double-brace rendering.  Otherwise returns {@code null}.
+     *
+     * @return the sole instance initializer block, or {@code null}
+     */
+    BlockCreatorImpl soleInitBlock() {
+        if (members.size() == 1 && members.get(0) instanceof InitBlockMember ibm) {
+            return ibm.block();
+        }
+        return null;
+    }
+
+    /**
+     * A member writable that marks an instance initializer block, allowing
+     * detection for compact double-brace formatting.
+     *
+     * @param block the instance initializer block
+     */
+    record InitBlockMember(BlockCreatorImpl block) implements Writable {
+        /** {@inheritDoc} */
+        @Override
+        public void write(final SourceFileWriter writer) throws IOException {
+            block.writeBlock(writer);
+        }
     }
 
     /**

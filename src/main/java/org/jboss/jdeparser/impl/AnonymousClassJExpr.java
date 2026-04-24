@@ -64,7 +64,12 @@ public final class AnonymousClassJExpr extends AbstractJExpr {
         writer.write(Tokens.$PAREN.CLOSE);
         writer.write(FormatPreferences.Space.BEFORE_BRACE_CLASS);
         writer.write(Tokens.$BRACE.OPEN);
-        if (body.hasMembers()) {
+        BlockCreatorImpl initBlock;
+        if (writer.getFormat().hasOption(FormatPreferences.Opt.COMPACT_INIT_ONLY_CLASS)
+                && (initBlock = body.soleInitBlock()) != null) {
+            // compact double-brace: {{ content }}
+            initBlock.writeBlock(writer);
+        } else if (body.hasMembers()) {
             writer.nl();
             writer.pushIndent(FormatPreferences.Indentation.MEMBERS_TOP_LEVEL);
             body.writeBody(writer);

@@ -134,13 +134,23 @@ public final class EnumConstantCreatorImpl extends AbstractCreator implements En
         writer.writeName(name);
         if (!args.isEmpty()) {
             writer.write(Tokens.$PAREN.OPEN);
+            writer.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_CALL);
             AbstractJExpr.writeList(writer, args, FormatPreferences.Space.AFTER_COMMA);
+            writer.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_CALL);
+            writer.write(Tokens.$PAREN.CLOSE);
+        } else if (writer.getFormat().hasOption(FormatPreferences.Opt.ENUM_EMPTY_PARENS)) {
+            writer.write(Tokens.$PAREN.OPEN);
+            writer.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_CALL_EMPTY);
             writer.write(Tokens.$PAREN.CLOSE);
         }
         if (body != null) {
             writer.write(FormatPreferences.Space.BEFORE_BRACE_CLASS);
             writer.write(Tokens.$BRACE.OPEN);
-            if (body.hasMembers()) {
+            BlockCreatorImpl initBlock;
+            if (writer.getFormat().hasOption(FormatPreferences.Opt.COMPACT_INIT_ONLY_CLASS)
+                    && (initBlock = body.soleInitBlock()) != null) {
+                initBlock.writeBlock(writer);
+            } else if (body.hasMembers()) {
                 writer.nl();
                 writer.pushIndent(FormatPreferences.Indentation.MEMBERS_TOP_LEVEL);
                 body.writeBody(writer);

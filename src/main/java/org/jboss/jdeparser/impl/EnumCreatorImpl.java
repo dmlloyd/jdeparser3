@@ -242,8 +242,11 @@ public final class EnumCreatorImpl extends AbstractCreator implements EnumCreato
                 firstConstant = false;
                 constant.write(writer);
             }
-            // semicolon after last constant
+            // trailing comma and semicolon after last constant
             if (!constants.isEmpty()) {
+                if (writer.getFormat().hasOption(FormatPreferences.Opt.ENUM_TRAILING_COMMA)) {
+                    writer.write(Tokens.$PUNCT.COMMA);
+                }
                 writer.write(Tokens.$PUNCT.SEMI);
                 writer.nl();
             }
