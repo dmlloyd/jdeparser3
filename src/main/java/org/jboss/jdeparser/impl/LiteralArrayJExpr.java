@@ -49,9 +49,13 @@ public final class LiteralArrayJExpr extends AbstractJExpr {
         // { e1, e2, e3 }
         writer.write(FormatPreferences.Space.BEFORE_BRACE_ARRAY_INIT);
         writer.write(Tokens.$BRACE.OPEN);
-        writer.write(FormatPreferences.Space.WITHIN_BRACES_ARRAY_INIT);
-        writeList(writer, elements, FormatPreferences.Space.AFTER_COMMA);
-        writer.write(FormatPreferences.Space.WITHIN_BRACES_ARRAY_INIT);
+        if (elements.isEmpty()) {
+            writer.write(FormatPreferences.Space.WITHIN_BRACES_EMPTY);
+        } else {
+            writer.write(FormatPreferences.Space.WITHIN_BRACES_ARRAY_INIT);
+            writeList(writer, elements, FormatPreferences.Space.AFTER_COMMA);
+            writer.write(FormatPreferences.Space.WITHIN_BRACES_ARRAY_INIT);
+        }
         writer.write(Tokens.$BRACE.CLOSE);
     }
 }

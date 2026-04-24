@@ -214,11 +214,11 @@ public final class FormatPreferences {
         /** After a comma (general context). */
         AFTER_COMMA,
         /** After a comma in a type argument list. */
-        COMMA_TYPE_ARGUMENT,
+        AFTER_COMMA_TYPE_ARGUMENT,
         /** After a comma between enum constants. */
         COMMA_ENUM_CONSTANT,
         /** After a comma between record components. */
-        COMMA_RECORD_COMPONENT,
+        AFTER_COMMA_RECORD_COMPONENT,
 
         // ── Ternary and colons ──────────────────────────────────────
 
@@ -577,8 +577,8 @@ public final class FormatPreferences {
 
             // spacing defaults: commas get SPACE after
             spaceTypes.put(Space.AFTER_COMMA, SpaceType.SPACE);
-            spaceTypes.put(Space.COMMA_TYPE_ARGUMENT, SpaceType.SPACE);
-            spaceTypes.put(Space.COMMA_RECORD_COMPONENT, SpaceType.SPACE);
+            spaceTypes.put(Space.AFTER_COMMA_TYPE_ARGUMENT, SpaceType.SPACE);
+            spaceTypes.put(Space.AFTER_COMMA_RECORD_COMPONENT, SpaceType.SPACE);
             spaceTypes.put(Space.AFTER_SEMICOLON, SpaceType.SPACE);
 
             // spacing defaults: enum constants get NEWLINE after comma

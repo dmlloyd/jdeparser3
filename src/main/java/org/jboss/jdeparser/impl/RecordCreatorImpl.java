@@ -296,7 +296,7 @@ public final class RecordCreatorImpl extends AbstractCreator implements RecordCr
             return;
         }
         writer.write(Tokens.$ANGLE.OPEN);
-        AbstractJExpr.writeList(writer, typeParams, FormatPreferences.Space.COMMA_TYPE_ARGUMENT);
+        AbstractJExpr.writeList(writer, typeParams, FormatPreferences.Space.AFTER_COMMA_TYPE_ARGUMENT);
         writer.write(Tokens.$ANGLE.CLOSE);
     }
 
@@ -309,7 +309,7 @@ public final class RecordCreatorImpl extends AbstractCreator implements RecordCr
     private void writeComponents(final SourceFileWriter writer) throws IOException {
         writer.write(FormatPreferences.Space.BEFORE_PAREN_RECORD);
         writer.write(Tokens.$PAREN.OPEN);
-        AbstractJExpr.writeList(writer, components, FormatPreferences.Space.COMMA_RECORD_COMPONENT);
+        AbstractJExpr.writeList(writer, components, FormatPreferences.Space.AFTER_COMMA_RECORD_COMPONENT);
         writer.write(Tokens.$PAREN.CLOSE);
     }
 

@@ -76,7 +76,7 @@ public final class NarrowedJType extends AbstractJType {
     public void write(SourceFileWriter writer) throws IOException {
         AbstractJExpr.writeType(writer, rawType);
         writer.write(Tokens.$ANGLE.OPEN);
-        AbstractJExpr.writeList(writer, typeArgs, FormatPreferences.Space.COMMA_TYPE_ARGUMENT);
+        AbstractJExpr.writeList(writer, typeArgs, FormatPreferences.Space.AFTER_COMMA_TYPE_ARGUMENT);
         writer.write(Tokens.$ANGLE.CLOSE);
     }
 }

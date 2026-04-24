@@ -148,7 +148,7 @@ public final class TryCreatorImpl extends AbstractCreator implements TryCreator,
             writer.write(Tokens.$KW.CATCH);
             writer.write(FormatPreferences.Space.BEFORE_PAREN_CATCH);
             writer.write(Tokens.$PAREN.OPEN);
-            AbstractJExpr.writeList(writer, c.types, Tokens.$PUNCT.BAR, FormatPreferences.Space.AROUND_MULTI_CATCH_OR);
+            AbstractJExpr.writeList(writer, c.types, FormatPreferences.Space.AROUND_MULTI_CATCH_OR, Tokens.$PUNCT.BAR, FormatPreferences.Space.AROUND_MULTI_CATCH_OR);
             writer.sp();
             writer.writeName(c.name);
             writer.write(Tokens.$PAREN.CLOSE);

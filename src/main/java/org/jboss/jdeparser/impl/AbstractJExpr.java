@@ -115,12 +115,34 @@ public abstract non-sealed class AbstractJExpr implements JExpr, Writable {
      */
     protected static void writeList(final SourceFileWriter writer, final List<?> items, final Token token,
                                     final FormatPreferences.Space space) throws IOException {
+        writeList(writer, items, null, token, space);
+    }
+
+    /**
+     * Writes a comma-separated list of writable items.
+     *
+     * @param writer      the source file writer
+     * @param items       the items to write
+     * @param beforeSpace the spacing rule to apply before each delimiter
+     * @param token       the token of the delimiter
+     * @param afterSpace  the spacing rule to apply after each delimiter
+     * @throws IOException if an I/O error occurs
+     */
+    protected static void writeList(final SourceFileWriter writer, final List<?> items,
+                                    final FormatPreferences.Space beforeSpace,
+                                    final Token token,
+                                    final FormatPreferences.Space afterSpace) throws IOException {
         int size = items.size();
         if (size > 0) {
             ((Writable) items.get(0)).write(writer);
             for (int i = 1; i < size; i++) {
+                if (beforeSpace != null) {
+                    writer.write(beforeSpace);
+                }
                 writer.write(token);
-                writer.write(space);
+                if (afterSpace != null) {
+                    writer.write(afterSpace);
+                }
                 ((Writable) items.get(i)).write(writer);
             }
         }

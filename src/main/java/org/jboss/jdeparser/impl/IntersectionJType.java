@@ -168,6 +168,6 @@ public final class IntersectionJType extends AbstractJType {
     /** {@inheritDoc} */
     @Override
     public void write(SourceFileWriter writer) throws IOException {
-        AbstractJExpr.writeList(writer, types, Tokens.$PUNCT.AMP, FormatPreferences.Space.AROUND_TYPE_BOUND_AND);
+        AbstractJExpr.writeList(writer, types, FormatPreferences.Space.AROUND_TYPE_BOUND_AND, Tokens.$PUNCT.AMP, FormatPreferences.Space.AROUND_TYPE_BOUND_AND);
     }
 }

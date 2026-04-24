@@ -331,7 +331,7 @@ public final class InterfaceCreatorImpl extends AbstractCreator implements Inter
             return;
         }
         writer.write(Tokens.$ANGLE.OPEN);
-        AbstractJExpr.writeList(writer, typeParams, FormatPreferences.Space.COMMA_TYPE_ARGUMENT);
+        AbstractJExpr.writeList(writer, typeParams, FormatPreferences.Space.AFTER_COMMA_TYPE_ARGUMENT);
         writer.write(Tokens.$ANGLE.CLOSE);
     }
 
