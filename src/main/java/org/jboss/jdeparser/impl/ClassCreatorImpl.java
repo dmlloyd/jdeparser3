@@ -370,11 +370,24 @@ public final class ClassCreatorImpl extends AbstractCreator implements ClassCrea
         }
         writer.write(FormatPreferences.Space.BEFORE_BRACE_CLASS);
         writer.write(Tokens.$BRACE.OPEN);
-        writer.nl();
-        writer.pushIndent(FormatPreferences.Indentation.MEMBERS_TOP_LEVEL);
-        writeBody(writer);
-        writer.popIndent(FormatPreferences.Indentation.MEMBERS_TOP_LEVEL);
+        if (members.isEmpty()) {
+            writer.write(FormatPreferences.Space.WITHIN_BRACES_EMPTY);
+        } else {
+            writer.nl();
+            writer.pushIndent(FormatPreferences.Indentation.MEMBERS_TOP_LEVEL);
+            writeBody(writer);
+            writer.popIndent(FormatPreferences.Indentation.MEMBERS_TOP_LEVEL);
+        }
         writer.write(Tokens.$BRACE.CLOSE);
+    }
+
+    /**
+     * Returns whether this class has any members.
+     *
+     * @return {@code true} if the class has members, {@code false} if the body is empty
+     */
+    boolean hasMembers() {
+        return !members.isEmpty();
     }
 
     /**

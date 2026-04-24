@@ -2762,4 +2762,207 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         final String modifiedOutput = getSource("com.example", "Cls2");
         assertFalse(modifiedOutput.contains("x = 0"), "modified should not have assignment on one line");
     }
+
+    // ── Batch 15: WITHIN_BRACES_EMPTY ──────────────────────────────────
+
+    /**
+     * Verifies that {@link Space#WITHIN_BRACES_EMPTY} is respected for empty array
+     * initializers: default ({@link SpaceType#NONE}) produces {@code {}} and
+     * {@link SpaceType#SPACE} produces {@code { }}.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void withinBracesEmptyArrayInit() throws IOException {
+        final JSources defaultSources = createSources(SourceVersion.JAVA_17);
+        defaultSources.createSourceFile("com.example", "Cls1", sf -> {
+            sf.class_("Cls1", cc -> {
+                cc.field("nums", fc -> {
+                    fc.type(JType.INT.array());
+                    fc.init(JType.INT.array().newArrayInit());
+                });
+            });
+        });
+        defaultSources.writeSources();
+        final String defaultOutput = getSource("com.example", "Cls1");
+        assertTrue(defaultOutput.contains("[] {}"), "default (NONE) should produce empty braces with no space inside");
+
+        clearSources();
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .space(Space.WITHIN_BRACES_EMPTY, SpaceType.SPACE)
+            .build();
+        final JSources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
+        modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
+            sf.class_("Cls2", cc -> {
+                cc.field("nums", fc -> {
+                    fc.type(JType.INT.array());
+                    fc.init(JType.INT.array().newArrayInit());
+                });
+            });
+        });
+        modifiedSources.writeSources();
+        final String modifiedOutput = getSource("com.example", "Cls2");
+        assertTrue(modifiedOutput.contains("[] { }"), "SPACE should produce empty braces with space inside");
+        assertFalse(modifiedOutput.contains("[] {}"), "SPACE should not produce empty braces without space");
+    }
+
+    /**
+     * Verifies that {@link Space#WITHIN_BRACES_EMPTY} is respected for empty
+     * control structure blocks: when the {@code if} body is empty and the
+     * preference is {@link SpaceType#NONE} (default), the braces should be
+     * {@code {}} with no content inside; when set to {@link SpaceType#SPACE},
+     * the braces should be {@code { }} on a single line.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void withinBracesEmptyBlock() throws IOException {
+        final JSources defaultSources = createSources(SourceVersion.JAVA_17);
+        defaultSources.createSourceFile("com.example", "Cls1", sf -> {
+            sf.class_("Cls1", cc -> {
+                cc.method("run", mc -> {
+                    mc.body(b -> {
+                        b.if_(JExpr.$v("x").gt(JExpr.ZERO), ifBody -> {});
+                    });
+                });
+            });
+        });
+        defaultSources.writeSources();
+        final String defaultOutput = getSource("com.example", "Cls1");
+        assertTrue(defaultOutput.contains(") {}"), "default (NONE) should produce empty block braces with no content inside");
+
+        clearSources();
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .space(Space.WITHIN_BRACES_EMPTY, SpaceType.SPACE)
+            .build();
+        final JSources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
+        modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
+            sf.class_("Cls2", cc -> {
+                cc.method("run", mc -> {
+                    mc.body(b -> {
+                        b.if_(JExpr.$v("x").gt(JExpr.ZERO), ifBody -> {});
+                    });
+                });
+            });
+        });
+        modifiedSources.writeSources();
+        final String modifiedOutput = getSource("com.example", "Cls2");
+        assertTrue(modifiedOutput.contains(") { }"), "SPACE should produce empty block braces with space inside");
+    }
+
+    /**
+     * Verifies that {@link Space#WITHIN_BRACES_EMPTY} is respected for empty
+     * anonymous class bodies: when the anonymous class has no members and the
+     * preference is {@link SpaceType#NONE} (default), the braces should be
+     * {@code {}} with no content; when set to {@link SpaceType#SPACE}, they
+     * should be {@code { }} on a single line.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void withinBracesEmptyAnonymousClass() throws IOException {
+        final JSources defaultSources = createSources(SourceVersion.JAVA_17);
+        defaultSources.createSourceFile("com.example", "Cls1", sf -> {
+            sf.class_("Cls1", cc -> {
+                cc.field("obj", fc -> {
+                    fc.type(JType.OBJECT);
+                    fc.init(JType.OBJECT.new_(SourceVersion.JAVA_17, List.of(), body -> {}));
+                });
+            });
+        });
+        defaultSources.writeSources();
+        final String defaultOutput = getSource("com.example", "Cls1");
+        assertTrue(defaultOutput.contains(") {}"), "default (NONE) should produce empty anonymous class braces with no content");
+
+        clearSources();
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .space(Space.WITHIN_BRACES_EMPTY, SpaceType.SPACE)
+            .build();
+        final JSources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
+        modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
+            sf.class_("Cls2", cc -> {
+                cc.field("obj", fc -> {
+                    fc.type(JType.OBJECT);
+                    fc.init(JType.OBJECT.new_(SourceVersion.JAVA_17, List.of(), body -> {}));
+                });
+            });
+        });
+        modifiedSources.writeSources();
+        final String modifiedOutput = getSource("com.example", "Cls2");
+        assertTrue(modifiedOutput.contains(") { }"), "SPACE should produce empty anonymous class braces with space inside");
+    }
+
+    /**
+     * Verifies that {@link Space#WITHIN_BRACES_EMPTY} is respected for empty
+     * lambda block bodies: when the lambda block has no statements and the
+     * preference is {@link SpaceType#NONE} (default), the braces should be
+     * {@code {}} with no content; when set to {@link SpaceType#SPACE}, they
+     * should be {@code { }} on a single line.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void withinBracesEmptyLambda() throws IOException {
+        final JSources defaultSources = createSources(SourceVersion.JAVA_17);
+        defaultSources.createSourceFile("com.example", "Cls1", sf -> {
+            sf.class_("Cls1", cc -> {
+                cc.field("fn", fc -> {
+                    fc.type(JType.OBJECT);
+                    fc.init(JExpr.lambda(SourceVersion.JAVA_17, "x", body -> {}));
+                });
+            });
+        });
+        defaultSources.writeSources();
+        final String defaultOutput = getSource("com.example", "Cls1");
+        assertTrue(defaultOutput.contains("-> {}"), "default (NONE) should produce empty lambda braces with no content");
+
+        clearSources();
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .space(Space.WITHIN_BRACES_EMPTY, SpaceType.SPACE)
+            .build();
+        final JSources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
+        modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
+            sf.class_("Cls2", cc -> {
+                cc.field("fn", fc -> {
+                    fc.type(JType.OBJECT);
+                    fc.init(JExpr.lambda(SourceVersion.JAVA_17, "x", body -> {}));
+                });
+            });
+        });
+        modifiedSources.writeSources();
+        final String modifiedOutput = getSource("com.example", "Cls2");
+        assertTrue(modifiedOutput.contains("-> { }"), "SPACE should produce empty lambda braces with space inside");
+    }
+
+    /**
+     * Verifies that {@link Space#WITHIN_BRACES_EMPTY} is respected for empty
+     * class bodies: when the class has no members and the preference is
+     * {@link SpaceType#NONE} (default), the braces should be {@code {}} with
+     * no content; when set to {@link SpaceType#SPACE}, they should be
+     * {@code { }} on a single line.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void withinBracesEmptyClassBody() throws IOException {
+        final JSources defaultSources = createSources(SourceVersion.JAVA_17);
+        defaultSources.createSourceFile("com.example", "Empty", sf -> {
+            sf.class_("Empty", cc -> {});
+        });
+        defaultSources.writeSources();
+        final String defaultOutput = getSource("com.example", "Empty");
+        assertTrue(defaultOutput.contains("Empty {}"), "default (NONE) should produce empty class braces with no content");
+
+        clearSources();
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .space(Space.WITHIN_BRACES_EMPTY, SpaceType.SPACE)
+            .build();
+        final JSources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
+        modifiedSources.createSourceFile("com.example", "Empty2", sf -> {
+            sf.class_("Empty2", cc -> {});
+        });
+        modifiedSources.writeSources();
+        final String modifiedOutput = getSource("com.example", "Empty2");
+        assertTrue(modifiedOutput.contains("Empty2 { }"), "SPACE should produce empty class braces with space inside");
+    }
 }

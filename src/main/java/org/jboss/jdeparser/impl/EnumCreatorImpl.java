@@ -227,37 +227,41 @@ public final class EnumCreatorImpl extends AbstractCreator implements EnumCreato
         }
         writer.write(FormatPreferences.Space.BEFORE_BRACE_ENUM);
         writer.write(Tokens.$BRACE.OPEN);
-        writer.nl();
-        writer.pushIndent(FormatPreferences.Indentation.MEMBERS_TOP_LEVEL);
-        // write constants separated by commas
-        boolean firstConstant = true;
-        for (EnumConstantCreatorImpl constant : constants) {
-            if (!firstConstant) {
-                writer.write(Tokens.$PUNCT.COMMA);
-                writer.write(FormatPreferences.Space.COMMA_ENUM_CONSTANT);
-            }
-            firstConstant = false;
-            constant.write(writer);
-        }
-        // semicolon after last constant
-        if (!constants.isEmpty()) {
-            writer.write(Tokens.$PUNCT.SEMI);
+        if (constants.isEmpty() && members.isEmpty()) {
+            writer.write(FormatPreferences.Space.WITHIN_BRACES_EMPTY);
+        } else {
             writer.nl();
-        }
-        // members (fields, methods, constructors) after a blank line
-        if (!members.isEmpty()) {
-            writer.nl();
-            boolean firstMember = true;
-            for (Writable member : members) {
-                if (!firstMember) {
-                    writer.nl();
+            writer.pushIndent(FormatPreferences.Indentation.MEMBERS_TOP_LEVEL);
+            // write constants separated by commas
+            boolean firstConstant = true;
+            for (EnumConstantCreatorImpl constant : constants) {
+                if (!firstConstant) {
+                    writer.write(Tokens.$PUNCT.COMMA);
+                    writer.write(FormatPreferences.Space.COMMA_ENUM_CONSTANT);
                 }
-                firstMember = false;
-                member.write(writer);
+                firstConstant = false;
+                constant.write(writer);
+            }
+            // semicolon after last constant
+            if (!constants.isEmpty()) {
+                writer.write(Tokens.$PUNCT.SEMI);
                 writer.nl();
             }
+            // members (fields, methods, constructors) after a blank line
+            if (!members.isEmpty()) {
+                writer.nl();
+                boolean firstMember = true;
+                for (Writable member : members) {
+                    if (!firstMember) {
+                        writer.nl();
+                    }
+                    firstMember = false;
+                    member.write(writer);
+                    writer.nl();
+                }
+            }
+            writer.popIndent(FormatPreferences.Indentation.MEMBERS_TOP_LEVEL);
         }
-        writer.popIndent(FormatPreferences.Indentation.MEMBERS_TOP_LEVEL);
         writer.write(Tokens.$BRACE.CLOSE);
     }
 

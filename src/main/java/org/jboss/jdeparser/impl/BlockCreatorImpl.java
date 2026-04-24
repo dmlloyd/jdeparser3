@@ -53,12 +53,16 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
      */
     public void writeBlock(final SourceFileWriter writer) throws IOException {
         writer.write(Tokens.$BRACE.OPEN);
-        writer.nl();
-        writer.pushIndent(FormatPreferences.Indentation.LINE);
-        for (Writable item : content) {
-            item.write(writer);
+        if (content.isEmpty()) {
+            writer.write(FormatPreferences.Space.WITHIN_BRACES_EMPTY);
+        } else {
+            writer.nl();
+            writer.pushIndent(FormatPreferences.Indentation.LINE);
+            for (Writable item : content) {
+                item.write(writer);
+            }
+            writer.popIndent(FormatPreferences.Indentation.LINE);
         }
-        writer.popIndent(FormatPreferences.Indentation.LINE);
         writer.write(Tokens.$BRACE.CLOSE);
     }
 

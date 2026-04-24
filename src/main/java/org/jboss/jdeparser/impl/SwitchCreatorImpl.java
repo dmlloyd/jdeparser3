@@ -160,12 +160,16 @@ public final class SwitchCreatorImpl extends AbstractCreator implements SwitchCr
      */
     public void writeBlock(final SourceFileWriter writer) throws IOException {
         writer.write(Tokens.$BRACE.OPEN);
-        writer.nl();
-        writer.pushIndent(FormatPreferences.Indentation.CASE_LABELS);
-        for (Writable c : cases) {
-            c.write(writer);
+        if (cases.isEmpty()) {
+            writer.write(FormatPreferences.Space.WITHIN_BRACES_EMPTY);
+        } else {
+            writer.nl();
+            writer.pushIndent(FormatPreferences.Indentation.CASE_LABELS);
+            for (Writable c : cases) {
+                c.write(writer);
+            }
+            writer.popIndent(FormatPreferences.Indentation.CASE_LABELS);
         }
-        writer.popIndent(FormatPreferences.Indentation.CASE_LABELS);
         writer.write(Tokens.$BRACE.CLOSE);
     }
 }

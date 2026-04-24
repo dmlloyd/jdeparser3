@@ -140,10 +140,14 @@ public final class EnumConstantCreatorImpl extends AbstractCreator implements En
         if (body != null) {
             writer.write(FormatPreferences.Space.BEFORE_BRACE_CLASS);
             writer.write(Tokens.$BRACE.OPEN);
-            writer.nl();
-            writer.pushIndent(FormatPreferences.Indentation.MEMBERS_TOP_LEVEL);
-            body.writeBody(writer);
-            writer.popIndent(FormatPreferences.Indentation.MEMBERS_TOP_LEVEL);
+            if (body.hasMembers()) {
+                writer.nl();
+                writer.pushIndent(FormatPreferences.Indentation.MEMBERS_TOP_LEVEL);
+                body.writeBody(writer);
+                writer.popIndent(FormatPreferences.Indentation.MEMBERS_TOP_LEVEL);
+            } else {
+                writer.write(FormatPreferences.Space.WITHIN_BRACES_EMPTY);
+            }
             writer.write(Tokens.$BRACE.CLOSE);
         }
     }

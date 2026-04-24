@@ -270,18 +270,22 @@ public final class RecordCreatorImpl extends AbstractCreator implements RecordCr
         }
         writer.write(FormatPreferences.Space.BEFORE_BRACE_RECORD);
         writer.write(Tokens.$BRACE.OPEN);
-        writer.nl();
-        writer.pushIndent(FormatPreferences.Indentation.MEMBERS_TOP_LEVEL);
-        boolean firstMember = true;
-        for (Writable member : members) {
-            if (!firstMember) {
+        if (members.isEmpty()) {
+            writer.write(FormatPreferences.Space.WITHIN_BRACES_EMPTY);
+        } else {
+            writer.nl();
+            writer.pushIndent(FormatPreferences.Indentation.MEMBERS_TOP_LEVEL);
+            boolean firstMember = true;
+            for (Writable member : members) {
+                if (!firstMember) {
+                    writer.nl();
+                }
+                firstMember = false;
+                member.write(writer);
                 writer.nl();
             }
-            firstMember = false;
-            member.write(writer);
-            writer.nl();
+            writer.popIndent(FormatPreferences.Indentation.MEMBERS_TOP_LEVEL);
         }
-        writer.popIndent(FormatPreferences.Indentation.MEMBERS_TOP_LEVEL);
         writer.write(Tokens.$BRACE.CLOSE);
     }
 
