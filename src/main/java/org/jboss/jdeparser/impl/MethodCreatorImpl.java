@@ -261,6 +261,12 @@ public final class MethodCreatorImpl extends AbstractCreator implements MethodCr
 
     /** {@inheritDoc} */
     @Override
+    public FormatPreferences.Space memberSpacing() {
+        return FormatPreferences.Space.BEFORE_METHOD;
+    }
+
+    /** {@inheritDoc} */
+    @Override
     public void write(final SourceFileWriter writer) throws IOException {
         if (docComment != null) {
             docComment.write(writer);
@@ -309,9 +315,16 @@ public final class MethodCreatorImpl extends AbstractCreator implements MethodCr
      * @throws IOException if an I/O error occurs
      */
     private void writeParams(final SourceFileWriter writer) throws IOException {
+        writer.write(FormatPreferences.Space.BEFORE_PAREN_METHOD_DECLARATION);
         writer.write(Tokens.$PAREN.OPEN);
-        AbstractJExpr.writeList(writer, params, FormatPreferences.Space.AFTER_COMMA,
-            FormatPreferences.Wrapping.PARAMETER_LIST);
+        if (params.isEmpty()) {
+            writer.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_DECLARATION_EMPTY);
+        } else {
+            writer.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_DECLARATION);
+            AbstractJExpr.writeList(writer, params, FormatPreferences.Space.AFTER_COMMA,
+                FormatPreferences.Wrapping.PARAMETER_LIST);
+            writer.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_DECLARATION);
+        }
         writer.write(Tokens.$PAREN.CLOSE);
     }
 

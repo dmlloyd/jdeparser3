@@ -59,9 +59,16 @@ public final class AnonymousClassJExpr extends AbstractJExpr {
         // new Type(args) { body }
         writer.write(Tokens.$KW.NEW);
         writeType(writer, type);
+        writer.write(FormatPreferences.Space.BEFORE_PAREN_METHOD_CALL);
         writer.write(Tokens.$PAREN.OPEN);
-        writeList(writer, args, FormatPreferences.Space.AFTER_COMMA,
-            FormatPreferences.Wrapping.ARGUMENT_LIST);
+        if (args.isEmpty()) {
+            writer.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_CALL_EMPTY);
+        } else {
+            writer.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_CALL);
+            writeList(writer, args, FormatPreferences.Space.AFTER_COMMA,
+                FormatPreferences.Wrapping.ARGUMENT_LIST);
+            writer.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_CALL);
+        }
         writer.write(Tokens.$PAREN.CLOSE);
         writer.write(FormatPreferences.Space.BEFORE_BRACE_CLASS);
         writer.write(Tokens.$BRACE.OPEN);

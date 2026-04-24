@@ -179,6 +179,12 @@ public final class AnnotationInterfaceCreatorImpl extends AbstractCreator implem
 
     /** {@inheritDoc} */
     @Override
+    public FormatPreferences.Space memberSpacing() {
+        return FormatPreferences.Space.BEFORE_CLASS;
+    }
+
+    /** {@inheritDoc} */
+    @Override
     public void write(final SourceFileWriter writer) throws IOException {
         // [javadoc] [annotations] [modifiers] @interface Name { elements }
         if (docComment != null) {
@@ -200,7 +206,12 @@ public final class AnnotationInterfaceCreatorImpl extends AbstractCreator implem
             boolean firstMember = true;
             for (Writable member : members) {
                 if (!firstMember) {
-                    writer.nl();
+                    FormatPreferences.Space spacing = member.memberSpacing();
+                    if (spacing != null) {
+                        writer.write(spacing);
+                    } else {
+                        writer.nl();
+                    }
                 }
                 firstMember = false;
                 member.write(writer);

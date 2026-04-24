@@ -47,8 +47,11 @@ public final class CastJExpr extends AbstractJExpr {
     @Override
     public void write(final SourceFileWriter writer) throws IOException {
         // (Type) operand
+        writer.write(FormatPreferences.Space.BEFORE_PAREN_CAST);
         writer.write(Tokens.$PAREN.OPEN);
+        writer.write(FormatPreferences.Space.WITHIN_PAREN_CAST);
         writeType(writer, type);
+        writer.write(FormatPreferences.Space.WITHIN_PAREN_CAST);
         writer.write(Tokens.$PAREN.CLOSE);
         writer.write(FormatPreferences.Space.AFTER_CAST);
         writeSubExpr(writer, operand, Prec.UNARY, Assoc.RIGHT, Assoc.RIGHT);

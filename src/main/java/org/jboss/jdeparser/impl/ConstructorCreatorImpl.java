@@ -245,6 +245,12 @@ public final class ConstructorCreatorImpl extends AbstractCreator implements Con
 
     /** {@inheritDoc} */
     @Override
+    public FormatPreferences.Space memberSpacing() {
+        return FormatPreferences.Space.BEFORE_METHOD;
+    }
+
+    /** {@inheritDoc} */
+    @Override
     public void write(final SourceFileWriter writer) throws IOException {
         if (docComment != null) {
             docComment.write(writer);
@@ -259,9 +265,16 @@ public final class ConstructorCreatorImpl extends AbstractCreator implements Con
             writer.sp();
         }
         writer.writeClass(className);
+        writer.write(FormatPreferences.Space.BEFORE_PAREN_METHOD_DECLARATION);
         writer.write(Tokens.$PAREN.OPEN);
-        AbstractJExpr.writeList(writer, params, FormatPreferences.Space.AFTER_COMMA,
-            FormatPreferences.Wrapping.PARAMETER_LIST);
+        if (params.isEmpty()) {
+            writer.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_DECLARATION_EMPTY);
+        } else {
+            writer.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_DECLARATION);
+            AbstractJExpr.writeList(writer, params, FormatPreferences.Space.AFTER_COMMA,
+                FormatPreferences.Wrapping.PARAMETER_LIST);
+            writer.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_DECLARATION);
+        }
         writer.write(Tokens.$PAREN.CLOSE);
         if (!throwsTypes.isEmpty()) {
             writer.write(Tokens.$KW.THROWS);

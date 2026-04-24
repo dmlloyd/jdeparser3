@@ -53,7 +53,7 @@ public final class AnnotationHolder {
     public void writeWithNewlines(final SourceFileWriter writer) throws IOException {
         for (AnnotationCreatorImpl annotation : annotations) {
             annotation.write(writer);
-            writer.nl();
+            writer.write(FormatPreferences.Space.AFTER_ANNOTATION);
         }
     }
 

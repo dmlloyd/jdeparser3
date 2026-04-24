@@ -286,6 +286,12 @@ public final class InterfaceCreatorImpl extends AbstractCreator implements Inter
 
     /** {@inheritDoc} */
     @Override
+    public FormatPreferences.Space memberSpacing() {
+        return FormatPreferences.Space.BEFORE_CLASS;
+    }
+
+    /** {@inheritDoc} */
+    @Override
     public void write(final SourceFileWriter writer) throws IOException {
         if (docComment != null) {
             docComment.write(writer);
@@ -303,7 +309,7 @@ public final class InterfaceCreatorImpl extends AbstractCreator implements Inter
             writer.write(Tokens.$KW.PERMITS);
             writeTypeList(writer, permits, FormatPreferences.Wrapping.PERMITS_LIST);
         }
-        writer.write(FormatPreferences.Space.BEFORE_BRACE_CLASS);
+        writer.write(FormatPreferences.Space.BEFORE_BRACE_INTERFACE);
         writer.write(Tokens.$BRACE.OPEN);
         if (members.isEmpty()) {
             writer.write(FormatPreferences.Space.WITHIN_BRACES_EMPTY);
@@ -313,7 +319,12 @@ public final class InterfaceCreatorImpl extends AbstractCreator implements Inter
             boolean firstMember = true;
             for (Writable member : members) {
                 if (!firstMember) {
-                    writer.nl();
+                    FormatPreferences.Space spacing = member.memberSpacing();
+                    if (spacing != null) {
+                        writer.write(spacing);
+                    } else {
+                        writer.nl();
+                    }
                 }
                 firstMember = false;
                 member.write(writer);

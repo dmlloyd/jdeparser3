@@ -3,6 +3,7 @@ package org.jboss.jdeparser.impl;
 import java.io.IOException;
 
 import org.jboss.jdeparser.JExpr;
+import org.jboss.jdeparser.format.FormatPreferences;
 
 /**
  * A parenthesized expression of the form {@code (inner)}.
@@ -41,7 +42,9 @@ public final class ParenJExpr extends AbstractJExpr {
     @Override
     public void write(final SourceFileWriter writer) throws IOException {
         writer.write(Tokens.$PAREN.OPEN);
+        writer.write(FormatPreferences.Space.WITHIN_PAREN_EXPR);
         writeExpr(writer, inner);
+        writer.write(FormatPreferences.Space.WITHIN_PAREN_EXPR);
         writer.write(Tokens.$PAREN.CLOSE);
     }
 

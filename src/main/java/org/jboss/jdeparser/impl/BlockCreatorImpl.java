@@ -56,7 +56,7 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
         if (content.isEmpty()) {
             writer.write(FormatPreferences.Space.WITHIN_BRACES_EMPTY);
         } else {
-            writer.nl();
+            writer.write(FormatPreferences.Space.WITHIN_BRACES_CODE);
             writer.pushIndent(FormatPreferences.Indentation.LINE);
             for (Writable item : content) {
                 item.write(writer);
@@ -166,7 +166,9 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
             w.write(Tokens.$KW.IF);
             w.write(FormatPreferences.Space.BEFORE_PAREN_IF);
             w.write(Tokens.$PAREN.OPEN);
+            w.write(FormatPreferences.Space.WITHIN_PAREN_IF);
             AbstractJExpr.writeExpr(w, condition);
+            w.write(FormatPreferences.Space.WITHIN_PAREN_IF);
             w.write(Tokens.$PAREN.CLOSE);
             block.writeStatementBody(w, FormatPreferences.Space.BEFORE_BRACE_IF);
             w.nl();
@@ -193,7 +195,9 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
             w.write(Tokens.$KW.IF);
             w.write(FormatPreferences.Space.BEFORE_PAREN_IF);
             w.write(Tokens.$PAREN.OPEN);
+            w.write(FormatPreferences.Space.WITHIN_PAREN_IF);
             AbstractJExpr.writeExpr(w, condition);
+            w.write(FormatPreferences.Space.WITHIN_PAREN_IF);
             w.write(Tokens.$PAREN.CLOSE);
             ifBlock.writeStatementBody(w, FormatPreferences.Space.BEFORE_BRACE_IF);
             w.write(Tokens.$KW.ELSE);
@@ -216,7 +220,9 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
             w.write(Tokens.$KW.WHILE);
             w.write(FormatPreferences.Space.BEFORE_PAREN_WHILE);
             w.write(Tokens.$PAREN.OPEN);
+            w.write(FormatPreferences.Space.WITHIN_PAREN_WHILE);
             AbstractJExpr.writeExpr(w, condition);
+            w.write(FormatPreferences.Space.WITHIN_PAREN_WHILE);
             w.write(Tokens.$PAREN.CLOSE);
             block.writeStatementBody(w, FormatPreferences.Space.BEFORE_BRACE_WHILE);
             w.nl();
@@ -239,7 +245,9 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
             w.write(Tokens.$KW.WHILE);
             w.write(FormatPreferences.Space.BEFORE_PAREN_WHILE);
             w.write(Tokens.$PAREN.OPEN);
+            w.write(FormatPreferences.Space.WITHIN_PAREN_WHILE);
             AbstractJExpr.writeExpr(w, condition);
+            w.write(FormatPreferences.Space.WITHIN_PAREN_WHILE);
             w.write(Tokens.$PAREN.CLOSE);
             w.write(Tokens.$PUNCT.SEMI);
             w.nl();
@@ -278,6 +286,7 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
             w.write(Tokens.$KW.FOR);
             w.write(FormatPreferences.Space.BEFORE_PAREN_FOR);
             w.write(Tokens.$PAREN.OPEN);
+            w.write(FormatPreferences.Space.WITHIN_PAREN_FOR);
             AbstractJExpr.writeType(w, type);
             w.sp();
             w.writeName(name);
@@ -285,6 +294,7 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
             w.write(Tokens.$PUNCT.COLON);
             w.write(FormatPreferences.Space.AFTER_COLON);
             AbstractJExpr.writeExpr(w, iterable);
+            w.write(FormatPreferences.Space.WITHIN_PAREN_FOR);
             w.write(Tokens.$PAREN.CLOSE);
             block.writeStatementBody(w, FormatPreferences.Space.BEFORE_BRACE_FOR);
             w.nl();
@@ -306,7 +316,9 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
             w.write(Tokens.$KW.SWITCH);
             w.write(FormatPreferences.Space.BEFORE_PAREN_SWITCH);
             w.write(Tokens.$PAREN.OPEN);
+            w.write(FormatPreferences.Space.WITHIN_PAREN_SWITCH);
             AbstractJExpr.writeExpr(w, selector);
+            w.write(FormatPreferences.Space.WITHIN_PAREN_SWITCH);
             w.write(Tokens.$PAREN.CLOSE);
             w.write(FormatPreferences.Space.BEFORE_BRACE_SWITCH);
             sc.writeBlock(w);
@@ -340,7 +352,9 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
             w.write(Tokens.$KW.SYNCHRONIZED);
             w.write(FormatPreferences.Space.BEFORE_PAREN_SYNCHRONIZED);
             w.write(Tokens.$PAREN.OPEN);
+            w.write(FormatPreferences.Space.WITHIN_PAREN_SYNCHRONIZED);
             AbstractJExpr.writeExpr(w, monitor);
+            w.write(FormatPreferences.Space.WITHIN_PAREN_SYNCHRONIZED);
             w.write(Tokens.$PAREN.CLOSE);
             w.write(FormatPreferences.Space.BEFORE_BRACE_SYNCHRONIZED);
             block.writeBlock(w);
@@ -376,9 +390,11 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
         nest(() -> body.accept(label, block));
         block.finish();
         content.add(w -> {
+            w.pushIndent(FormatPreferences.Indentation.LABELS);
             w.writeName(name);
             w.write(Tokens.$PUNCT.COLON);
             w.write(FormatPreferences.Space.AFTER_LABEL);
+            w.popIndent(FormatPreferences.Indentation.LABELS);
             block.writeBlock(w);
             w.nl();
         });
@@ -543,8 +559,14 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
         content.add(w -> {
             w.write(Tokens.$KW.THIS);
             w.write(Tokens.$PAREN.OPEN);
-            AbstractJExpr.writeList(w, argList, FormatPreferences.Space.AFTER_COMMA,
-                FormatPreferences.Wrapping.ARGUMENT_LIST);
+            if (argList.isEmpty()) {
+                w.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_CALL_EMPTY);
+            } else {
+                w.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_CALL);
+                AbstractJExpr.writeList(w, argList, FormatPreferences.Space.AFTER_COMMA,
+                    FormatPreferences.Wrapping.ARGUMENT_LIST);
+                w.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_CALL);
+            }
             w.write(Tokens.$PAREN.CLOSE);
             w.write(Tokens.$PUNCT.SEMI);
             w.nl();
@@ -560,8 +582,14 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
         content.add(w -> {
             w.write(Tokens.$KW.SUPER);
             w.write(Tokens.$PAREN.OPEN);
-            AbstractJExpr.writeList(w, argList, FormatPreferences.Space.AFTER_COMMA,
-                FormatPreferences.Wrapping.ARGUMENT_LIST);
+            if (argList.isEmpty()) {
+                w.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_CALL_EMPTY);
+            } else {
+                w.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_CALL);
+                AbstractJExpr.writeList(w, argList, FormatPreferences.Space.AFTER_COMMA,
+                    FormatPreferences.Wrapping.ARGUMENT_LIST);
+                w.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_CALL);
+            }
             w.write(Tokens.$PAREN.CLOSE);
             w.write(Tokens.$PUNCT.SEMI);
             w.nl();

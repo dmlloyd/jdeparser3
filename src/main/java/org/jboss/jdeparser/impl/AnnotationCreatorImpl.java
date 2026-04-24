@@ -75,8 +75,11 @@ public final class AnnotationCreatorImpl extends AbstractCreator implements Anno
         entries.add(w -> {
             w.writeName(name);
             w.write(Tokens.$BINOP.ASSIGN);
+            w.write(FormatPreferences.Space.BEFORE_BRACE_ANNOTATION_ARRAY_INIT);
             w.write(Tokens.$BRACE.OPEN);
+            w.write(FormatPreferences.Space.WITHIN_BRACES_ARRAY_INIT);
             AbstractJExpr.writeList(w, vals, FormatPreferences.Space.AFTER_COMMA);
+            w.write(FormatPreferences.Space.WITHIN_BRACES_ARRAY_INIT);
             w.write(Tokens.$BRACE.CLOSE);
         });
     }
@@ -87,8 +90,11 @@ public final class AnnotationCreatorImpl extends AbstractCreator implements Anno
         writer.write(Tokens.$PUNCT.AT);
         AbstractJExpr.writeType(writer, annotationType);
         if (!entries.isEmpty()) {
+            writer.write(FormatPreferences.Space.BEFORE_PAREN_ANNOTATION_PARAM);
             writer.write(Tokens.$PAREN.OPEN);
+            writer.write(FormatPreferences.Space.WITHIN_PAREN_ANNOTATION);
             AbstractJExpr.writeList(writer, entries, FormatPreferences.Space.AFTER_COMMA);
+            writer.write(FormatPreferences.Space.WITHIN_PAREN_ANNOTATION);
             writer.write(Tokens.$PAREN.CLOSE);
         }
     }

@@ -347,6 +347,12 @@ public final class ClassCreatorImpl extends AbstractCreator implements ClassCrea
 
     /** {@inheritDoc} */
     @Override
+    public FormatPreferences.Space memberSpacing() {
+        return FormatPreferences.Space.BEFORE_CLASS;
+    }
+
+    /** {@inheritDoc} */
+    @Override
     public void write(final SourceFileWriter writer) throws IOException {
         if (docComment != null) {
             docComment.write(writer);
@@ -431,7 +437,12 @@ public final class ClassCreatorImpl extends AbstractCreator implements ClassCrea
         boolean firstMember = true;
         for (Writable member : members) {
             if (!firstMember) {
-                writer.nl();
+                FormatPreferences.Space spacing = member.memberSpacing();
+                if (spacing != null) {
+                    writer.write(spacing);
+                } else {
+                    writer.nl();
+                }
             }
             firstMember = false;
             member.write(writer);

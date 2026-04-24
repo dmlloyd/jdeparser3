@@ -2,6 +2,8 @@ package org.jboss.jdeparser.impl;
 
 import java.io.IOException;
 
+import org.jboss.jdeparser.format.FormatPreferences;
+
 /**
  * An element that can write itself to a {@link SourceFileWriter}.
  * <p>
@@ -23,4 +25,18 @@ public interface Writable {
      * @throws IOException if an I/O error occurs
      */
     void write(SourceFileWriter writer) throws IOException;
+
+    /**
+     * Returns the vertical spacing constant to use before this member
+     * when it appears in a type body member list.
+     * <p>
+     * Returns {@code null} by default, meaning no specific spacing is applied
+     * (a simple newline is used).  Overridden by method, constructor, and
+     * type declaration writables to return the appropriate constant.
+     *
+     * @return the spacing constant, or {@code null} for default newline spacing
+     */
+    default FormatPreferences.Space memberSpacing() {
+        return null;
+    }
 }

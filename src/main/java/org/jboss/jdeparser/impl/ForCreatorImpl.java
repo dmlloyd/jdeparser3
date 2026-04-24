@@ -97,6 +97,7 @@ public final class ForCreatorImpl extends AbstractCreator implements ForCreator,
         writer.write(Tokens.$KW.FOR);
         writer.write(FormatPreferences.Space.BEFORE_PAREN_FOR);
         writer.write(Tokens.$PAREN.OPEN);
+        writer.write(FormatPreferences.Space.WITHIN_PAREN_FOR);
         // init
         if (initType != null) {
             AbstractJExpr.writeType(writer, initType);
@@ -121,6 +122,7 @@ public final class ForCreatorImpl extends AbstractCreator implements ForCreator,
         if (update != null) {
             AbstractJExpr.writeExpr(writer, update);
         }
+        writer.write(FormatPreferences.Space.WITHIN_PAREN_FOR);
         writer.write(Tokens.$PAREN.CLOSE);
         if (body != null) {
             body.writeStatementBody(writer, FormatPreferences.Space.BEFORE_BRACE_FOR);

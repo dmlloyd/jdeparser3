@@ -123,6 +123,7 @@ public final class TryCreatorImpl extends AbstractCreator implements TryCreator,
         if (!resources.isEmpty()) {
             writer.write(FormatPreferences.Space.BEFORE_PAREN_TRY);
             writer.write(Tokens.$PAREN.OPEN);
+            writer.write(FormatPreferences.Space.WITHIN_PAREN_TRY);
             boolean first = true;
             for (Resource r : resources) {
                 if (!first) {
@@ -136,6 +137,7 @@ public final class TryCreatorImpl extends AbstractCreator implements TryCreator,
                 writer.write(Tokens.$BINOP.ASSIGN);
                 AbstractJExpr.writeExpr(writer, r.init);
             }
+            writer.write(FormatPreferences.Space.WITHIN_PAREN_TRY);
             writer.write(Tokens.$PAREN.CLOSE);
         }
         // body
@@ -148,9 +150,11 @@ public final class TryCreatorImpl extends AbstractCreator implements TryCreator,
             writer.write(Tokens.$KW.CATCH);
             writer.write(FormatPreferences.Space.BEFORE_PAREN_CATCH);
             writer.write(Tokens.$PAREN.OPEN);
+            writer.write(FormatPreferences.Space.WITHIN_PAREN_CATCH);
             AbstractJExpr.writeList(writer, c.types, FormatPreferences.Space.AROUND_MULTI_CATCH_OR, Tokens.$PUNCT.BAR, FormatPreferences.Space.AROUND_MULTI_CATCH_OR);
             writer.sp();
             writer.writeName(c.name);
+            writer.write(FormatPreferences.Space.WITHIN_PAREN_CATCH);
             writer.write(Tokens.$PAREN.CLOSE);
             writer.write(FormatPreferences.Space.BEFORE_BRACE_CATCH);
             c.body.writeBlock(writer);

@@ -253,6 +253,12 @@ public final class RecordCreatorImpl extends AbstractCreator implements RecordCr
 
     /** {@inheritDoc} */
     @Override
+    public FormatPreferences.Space memberSpacing() {
+        return FormatPreferences.Space.BEFORE_CLASS;
+    }
+
+    /** {@inheritDoc} */
+    @Override
     public void write(final SourceFileWriter writer) throws IOException {
         // [javadoc] [annotations] [modifiers] record Name [<TypeParams>](comp1, comp2) [implements I1] { members }
         if (docComment != null) {
@@ -278,7 +284,12 @@ public final class RecordCreatorImpl extends AbstractCreator implements RecordCr
             boolean firstMember = true;
             for (Writable member : members) {
                 if (!firstMember) {
-                    writer.nl();
+                    FormatPreferences.Space spacing = member.memberSpacing();
+                    if (spacing != null) {
+                        writer.write(spacing);
+                    } else {
+                        writer.nl();
+                    }
                 }
                 firstMember = false;
                 member.write(writer);
@@ -313,8 +324,14 @@ public final class RecordCreatorImpl extends AbstractCreator implements RecordCr
     private void writeComponents(final SourceFileWriter writer) throws IOException {
         writer.write(FormatPreferences.Space.BEFORE_PAREN_RECORD);
         writer.write(Tokens.$PAREN.OPEN);
-        AbstractJExpr.writeList(writer, components, FormatPreferences.Space.AFTER_COMMA_RECORD_COMPONENT,
-            FormatPreferences.Wrapping.RECORD_COMPONENT_LIST);
+        if (components.isEmpty()) {
+            writer.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_DECLARATION_EMPTY);
+        } else {
+            writer.write(FormatPreferences.Space.WITHIN_PAREN_RECORD);
+            AbstractJExpr.writeList(writer, components, FormatPreferences.Space.AFTER_COMMA_RECORD_COMPONENT,
+                FormatPreferences.Wrapping.RECORD_COMPONENT_LIST);
+            writer.write(FormatPreferences.Space.WITHIN_PAREN_RECORD);
+        }
         writer.write(Tokens.$PAREN.CLOSE);
     }
 

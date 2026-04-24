@@ -211,6 +211,12 @@ public final class EnumCreatorImpl extends AbstractCreator implements EnumCreato
 
     /** {@inheritDoc} */
     @Override
+    public FormatPreferences.Space memberSpacing() {
+        return FormatPreferences.Space.BEFORE_CLASS;
+    }
+
+    /** {@inheritDoc} */
+    @Override
     public void write(final SourceFileWriter writer) throws IOException {
         // Write the complete enum declaration: javadoc, annotations, modifiers,
         // enum keyword, name, implements clause, and body with constants and members.
@@ -265,7 +271,12 @@ public final class EnumCreatorImpl extends AbstractCreator implements EnumCreato
                 boolean firstMember = true;
                 for (Writable member : members) {
                     if (!firstMember) {
-                        writer.nl();
+                        FormatPreferences.Space spacing = member.memberSpacing();
+                        if (spacing != null) {
+                            writer.write(spacing);
+                        } else {
+                            writer.nl();
+                        }
                     }
                     firstMember = false;
                     member.write(writer);

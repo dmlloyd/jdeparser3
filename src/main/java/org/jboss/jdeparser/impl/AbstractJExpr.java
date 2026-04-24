@@ -62,7 +62,9 @@ public abstract non-sealed class AbstractJExpr implements JExpr, Writable {
             || asub.precedence() == parentPrec && parentAssoc != side;
         if (needParens) {
             writer.write(Tokens.$PAREN.OPEN);
+            writer.write(FormatPreferences.Space.WITHIN_PAREN_EXPR);
             asub.write(writer);
+            writer.write(FormatPreferences.Space.WITHIN_PAREN_EXPR);
             writer.write(Tokens.$PAREN.CLOSE);
         } else {
             asub.write(writer);

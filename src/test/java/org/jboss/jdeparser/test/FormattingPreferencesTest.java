@@ -3698,4 +3698,812 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         assertFalse(modifiedOutput.contains("int x, int y"),
             "ALWAYS_WRAP should not have components on same line");
     }
+
+    // ── Batch 21: BEFORE_PAREN_METHOD_CALL ──────────────────────────────
+
+    /**
+     * Verifies that setting {@link Space#BEFORE_PAREN_METHOD_CALL} to SPACE
+     * inserts a space before the opening paren of a method call.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void spaceBeforeParenMethodCall() throws IOException {
+        final JSources defaultSources = createSources(SourceVersion.JAVA_17);
+        defaultSources.createSourceFile("com.example", "Cls1", sf -> {
+            sf.class_("Cls1", cc -> {
+                cc.method("run", mc -> {
+                    mc.body(b -> {
+                        b.emit(JExpr.callPlain("foo", JExpr.ONE));
+                    });
+                });
+            });
+        });
+        defaultSources.writeSources();
+        final String defaultOutput = getSource("com.example", "Cls1");
+        assertTrue(defaultOutput.contains("foo(1)"), "default: no space before paren");
+
+        clearSources();
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .space(Space.BEFORE_PAREN_METHOD_CALL, SpaceType.SPACE)
+            .build();
+        final JSources modified = createSources(prefs, SourceVersion.JAVA_17);
+        modified.createSourceFile("com.example", "Cls2", sf -> {
+            sf.class_("Cls2", cc -> {
+                cc.method("run", mc -> {
+                    mc.body(b -> {
+                        b.emit(JExpr.callPlain("foo", JExpr.ONE));
+                    });
+                });
+            });
+        });
+        modified.writeSources();
+        final String modifiedOutput = getSource("com.example", "Cls2");
+        assertTrue(modifiedOutput.contains("foo (1)"), "modified: space before paren");
+    }
+
+    // ── Batch 22: BEFORE_PAREN_METHOD_DECLARATION ───────────────────────
+
+    /**
+     * Verifies that setting {@link Space#BEFORE_PAREN_METHOD_DECLARATION} to SPACE
+     * inserts a space before the opening paren of a method declaration.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void spaceBeforeParenMethodDeclaration() throws IOException {
+        final JSources defaultSources = createSources(SourceVersion.JAVA_17);
+        defaultSources.createSourceFile("com.example", "Cls1", sf -> {
+            sf.class_("Cls1", cc -> {
+                cc.method("run", mc -> {
+                    mc.body(b -> b.empty());
+                });
+            });
+        });
+        defaultSources.writeSources();
+        final String defaultOutput = getSource("com.example", "Cls1");
+        assertTrue(defaultOutput.contains("run()"), "default: no space before paren");
+
+        clearSources();
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .space(Space.BEFORE_PAREN_METHOD_DECLARATION, SpaceType.SPACE)
+            .build();
+        final JSources modified = createSources(prefs, SourceVersion.JAVA_17);
+        modified.createSourceFile("com.example", "Cls2", sf -> {
+            sf.class_("Cls2", cc -> {
+                cc.method("run", mc -> {
+                    mc.body(b -> b.empty());
+                });
+            });
+        });
+        modified.writeSources();
+        final String modifiedOutput = getSource("com.example", "Cls2");
+        assertTrue(modifiedOutput.contains("run ()"), "modified: space before paren");
+    }
+
+    // ── Batch 23: BEFORE_PAREN_CAST ─────────────────────────────────────
+
+    /**
+     * Verifies that setting {@link Space#BEFORE_PAREN_CAST} to SPACE
+     * inserts a space before the opening paren of a cast expression.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void spaceBeforeParenCast() throws IOException {
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .space(Space.BEFORE_PAREN_CAST, SpaceType.SPACE)
+            .build();
+        final JSources sources = createSources(prefs, SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "Cls1", sf -> {
+            sf.class_("Cls1", cc -> {
+                cc.method("run", mc -> {
+                    mc.body(b -> {
+                        b.emit(JExpr.$v("obj").cast(JType.STRING));
+                    });
+                });
+            });
+        });
+        sources.writeSources();
+        final String output = getSource("com.example", "Cls1");
+        assertTrue(output.contains(" (String)"), "modified: space before cast paren");
+    }
+
+    // ── Batch 24: BEFORE_PAREN_ANNOTATION_PARAM ─────────────────────────
+
+    /**
+     * Verifies that setting {@link Space#BEFORE_PAREN_ANNOTATION_PARAM} to SPACE
+     * inserts a space before the opening paren of an annotation.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void spaceBeforeParenAnnotationParam() throws IOException {
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .space(Space.BEFORE_PAREN_ANNOTATION_PARAM, SpaceType.SPACE)
+            .build();
+        final JSources sources = createSources(prefs, SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "Cls1", sf -> {
+            sf.class_("Cls1", cc -> {
+                cc.annotate(JType.named("java.lang.SuppressWarnings"), ac -> {
+                    ac.value(JExpr.str("unchecked"));
+                });
+            });
+        });
+        sources.writeSources();
+        final String output = getSource("com.example", "Cls1");
+        assertTrue(output.contains("SuppressWarnings ("), "modified: space before annotation paren");
+    }
+
+    // ── Batch 25: WITHIN_PAREN_EXPR ─────────────────────────────────────
+
+    /**
+     * Verifies that setting {@link Space#WITHIN_PAREN_EXPR} to SPACE
+     * inserts spaces inside parenthesized expressions.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void spaceWithinParenExpr() throws IOException {
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .space(Space.WITHIN_PAREN_EXPR, SpaceType.SPACE)
+            .build();
+        final JSources sources = createSources(prefs, SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "Cls1", sf -> {
+            sf.class_("Cls1", cc -> {
+                cc.method("run", mc -> {
+                    mc.body(b -> {
+                        b.emit(JExpr.$v("a").add(JExpr.$v("b")).paren());
+                    });
+                });
+            });
+        });
+        sources.writeSources();
+        final String output = getSource("com.example", "Cls1");
+        assertTrue(output.contains("( a + b )"), "modified: space within paren expr");
+    }
+
+    // ── Batch 26: WITHIN_PAREN_METHOD_CALL ──────────────────────────────
+
+    /**
+     * Verifies that setting {@link Space#WITHIN_PAREN_METHOD_CALL} to SPACE
+     * inserts spaces inside a non-empty method call's parentheses.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void spaceWithinParenMethodCall() throws IOException {
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .space(Space.WITHIN_PAREN_METHOD_CALL, SpaceType.SPACE)
+            .build();
+        final JSources sources = createSources(prefs, SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "Cls1", sf -> {
+            sf.class_("Cls1", cc -> {
+                cc.method("run", mc -> {
+                    mc.body(b -> {
+                        b.emit(JExpr.callPlain("foo", JExpr.ONE));
+                    });
+                });
+            });
+        });
+        sources.writeSources();
+        final String output = getSource("com.example", "Cls1");
+        assertTrue(output.contains("foo( 1 )"), "modified: space within method call parens");
+    }
+
+    // ── Batch 27: WITHIN_PAREN_METHOD_CALL_EMPTY ────────────────────────
+
+    /**
+     * Verifies that setting {@link Space#WITHIN_PAREN_METHOD_CALL_EMPTY} to SPACE
+     * inserts a space inside an empty method call.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void spaceWithinParenMethodCallEmpty() throws IOException {
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .space(Space.WITHIN_PAREN_METHOD_CALL_EMPTY, SpaceType.SPACE)
+            .build();
+        final JSources sources = createSources(prefs, SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "Cls1", sf -> {
+            sf.class_("Cls1", cc -> {
+                cc.method("run", mc -> {
+                    mc.body(b -> {
+                        b.emit(JExpr.callPlain("foo"));
+                    });
+                });
+            });
+        });
+        sources.writeSources();
+        final String output = getSource("com.example", "Cls1");
+        assertTrue(output.contains("foo( )"), "modified: space within empty method call parens");
+    }
+
+    // ── Batch 28: WITHIN_PAREN_METHOD_DECLARATION ───────────────────────
+
+    /**
+     * Verifies that setting {@link Space#WITHIN_PAREN_METHOD_DECLARATION} to SPACE
+     * inserts spaces inside a non-empty method declaration's parentheses.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void spaceWithinParenMethodDeclaration() throws IOException {
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .space(Space.WITHIN_PAREN_METHOD_DECLARATION, SpaceType.SPACE)
+            .build();
+        final JSources sources = createSources(prefs, SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "Cls1", sf -> {
+            sf.class_("Cls1", cc -> {
+                cc.method("run", mc -> {
+                    mc.param("x", JType.INT);
+                    mc.body(b -> b.empty());
+                });
+            });
+        });
+        sources.writeSources();
+        final String output = getSource("com.example", "Cls1");
+        assertTrue(output.contains("( int x )"), "modified: space within method declaration parens");
+    }
+
+    // ── Batch 29: WITHIN_PAREN_METHOD_DECLARATION_EMPTY ─────────────────
+
+    /**
+     * Verifies that setting {@link Space#WITHIN_PAREN_METHOD_DECLARATION_EMPTY} to SPACE
+     * inserts a space inside an empty method declaration's parentheses.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void spaceWithinParenMethodDeclarationEmpty() throws IOException {
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .space(Space.WITHIN_PAREN_METHOD_DECLARATION_EMPTY, SpaceType.SPACE)
+            .build();
+        final JSources sources = createSources(prefs, SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "Cls1", sf -> {
+            sf.class_("Cls1", cc -> {
+                cc.method("run", mc -> {
+                    mc.body(b -> b.empty());
+                });
+            });
+        });
+        sources.writeSources();
+        final String output = getSource("com.example", "Cls1");
+        assertTrue(output.contains("run( )"), "modified: space within empty method declaration parens");
+    }
+
+    // ── Batch 30: WITHIN_PAREN_IF ───────────────────────────────────────
+
+    /**
+     * Verifies that setting {@link Space#WITHIN_PAREN_IF} to SPACE
+     * inserts spaces inside the parentheses of an if condition.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void spaceWithinParenIf() throws IOException {
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .space(Space.WITHIN_PAREN_IF, SpaceType.SPACE)
+            .build();
+        final JSources sources = createSources(prefs, SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "Cls1", sf -> {
+            sf.class_("Cls1", cc -> {
+                cc.method("run", mc -> {
+                    mc.body(b -> {
+                        b.if_(JExpr.TRUE, body -> {
+                            body.empty();
+                        });
+                    });
+                });
+            });
+        });
+        sources.writeSources();
+        final String output = getSource("com.example", "Cls1");
+        assertTrue(output.contains("( true )"), "modified: space within if parens");
+    }
+
+    // ── Batch 31: WITHIN_PAREN_FOR ──────────────────────────────────────
+
+    /**
+     * Verifies that setting {@link Space#WITHIN_PAREN_FOR} to SPACE
+     * inserts spaces inside the parentheses of a for loop.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void spaceWithinParenFor() throws IOException {
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .space(Space.WITHIN_PAREN_FOR, SpaceType.SPACE)
+            .build();
+        final JSources sources = createSources(prefs, SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "Cls1", sf -> {
+            sf.class_("Cls1", cc -> {
+                cc.method("run", mc -> {
+                    mc.body(b -> {
+                        b.for_(fc -> {
+                            fc.init(JType.INT, "i", JExpr.ZERO);
+                            fc.condition(JExpr.$v("i").lt(JExpr.$v("n")));
+                            fc.update(JExpr.$v("i").inc());
+                            fc.body(body -> body.empty());
+                        });
+                    });
+                });
+            });
+        });
+        sources.writeSources();
+        final String output = getSource("com.example", "Cls1");
+        assertTrue(output.contains("( int"), "modified: space after opening paren of for");
+        assertTrue(output.contains("i++ )"), "modified: space before closing paren of for");
+    }
+
+    // ── Batch 32: WITHIN_PAREN_WHILE ────────────────────────────────────
+
+    /**
+     * Verifies that setting {@link Space#WITHIN_PAREN_WHILE} to SPACE
+     * inserts spaces inside the parentheses of a while condition.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void spaceWithinParenWhile() throws IOException {
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .space(Space.WITHIN_PAREN_WHILE, SpaceType.SPACE)
+            .build();
+        final JSources sources = createSources(prefs, SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "Cls1", sf -> {
+            sf.class_("Cls1", cc -> {
+                cc.method("run", mc -> {
+                    mc.body(b -> {
+                        b.while_(JExpr.TRUE, body -> body.empty());
+                    });
+                });
+            });
+        });
+        sources.writeSources();
+        final String output = getSource("com.example", "Cls1");
+        assertTrue(output.contains("( true )"), "modified: space within while parens");
+    }
+
+    // ── Batch 33: WITHIN_PAREN_SWITCH ───────────────────────────────────
+
+    /**
+     * Verifies that setting {@link Space#WITHIN_PAREN_SWITCH} to SPACE
+     * inserts spaces inside the parentheses of a switch selector.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void spaceWithinParenSwitch() throws IOException {
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .space(Space.WITHIN_PAREN_SWITCH, SpaceType.SPACE)
+            .build();
+        final JSources sources = createSources(prefs, SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "Cls1", sf -> {
+            sf.class_("Cls1", cc -> {
+                cc.method("run", mc -> {
+                    mc.body(b -> {
+                        b.switch_(JExpr.$v("x"), sc -> {
+                            sc.case_(List.of(JExpr.ONE), cb -> cb.break_());
+                        });
+                    });
+                });
+            });
+        });
+        sources.writeSources();
+        final String output = getSource("com.example", "Cls1");
+        assertTrue(output.contains("( x )"), "modified: space within switch parens");
+    }
+
+    // ── Batch 34: WITHIN_PAREN_TRY ──────────────────────────────────────
+
+    /**
+     * Verifies that setting {@link Space#WITHIN_PAREN_TRY} to SPACE
+     * inserts spaces inside the parentheses of a try-with-resources.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void spaceWithinParenTry() throws IOException {
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .space(Space.WITHIN_PAREN_TRY, SpaceType.SPACE)
+            .build();
+        final JSources sources = createSources(prefs, SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "Cls1", sf -> {
+            sf.class_("Cls1", cc -> {
+                cc.method("run", mc -> {
+                    mc.body(b -> {
+                        b.try_(tc -> {
+                            tc.with(JType.named("java.io.InputStream"), "in",
+                                JExpr.callPlain("open"));
+                            tc.body(body -> body.empty());
+                        });
+                    });
+                });
+            });
+        });
+        sources.writeSources();
+        final String output = getSource("com.example", "Cls1");
+        assertTrue(output.contains("( java.io.InputStream") || output.contains("( InputStream"),
+            "modified: space after opening paren of try");
+    }
+
+    // ── Batch 35: WITHIN_PAREN_CATCH ────────────────────────────────────
+
+    /**
+     * Verifies that setting {@link Space#WITHIN_PAREN_CATCH} to SPACE
+     * inserts spaces inside the parentheses of a catch clause.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void spaceWithinParenCatch() throws IOException {
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .space(Space.WITHIN_PAREN_CATCH, SpaceType.SPACE)
+            .build();
+        final JSources sources = createSources(prefs, SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "Cls1", sf -> {
+            sf.class_("Cls1", cc -> {
+                cc.method("run", mc -> {
+                    mc.body(b -> {
+                        b.try_(tc -> {
+                            tc.body(body -> body.empty());
+                            tc.catch_(JType.named("java.lang.Exception"), "e",
+                                body -> body.empty());
+                        });
+                    });
+                });
+            });
+        });
+        sources.writeSources();
+        final String output = getSource("com.example", "Cls1");
+        assertTrue(output.contains("( Exception"), "modified: space after opening paren of catch");
+        assertTrue(output.contains("e )"), "modified: space before closing paren of catch");
+    }
+
+    // ── Batch 36: WITHIN_PAREN_SYNCHRONIZED ─────────────────────────────
+
+    /**
+     * Verifies that setting {@link Space#WITHIN_PAREN_SYNCHRONIZED} to SPACE
+     * inserts spaces inside the parentheses of a synchronized statement.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void spaceWithinParenSynchronized() throws IOException {
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .space(Space.WITHIN_PAREN_SYNCHRONIZED, SpaceType.SPACE)
+            .build();
+        final JSources sources = createSources(prefs, SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "Cls1", sf -> {
+            sf.class_("Cls1", cc -> {
+                cc.method("run", mc -> {
+                    mc.body(b -> {
+                        b.synchronized_(JExpr.$v("lock"), body -> body.empty());
+                    });
+                });
+            });
+        });
+        sources.writeSources();
+        final String output = getSource("com.example", "Cls1");
+        assertTrue(output.contains("( lock )"), "modified: space within synchronized parens");
+    }
+
+    // ── Batch 37: WITHIN_PAREN_CAST ─────────────────────────────────────
+
+    /**
+     * Verifies that setting {@link Space#WITHIN_PAREN_CAST} to SPACE
+     * inserts spaces inside the parentheses of a cast expression.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void spaceWithinParenCast() throws IOException {
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .space(Space.WITHIN_PAREN_CAST, SpaceType.SPACE)
+            .build();
+        final JSources sources = createSources(prefs, SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "Cls1", sf -> {
+            sf.class_("Cls1", cc -> {
+                cc.method("run", mc -> {
+                    mc.body(b -> {
+                        b.emit(JExpr.$v("obj").cast(JType.STRING));
+                    });
+                });
+            });
+        });
+        sources.writeSources();
+        final String output = getSource("com.example", "Cls1");
+        assertTrue(output.contains("( String )"), "modified: space within cast parens");
+    }
+
+    // ── Batch 38: WITHIN_PAREN_ANNOTATION ───────────────────────────────
+
+    /**
+     * Verifies that setting {@link Space#WITHIN_PAREN_ANNOTATION} to SPACE
+     * inserts spaces inside the parentheses of an annotation.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void spaceWithinParenAnnotation() throws IOException {
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .space(Space.WITHIN_PAREN_ANNOTATION, SpaceType.SPACE)
+            .build();
+        final JSources sources = createSources(prefs, SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "Cls1", sf -> {
+            sf.class_("Cls1", cc -> {
+                cc.annotate(JType.named("java.lang.SuppressWarnings"), ac -> {
+                    ac.value(JExpr.str("unchecked"));
+                });
+            });
+        });
+        sources.writeSources();
+        final String output = getSource("com.example", "Cls1");
+        assertTrue(output.contains("( \"unchecked\" )"), "modified: space within annotation parens");
+    }
+
+    // ── Batch 39: WITHIN_PAREN_RECORD ───────────────────────────────────
+
+    /**
+     * Verifies that setting {@link Space#WITHIN_PAREN_RECORD} to SPACE
+     * inserts spaces inside the parentheses of a record component list.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void spaceWithinParenRecord() throws IOException {
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .space(Space.WITHIN_PAREN_RECORD, SpaceType.SPACE)
+            .build();
+        final JSources sources = createSources(prefs, SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "Point", sf -> {
+            sf.record_("Point", rc -> {
+                rc.component("x", JType.INT);
+                rc.component("y", JType.INT);
+            });
+        });
+        sources.writeSources();
+        final String output = getSource("com.example", "Point");
+        assertTrue(output.contains("( int x"), "modified: space after opening paren of record");
+        assertTrue(output.contains("int y )"), "modified: space before closing paren of record");
+    }
+
+    // ── Batch 40: BEFORE_BRACE_INTERFACE ────────────────────────────────
+
+    /**
+     * Verifies that setting {@link Space#BEFORE_BRACE_INTERFACE} to NONE
+     * removes the space before the opening brace of an interface declaration.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void noSpaceBeforeBraceInterface() throws IOException {
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .space(Space.BEFORE_BRACE_INTERFACE, SpaceType.NONE)
+            .build();
+        final JSources sources = createSources(prefs, SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "MyIface", sf -> {
+            sf.interface_("MyIface", ic -> {
+                ic.method("run", mc -> {});
+            });
+        });
+        sources.writeSources();
+        final String output = getSource("com.example", "MyIface");
+        assertTrue(output.contains("MyIface{"), "modified: no space before interface brace");
+    }
+
+    // ── Batch 41: BEFORE_BRACE_ANNOTATION_ARRAY_INIT ────────────────────
+
+    /**
+     * Verifies that setting {@link Space#BEFORE_BRACE_ANNOTATION_ARRAY_INIT} to SPACE
+     * inserts a space before the opening brace of an annotation array initializer.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void spaceBeforeBraceAnnotationArrayInit() throws IOException {
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .space(Space.BEFORE_BRACE_ANNOTATION_ARRAY_INIT, SpaceType.SPACE)
+            .build();
+        final JSources sources = createSources(prefs, SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "Cls1", sf -> {
+            sf.class_("Cls1", cc -> {
+                cc.annotate(JType.named("java.lang.SuppressWarnings"), ac -> {
+                    ac.memberArray("value", JExpr.str("unchecked"), JExpr.str("rawtypes"));
+                });
+            });
+        });
+        sources.writeSources();
+        final String output = getSource("com.example", "Cls1");
+        assertTrue(output.contains("= {"), "modified: space before annotation array brace");
+    }
+
+    // ── Batch 42: WITHIN_BRACES_CODE ────────────────────────────────────
+
+    /**
+     * Verifies that setting {@link Space#WITHIN_BRACES_CODE} to SPACE
+     * places the block content on the same line as the brace.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void spaceWithinBracesCode() throws IOException {
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .space(Space.WITHIN_BRACES_CODE, SpaceType.SPACE)
+            .build();
+        final JSources sources = createSources(prefs, SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "Cls1", sf -> {
+            sf.class_("Cls1", cc -> {
+                cc.method("run", mc -> {
+                    mc.body(b -> {
+                        b.return_();
+                    });
+                });
+            });
+        });
+        sources.writeSources();
+        final String output = getSource("com.example", "Cls1");
+        assertTrue(output.contains("{ return;"), "modified: content on same line as opening brace");
+    }
+
+    // ── Batch 43: AFTER_ANNOTATION ──────────────────────────────────────
+
+    /**
+     * Verifies that setting {@link Space#AFTER_ANNOTATION} to SPACE
+     * places the annotation on the same line as the declaration.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void spaceAfterAnnotation() throws IOException {
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .space(Space.AFTER_ANNOTATION, SpaceType.SPACE)
+            .build();
+        final JSources sources = createSources(prefs, SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "Cls1", sf -> {
+            sf.class_("Cls1", cc -> {
+                cc.method("run", mc -> {
+                    mc.annotate(JType.named("java.lang.Override"));
+                    mc.body(b -> b.empty());
+                });
+            });
+        });
+        sources.writeSources();
+        final String output = getSource("com.example", "Cls1");
+        assertTrue(output.contains("@Override void"), "modified: annotation and declaration on same line");
+    }
+
+    // ── Batch 44: BEFORE_METHOD ─────────────────────────────────────────
+
+    /**
+     * Verifies that setting {@link Space#BEFORE_METHOD} to NONE
+     * removes the blank line before a method declaration.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void noSpaceBeforeMethod() throws IOException {
+        final JSources defaultSources = createSources(SourceVersion.JAVA_17);
+        defaultSources.createSourceFile("com.example", "Cls1", sf -> {
+            sf.class_("Cls1", cc -> {
+                cc.field("x", fc -> { fc.type(JType.INT); fc.init(JExpr.ZERO); });
+                cc.method("run", mc -> {
+                    mc.body(b -> b.empty());
+                });
+            });
+        });
+        defaultSources.writeSources();
+        final String defaultOutput = getSource("com.example", "Cls1");
+        // With default NEWLINE, there should be a blank line before the method
+        long defaultBlankLines = defaultOutput.lines()
+            .filter(String::isBlank)
+            .count();
+
+        clearSources();
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .space(Space.BEFORE_METHOD, SpaceType.NONE)
+            .build();
+        final JSources modified = createSources(prefs, SourceVersion.JAVA_17);
+        modified.createSourceFile("com.example", "Cls2", sf -> {
+            sf.class_("Cls2", cc -> {
+                cc.field("x", fc -> { fc.type(JType.INT); fc.init(JExpr.ZERO); });
+                cc.method("run", mc -> {
+                    mc.body(b -> b.empty());
+                });
+            });
+        });
+        modified.writeSources();
+        final String modifiedOutput = getSource("com.example", "Cls2");
+        long modifiedBlankLines = modifiedOutput.lines()
+            .filter(String::isBlank)
+            .count();
+        assertTrue(modifiedBlankLines < defaultBlankLines,
+            "modified: fewer blank lines with BEFORE_METHOD=NONE");
+    }
+
+    // ── Batch 45: BEFORE_CLASS ──────────────────────────────────────────
+
+    /**
+     * Verifies that setting {@link Space#BEFORE_CLASS} to NONE
+     * removes the blank line before a nested class declaration.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void noSpaceBeforeClass() throws IOException {
+        final JSources defaultSources = createSources(SourceVersion.JAVA_17);
+        defaultSources.createSourceFile("com.example", "Outer", sf -> {
+            sf.class_("Outer", cc -> {
+                cc.field("x", fc -> { fc.type(JType.INT); fc.init(JExpr.ZERO); });
+                cc.class_("Inner", nc -> {
+                    nc.field("y", fc -> { fc.type(JType.INT); fc.init(JExpr.ONE); });
+                });
+            });
+        });
+        defaultSources.writeSources();
+        final String defaultOutput = getSource("com.example", "Outer");
+        long defaultBlankLines = defaultOutput.lines()
+            .filter(String::isBlank)
+            .count();
+
+        clearSources();
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .space(Space.BEFORE_CLASS, SpaceType.NONE)
+            .build();
+        final JSources modified = createSources(prefs, SourceVersion.JAVA_17);
+        modified.createSourceFile("com.example", "Outer2", sf -> {
+            sf.class_("Outer2", cc -> {
+                cc.field("x", fc -> { fc.type(JType.INT); fc.init(JExpr.ZERO); });
+                cc.class_("Inner", nc -> {
+                    nc.field("y", fc -> { fc.type(JType.INT); fc.init(JExpr.ONE); });
+                });
+            });
+        });
+        modified.writeSources();
+        final String modifiedOutput = getSource("com.example", "Outer2");
+        long modifiedBlankLines = modifiedOutput.lines()
+            .filter(String::isBlank)
+            .count();
+        assertTrue(modifiedBlankLines < defaultBlankLines,
+            "modified: fewer blank lines with BEFORE_CLASS=NONE");
+    }
+
+    // ── Batch 46: LABELS indentation ────────────────────────────────────
+
+    /**
+     * Verifies that setting {@link Indentation#LABELS} to a non-zero value
+     * indents the label relative to the surrounding code.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void customLabelsIndent() throws IOException {
+        final FormatPreferences prefs = FormatPreferences.builder()
+            .indent(Indentation.LABELS, 4)
+            .build();
+        final JSources sources = createSources(prefs, SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "Cls1", sf -> {
+            sf.class_("Cls1", cc -> {
+                cc.method("run", mc -> {
+                    mc.body(b -> {
+                        b.labeled("outer", (label, lb) -> {
+                            lb.while_(JExpr.TRUE, body -> {
+                                body.break_(label);
+                            });
+                        });
+                    });
+                });
+            });
+        });
+        sources.writeSources();
+        final String output = getSource("com.example", "Cls1");
+        assertTrue(output.contains("outer:"), "should contain label");
+        // With LABELS indent of 4, the label should be indented further
+        // than the default (0)
+        String labelLine = output.lines()
+            .filter(l -> l.contains("outer:"))
+            .findFirst().orElseThrow();
+        int labelIndent = labelLine.indexOf("outer:");
+        assertTrue(labelIndent > 8, "label should be further indented with LABELS=4");
+    }
 }

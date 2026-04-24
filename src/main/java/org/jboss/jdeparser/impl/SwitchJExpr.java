@@ -59,7 +59,9 @@ public final class SwitchJExpr extends AbstractJExpr {
         writer.write(Tokens.$KW.SWITCH);
         writer.write(FormatPreferences.Space.BEFORE_PAREN_SWITCH);
         writer.write(Tokens.$PAREN.OPEN);
+        writer.write(FormatPreferences.Space.WITHIN_PAREN_SWITCH);
         writeExpr(writer, selector);
+        writer.write(FormatPreferences.Space.WITHIN_PAREN_SWITCH);
         writer.write(Tokens.$PAREN.CLOSE);
         writer.write(FormatPreferences.Space.BEFORE_BRACE_SWITCH);
         cases.writeBlock(writer);

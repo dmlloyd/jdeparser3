@@ -73,6 +73,7 @@ public final class LambdaJExpr extends AbstractJExpr {
             writer.writeName(params.get(0).name());
         } else {
             writer.write(Tokens.$PAREN.OPEN);
+            writer.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_DECLARATION);
             boolean first = true;
             for (LambdaParam p : params) {
                 if (!first) {
@@ -86,6 +87,7 @@ public final class LambdaJExpr extends AbstractJExpr {
                 }
                 writer.writeName(p.name());
             }
+            writer.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_DECLARATION);
             writer.write(Tokens.$PAREN.CLOSE);
         }
         writer.write(Tokens.$BINOP.ARROW);
