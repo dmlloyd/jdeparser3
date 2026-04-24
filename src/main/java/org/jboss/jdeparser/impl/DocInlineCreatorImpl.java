@@ -119,10 +119,14 @@ public non-sealed class DocInlineCreatorImpl extends AbstractCreator implements 
         checkActive();
         Assert.checkNotNullParam("ref", ref);
         final DocReferenceImpl impl = (DocReferenceImpl) ref;
-        registerUsedType(impl.type());
-        final String qualifiedName = typeName(impl.type());
-        final String member = impl.member();
-        parts.add(w -> w.writeUnescaped("{@link " + w.resolveClassName(qualifiedName) + "#" + member + "}"));
+        if (impl.type() != null) {
+            registerUsedType(impl.type());
+        }
+        parts.add(w -> {
+            w.writeUnescaped("{@link ");
+            impl.write(w);
+            w.writeUnescaped("}");
+        });
     }
 
     /** {@inheritDoc} */
@@ -132,10 +136,14 @@ public non-sealed class DocInlineCreatorImpl extends AbstractCreator implements 
         Assert.checkNotNullParam("ref", ref);
         Assert.checkNotNullParam("label", label);
         final DocReferenceImpl impl = (DocReferenceImpl) ref;
-        registerUsedType(impl.type());
-        final String qualifiedName = typeName(impl.type());
-        final String member = impl.member();
-        parts.add(w -> w.writeUnescaped("{@link " + w.resolveClassName(qualifiedName) + "#" + member + " " + label + "}"));
+        if (impl.type() != null) {
+            registerUsedType(impl.type());
+        }
+        parts.add(w -> {
+            w.writeUnescaped("{@link ");
+            impl.write(w);
+            w.writeUnescaped(" " + label + "}");
+        });
     }
 
     /** {@inheritDoc} */
@@ -165,10 +173,14 @@ public non-sealed class DocInlineCreatorImpl extends AbstractCreator implements 
         checkActive();
         Assert.checkNotNullParam("ref", ref);
         final DocReferenceImpl impl = (DocReferenceImpl) ref;
-        registerUsedType(impl.type());
-        final String qualifiedName = typeName(impl.type());
-        final String member = impl.member();
-        parts.add(w -> w.writeUnescaped("{@linkplain " + w.resolveClassName(qualifiedName) + "#" + member + "}"));
+        if (impl.type() != null) {
+            registerUsedType(impl.type());
+        }
+        parts.add(w -> {
+            w.writeUnescaped("{@linkplain ");
+            impl.write(w);
+            w.writeUnescaped("}");
+        });
     }
 
     /** {@inheritDoc} */
@@ -178,10 +190,14 @@ public non-sealed class DocInlineCreatorImpl extends AbstractCreator implements 
         Assert.checkNotNullParam("ref", ref);
         Assert.checkNotNullParam("label", label);
         final DocReferenceImpl impl = (DocReferenceImpl) ref;
-        registerUsedType(impl.type());
-        final String qualifiedName = typeName(impl.type());
-        final String member = impl.member();
-        parts.add(w -> w.writeUnescaped("{@linkplain " + w.resolveClassName(qualifiedName) + "#" + member + " " + label + "}"));
+        if (impl.type() != null) {
+            registerUsedType(impl.type());
+        }
+        parts.add(w -> {
+            w.writeUnescaped("{@linkplain ");
+            impl.write(w);
+            w.writeUnescaped(" " + label + "}");
+        });
     }
 
     /** {@inheritDoc} */
@@ -271,10 +287,14 @@ public non-sealed class DocInlineCreatorImpl extends AbstractCreator implements 
         checkActive();
         Assert.checkNotNullParam("ref", ref);
         final DocReferenceImpl impl = (DocReferenceImpl) ref;
-        registerUsedType(impl.type());
-        final String qualifiedName = typeName(impl.type());
-        final String member = impl.member();
-        parts.add(w -> w.writeUnescaped("{@value " + w.resolveClassName(qualifiedName) + "#" + member + "}"));
+        if (impl.type() != null) {
+            registerUsedType(impl.type());
+        }
+        parts.add(w -> {
+            w.writeUnescaped("{@value ");
+            impl.write(w);
+            w.writeUnescaped("}");
+        });
     }
 
     // -- Context sets for tag validation --

@@ -3,7 +3,6 @@ package org.jboss.jdeparser.test;
 import java.io.IOException;
 
 import org.jboss.jdeparser.JExpr;
-import org.jboss.jdeparser.JExprs;
 import org.jboss.jdeparser.JSources;
 import org.jboss.jdeparser.JType;
 import org.jboss.jdeparser.SourceVersion;
@@ -74,7 +73,7 @@ class BasicSourceFileTest extends AbstractGeneratingTestCase {
                     mc.public_();
                     mc.returning(JType.STRING);
                     mc.body(b -> {
-                        b.return_(JExprs.str("Hello"));
+                        b.return_(JExpr.str("Hello"));
                     });
                 });
             });
@@ -105,7 +104,7 @@ class BasicSourceFileTest extends AbstractGeneratingTestCase {
                     con.public_();
                     con.param("name", JType.STRING);
                     con.body(b -> {
-                        b.emit(JExpr.THIS.field("name").assign(JExprs.$v("name")));
+                        b.emit(JExpr.THIS.field("name").assign(JExpr.$v("name")));
                     });
                 });
             });
@@ -131,9 +130,9 @@ class BasicSourceFileTest extends AbstractGeneratingTestCase {
                     mc.param("x", JType.INT);
                     mc.body(b -> {
                         b.ifElse(
-                            JExprs.$v("x").gt(JExpr.ZERO),
-                            then -> then.return_(JExprs.str("positive")),
-                            else_ -> else_.return_(JExprs.str("non-positive"))
+                            JExpr.$v("x").gt(JExpr.ZERO),
+                            then -> then.return_(JExpr.str("positive")),
+                            else_ -> else_.return_(JExpr.str("non-positive"))
                         );
                     });
                 });
@@ -161,10 +160,10 @@ class BasicSourceFileTest extends AbstractGeneratingTestCase {
                     mc.body(b -> {
                         b.for_(fb -> {
                             fb.init(JType.INT, "i", JExpr.ZERO);
-                            fb.condition(JExprs.$v("i").lt(JExprs.$v("n")));
-                            fb.update(JExprs.$v("i").postInc());
+                            fb.condition(JExpr.$v("i").lt(JExpr.$v("n")));
+                            fb.update(JExpr.$v("i").inc());
                             fb.body(loop -> {
-                                loop.emit(JExprs.call("println", JExprs.$v("i")));
+                                loop.emit(JExpr.callPlain("println", JExpr.$v("i")));
                             });
                         });
                     });
@@ -191,7 +190,7 @@ class BasicSourceFileTest extends AbstractGeneratingTestCase {
             sf.class_("Lambdas", cc -> {
                 cc.field("fn", fc -> {
                     fc.type(JType.OBJECT);
-                    fc.init(JExprs.lambda("x", JExprs.$v("x").call("toString")));
+                    fc.init(JExpr.lambda("x", JExpr.$v("x").call("toString")));
                 });
             });
         });

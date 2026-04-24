@@ -19,6 +19,10 @@ import org.jboss.jdeparser.JVar;
  * to throw, since primitives cannot be parameterized).
  */
 public abstract non-sealed class AbstractJType implements JType, Writable {
+    /**
+     * Cache for array type.
+     */
+    private ArrayJType arrayType;
 
     /**
      * Constructs a new abstract type.
@@ -42,7 +46,11 @@ public abstract non-sealed class AbstractJType implements JType, Writable {
      */
     @Override
     public JType array() {
-        return new ArrayJType(this);
+        ArrayJType arrayType = this.arrayType;
+        if (arrayType == null) {
+            arrayType = this.arrayType = new ArrayJType(this);
+        }
+        return arrayType;
     }
 
     /**
@@ -150,8 +158,22 @@ public abstract non-sealed class AbstractJType implements JType, Writable {
      * Returns a class literal expression ({@code Type.class}) for this type.
      */
     @Override
-    public JExpr classLiteral() {
+    public JExpr class_() {
         return new ClassLiteralJExpr(this);
+    }
+
+    @Override
+    public JExpr this_() {
+        throw new UnsupportedOperationException("`this_` may not be called on this kind of type");
+    }
+
+    @Override
+    public JExpr super_() {
+        throw new UnsupportedOperationException("`super_` may not be called on this kind of type");
+    }
+
+    public JExpr newArrayInit(final List<JExpr> elements) {
+        throw new UnsupportedOperationException("`newArrayInit` may not be called on this kind of type");
     }
 
     /**

@@ -1,12 +1,11 @@
 package org.jboss.jdeparser.test;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.jboss.jdeparser.JExpr;
-import org.jboss.jdeparser.JExprs;
 import org.jboss.jdeparser.JSources;
 import org.jboss.jdeparser.JType;
-import org.jboss.jdeparser.JTypes;
 import org.jboss.jdeparser.SourceVersion;
 import org.jboss.jdeparser.creator.BlockCreator;
 import org.junit.jupiter.api.Test;
@@ -37,8 +36,8 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
                 cc.method("countdown", mc -> {
                     mc.param("x", JType.INT);
                     mc.body(b -> {
-                        b.while_(JExprs.$v("x").gt(JExpr.ZERO), loop -> {
-                            loop.emit(JExprs.$v("x").postDec());
+                        b.while_(JExpr.$v("x").gt(JExpr.ZERO), loop -> {
+                            loop.emit(JExpr.$v("x").dec());
                         });
                     });
                 });
@@ -65,8 +64,8 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
                     mc.param("x", JType.INT);
                     mc.body(b -> {
                         b.doWhile(
-                            loop -> loop.emit(JExprs.$v("x").preInc()),
-                            JExprs.$v("x").gt(JExpr.ZERO)
+                            loop -> loop.emit(JExpr.inc(JExpr.$v("x"))),
+                            JExpr.$v("x").gt(JExpr.ZERO)
                         );
                     });
                 });
@@ -94,10 +93,10 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
                     mc.body(b -> {
                         b.for_(fb -> {
                             fb.init(JType.INT, "i", JExpr.ZERO);
-                            fb.condition(JExprs.$v("i").lt(JExprs.$v("n")));
-                            fb.update(JExprs.$v("i").postInc());
+                            fb.condition(JExpr.$v("i").lt(JExpr.$v("n")));
+                            fb.update(JExpr.$v("i").inc());
                             fb.body(loop -> {
-                                loop.emit(JExprs.call("println", JExprs.$v("i")));
+                                loop.emit(JExpr.callPlain("println", JExpr.$v("i")));
                             });
                         });
                     });
@@ -125,8 +124,8 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
                 cc.method("process", mc -> {
                     mc.param("items", JType.INT.array());
                     mc.body(b -> {
-                        b.forEach(JType.INT, "item", JExprs.$v("items"), loop -> {
-                            loop.emit(JExprs.call("println", JExprs.$v("item")));
+                        b.forEach(JType.INT, "item", JExpr.$v("items"), loop -> {
+                            loop.emit(JExpr.callPlain("println", JExpr.$v("item")));
                         });
                     });
                 });
@@ -154,15 +153,15 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
                     mc.param("x", JType.INT);
                     mc.returning(JType.STRING);
                     mc.body(b -> {
-                        b.switch_(JExprs.$v("x"), sw -> {
+                        b.switch_(JExpr.$v("x"), sw -> {
                             sw.case_(JExpr.ZERO, body -> {
-                                body.return_(JExprs.str("zero"));
+                                body.return_(JExpr.str("zero"));
                             });
                             sw.case_(JExpr.ONE, body -> {
-                                body.return_(JExprs.str("one"));
+                                body.return_(JExpr.str("one"));
                             });
                             sw.default_(body -> {
-                                body.return_(JExprs.str("other"));
+                                body.return_(JExpr.str("other"));
                             });
                         });
                     });
@@ -194,13 +193,13 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
                     mc.body(b -> {
                         b.try_(tb -> {
                             tb.body(tryBody -> {
-                                tryBody.emit(JExprs.call("riskyOperation"));
+                                tryBody.emit(JExpr.callPlain("riskyOperation"));
                             });
-                            tb.catch_(JTypes.typeNamed("java.lang.Exception"), "e", catchBody -> {
-                                catchBody.emit(JExprs.$v("e").call("printStackTrace"));
+                            tb.catch_(JType.named("java.lang.Exception"), "e", catchBody -> {
+                                catchBody.emit(JExpr.$v("e").call("printStackTrace"));
                             });
                             tb.finally_(finallyBody -> {
-                                finallyBody.emit(JExprs.call("cleanup"));
+                                finallyBody.emit(JExpr.callPlain("cleanup"));
                             });
                         });
                     });
@@ -233,12 +232,12 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
                     mc.body(b -> {
                         b.try_(tb -> {
                             tb.with(
-                                JTypes.typeNamed("java.io.InputStream"),
+                                JType.named("java.io.InputStream"),
                                 "in",
-                                JExprs.call("openStream")
+                                JExpr.callPlain("openStream")
                             );
                             tb.body(tryBody -> {
-                                tryBody.emit(JExprs.$v("in").call("read"));
+                                tryBody.emit(JExpr.$v("in").call("read"));
                             });
                         });
                     });
@@ -267,7 +266,7 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
                 cc.method("criticalSection", mc -> {
                     mc.body(b -> {
                         b.synchronized_(JExpr.THIS, syncBody -> {
-                            syncBody.emit(JExprs.call("doWork"));
+                            syncBody.emit(JExpr.callPlain("doWork"));
                         });
                     });
                 });
@@ -321,7 +320,7 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
                 cc.method("validate", mc -> {
                     mc.param("x", JType.INT);
                     mc.body(b -> {
-                        b.assert_(JExprs.$v("x").gt(JExpr.ZERO));
+                        b.assert_(JExpr.$v("x").gt(JExpr.ZERO));
                     });
                 });
             });
@@ -345,7 +344,7 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
                 cc.method("validate", mc -> {
                     mc.param("x", JType.INT);
                     mc.body(b -> {
-                        b.assert_(JExprs.$v("x").gt(JExpr.ZERO), JExprs.str("must be positive"));
+                        b.assert_(JExpr.$v("x").gt(JExpr.ZERO), JExpr.str("must be positive"));
                     });
                 });
             });
@@ -369,7 +368,8 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
             sf.class_("ThrowStmt", cc -> {
                 cc.method("fail", mc -> {
                     mc.body(b -> {
-                        b.throw_(JExprs.new_(JTypes.typeNamed("java.lang.Exception")));
+                        final JType type = JType.named("java.lang.Exception");
+                        b.throw_(type.new_(List.of(new JExpr[] {})));
                     });
                 });
             });
@@ -396,11 +396,11 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
                     mc.body(b -> {
                         b.for_(fb -> {
                             fb.init(JType.INT, "i", JExpr.ZERO);
-                            fb.condition(JExprs.$v("i").lt(JExprs.$v("n")));
-                            fb.update(JExprs.$v("i").postInc());
+                            fb.condition(JExpr.$v("i").lt(JExpr.$v("n")));
+                            fb.update(JExpr.$v("i").inc());
                             fb.body(loop -> {
-                                loop.if_(JExprs.$v("i").eq(JExprs.decimal(5)), BlockCreator::break_);
-                                loop.if_(JExprs.$v("i").eq(JExprs.decimal(3)), BlockCreator::continue_);
+                                loop.if_(JExpr.$v("i").eq(JExpr.decimal(5)), BlockCreator::break_);
+                                loop.if_(JExpr.$v("i").eq(JExpr.decimal(3)), BlockCreator::continue_);
                             });
                         });
                     });
@@ -469,7 +469,7 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
             sf.class_("LocalVarInferred", cc -> {
                 cc.method("init", mc -> {
                     mc.body(b -> {
-                        b.var("x", JExprs.decimal(42));
+                        b.var("x", JExpr.decimal(42));
                     });
                 });
             });
@@ -493,7 +493,7 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
                 cc.method("scoped", mc -> {
                     mc.body(b -> {
                         b.block(inner -> {
-                            inner.var(JType.INT, "y", JExprs.decimal(99));
+                            inner.var(JType.INT, "y", JExpr.decimal(99));
                         });
                     });
                 });
@@ -601,7 +601,7 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
                     mc.body(b -> {
                         b.lineComment("this is a line comment");
                         b.blockComment("this is a block comment");
-                        b.emit(JExprs.call("doWork"));
+                        b.emit(JExpr.callPlain("doWork"));
                     });
                 });
             });

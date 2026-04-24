@@ -7,17 +7,20 @@ import org.jboss.jdeparser.JType;
 /**
  * A qualified {@code this} expression: {@code Outer.this}.
  */
-public final class QualifiedThisJExpr extends AbstractJExpr {
+public final class QualifiedJExpr extends AbstractJExpr {
 
     private final JType qualifier;
+    private final Tokens.$KW keyword;
 
     /**
      * Constructs a new qualified this expression.
      *
      * @param qualifier the enclosing type qualifier
+     * @param keyword the qualified keyword
      */
-    public QualifiedThisJExpr(final JType qualifier) {
+    public QualifiedJExpr(final JType qualifier, final Tokens.$KW keyword) {
         this.qualifier = qualifier;
+        this.keyword = keyword;
     }
 
     /**
@@ -47,6 +50,6 @@ public final class QualifiedThisJExpr extends AbstractJExpr {
         // Outer.this
         writeType(writer, qualifier);
         writer.write(Tokens.$PUNCT.DOT);
-        writer.write(Tokens.$KW.THIS);
+        writer.write(keyword);
     }
 }

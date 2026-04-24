@@ -128,10 +128,13 @@ public final class DocCommentCreatorImpl extends DocInlineCreatorImpl implements
         checkActive();
         Assert.checkNotNullParam("ref", ref);
         final DocReferenceImpl impl = (DocReferenceImpl) ref;
-        registerUsedType(impl.type());
-        final String qualifiedName = typeName(impl.type());
-        final String member = impl.member();
-        blockTags.add(w -> w.writeUnescaped("@see " + w.resolveClassName(qualifiedName) + "#" + member));
+        if (impl.type() != null) {
+            registerUsedType(impl.type());
+        }
+        blockTags.add(w -> {
+            w.writeUnescaped("@see ");
+            impl.write(w);
+        });
     }
 
     /** {@inheritDoc} */

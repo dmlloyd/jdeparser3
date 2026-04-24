@@ -3,12 +3,11 @@ package org.jboss.jdeparser.test;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import org.jboss.jdeparser.JExpr;
-import org.jboss.jdeparser.JExprs;
 import org.jboss.jdeparser.JSources;
 import org.jboss.jdeparser.JType;
-import org.jboss.jdeparser.JTypes;
 import org.jboss.jdeparser.SourceVersion;
 import org.jboss.jdeparser.creator.ModifierFlag;
 import org.junit.jupiter.api.Test;
@@ -43,14 +42,14 @@ class WholeFileTest extends AbstractGeneratingTestCase {
                     con.public_();
                     con.param("name", JType.STRING);
                     con.body(b -> {
-                        b.emit(JExpr.THIS.field("name").assign(JExprs.$v("name")));
+                        b.emit(JExpr.THIS.field("name").assign(JExpr.$v("name")));
                     });
                 });
                 cc.method("getName", mc -> {
                     mc.public_();
                     mc.returning(JType.STRING);
                     mc.body(b -> {
-                        b.return_(JExprs.$v("name"));
+                        b.return_(JExpr.$v("name"));
                     });
                 });
             });
@@ -71,10 +70,10 @@ class WholeFileTest extends AbstractGeneratingTestCase {
         sources.createSourceFile("com.example", "Season", sf -> {
             sf.enum_("Season", ec -> {
                 ec.public_();
-                ec.constant("SPRING", c -> c.arg(JExprs.str("warm")));
-                ec.constant("SUMMER", c -> c.arg(JExprs.str("hot")));
-                ec.constant("AUTUMN", c -> c.arg(JExprs.str("cool")));
-                ec.constant("WINTER", c -> c.arg(JExprs.str("cold")));
+                ec.constant("SPRING", c -> c.arg(JExpr.str("warm")));
+                ec.constant("SUMMER", c -> c.arg(JExpr.str("hot")));
+                ec.constant("AUTUMN", c -> c.arg(JExpr.str("cool")));
+                ec.constant("WINTER", c -> c.arg(JExpr.str("cold")));
                 ec.field("description", fc -> {
                     fc.private_();
                     fc.final_();
@@ -83,14 +82,14 @@ class WholeFileTest extends AbstractGeneratingTestCase {
                 ec.constructor(con -> {
                     con.param("description", JType.STRING);
                     con.body(b -> {
-                        b.emit(JExpr.THIS.field("description").assign(JExprs.$v("description")));
+                        b.emit(JExpr.THIS.field("description").assign(JExpr.$v("description")));
                     });
                 });
                 ec.method("getDescription", mc -> {
                     mc.public_();
                     mc.returning(JType.STRING);
                     mc.body(b -> {
-                        b.return_(JExprs.$v("description"));
+                        b.return_(JExpr.$v("description"));
                     });
                 });
             });
@@ -114,15 +113,15 @@ class WholeFileTest extends AbstractGeneratingTestCase {
                 ic.typeParam("F", tp -> {});
                 ic.typeParam("T", tp -> {});
                 ic.method("convert", mc -> {
-                    mc.returning(JTypes.typeNamed("T"));
-                    mc.param("input", JTypes.typeNamed("F"));
+                    mc.returning(JType.named("T"));
+                    mc.param("input", JType.named("F"));
                 });
                 ic.method("identity", mc -> {
                     mc.addFlag(ModifierFlag.DEFAULT);
-                    mc.returning(JTypes.typeNamed("F"));
-                    mc.param("input", JTypes.typeNamed("F"));
+                    mc.returning(JType.named("F"));
+                    mc.param("input", JType.named("F"));
                     mc.body(b -> {
-                        b.return_(JExprs.$v("input"));
+                        b.return_(JExpr.$v("input"));
                     });
                 });
             });
@@ -146,17 +145,16 @@ class WholeFileTest extends AbstractGeneratingTestCase {
                 rc.component("min", JType.INT);
                 rc.component("max", JType.INT);
                 rc.compactConstructor(b -> {
-                    b.if_(JExprs.$v("min").gt(JExprs.$v("max")), then -> {
-                        then.throw_(JExprs.new_(
-                            JTypes.typeNamed("java.lang.IllegalArgumentException"),
-                            JExprs.str("min > max")));
+                    b.if_(JExpr.$v("min").gt(JExpr.$v("max")), then -> {
+                        final JType type = JType.named("java.lang.IllegalArgumentException");
+                        then.throw_(type.new_(List.of(new JExpr[] { JExpr.str("min > max") })));
                     });
                 });
                 rc.method("size", mc -> {
                     mc.public_();
                     mc.returning(JType.INT);
                     mc.body(b -> {
-                        b.return_(JExprs.$v("max").sub(JExprs.$v("min")));
+                        b.return_(JExpr.$v("max").sub(JExpr.$v("min")));
                     });
                 });
             });

@@ -4,34 +4,24 @@ import java.io.IOException;
 import java.util.List;
 
 import org.jboss.jdeparser.JExpr;
-import org.jboss.jdeparser.JType;
 
 /**
  * An array creation expression with dimension expressions: {@code new int[n]}.
  */
 public final class NewArrayJExpr extends AbstractJExpr {
 
-    private final JType elementType;
-    private final List<JExpr> dimensions;
+    private final ArrayJType arrayType;
+    private final List<JExpr> sizes;
 
     /**
      * Constructs a new array creation expression.
      *
-     * @param elementType the array element type
-     * @param dimensions  the dimension size expressions
+     * @param arrayType the array type
+     * @param sizes  the dimension size expressions
      */
-    public NewArrayJExpr(final JType elementType, final List<JExpr> dimensions) {
-        this.elementType = elementType;
-        this.dimensions = List.copyOf(dimensions);
-    }
-
-    /**
-     * Returns the array element type.
-     *
-     * @return the element type
-     */
-    public JType elementType() {
-        return elementType;
+    public NewArrayJExpr(final ArrayJType arrayType, final List<JExpr> sizes) {
+        this.arrayType = arrayType;
+        this.sizes = List.copyOf(sizes);
     }
 
     /**
@@ -39,8 +29,8 @@ public final class NewArrayJExpr extends AbstractJExpr {
      *
      * @return an unmodifiable list of dimension expressions
      */
-    public List<JExpr> dimensions() {
-        return dimensions;
+    public List<JExpr> sizes() {
+        return sizes;
     }
 
     /** {@inheritDoc} */
@@ -58,13 +48,20 @@ public final class NewArrayJExpr extends AbstractJExpr {
     /** {@inheritDoc} */
     @Override
     public void write(final SourceFileWriter writer) throws IOException {
-        // new Type[dim1][dim2]
+        // new Type[dim1][dim2][][]
         writer.write(Tokens.$KW.NEW);
-        writeType(writer, elementType);
-        for (JExpr dim : dimensions) {
+        writeType(writer, arrayType.elementType());
+        int dims = arrayType.dimensions();
+        for (int i = 0; i < dims; i++) {
+            final JExpr dim = sizes.get(i);
             writer.write(Tokens.$BRACKET.OPEN);
             writeExpr(writer, dim);
             writer.write(Tokens.$BRACKET.CLOSE);
+            if (i == sizes.size() - 1) {
+                for (i++; i < dims; i++) {}
+                writer.write(Tokens.$BRACKET.OPEN);
+                writer.write(Tokens.$BRACKET.CLOSE);
+            }
         }
     }
 }

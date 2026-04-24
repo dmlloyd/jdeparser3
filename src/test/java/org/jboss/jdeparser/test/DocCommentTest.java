@@ -4,10 +4,8 @@ import java.io.IOException;
 
 import org.jboss.jdeparser.JDocReference;
 import org.jboss.jdeparser.JExpr;
-import org.jboss.jdeparser.JExprs;
 import org.jboss.jdeparser.JSources;
 import org.jboss.jdeparser.JType;
-import org.jboss.jdeparser.JTypes;
 import org.jboss.jdeparser.SourceVersion;
 import org.jboss.jdeparser.creator.DocCommentCreator;
 import org.jboss.jdeparser.creator.DocInlineCreator;
@@ -219,10 +217,10 @@ class DocCommentTest extends AbstractGeneratingTestCase {
                 cc.public_();
                 cc.method("readFile", mc -> {
                     mc.public_();
-                    mc.throws_(JTypes.typeNamed("java.io.IOException"));
+                    mc.throws_(JType.named("java.io.IOException"));
                     mc.docComment(dc -> {
                         dc.text("Reads a file.");
-                        dc.throws_(JTypes.typeNamed("java.io.IOException"), "if I/O fails");
+                        dc.throws_(JType.named("java.io.IOException"), "if I/O fails");
                     });
                     mc.body(b -> {});
                 });
@@ -248,7 +246,7 @@ class DocCommentTest extends AbstractGeneratingTestCase {
                 cc.public_();
                 cc.docComment(dc -> {
                     dc.text("A documented class.");
-                    dc.see(JTypes.typeNamed("OtherClass").docRef("method()"));
+                    dc.see(JType.named("OtherClass").docRef("method()"));
                 });
             });
         });
@@ -453,7 +451,7 @@ class DocCommentTest extends AbstractGeneratingTestCase {
                         p.docComment(dc -> dc.text("the x"));
                     });
                     mc.body(b -> {
-                        b.return_(JExprs.$v("x"));
+                        b.return_(JExpr.$v("x"));
                     });
                 });
             });
@@ -478,15 +476,15 @@ class DocCommentTest extends AbstractGeneratingTestCase {
                 cc.method("process", mc -> {
                     mc.public_();
                     mc.returning(JType.STRING);
-                    mc.throws_(JTypes.typeNamed("java.io.IOException"));
+                    mc.throws_(JType.named("java.io.IOException"));
                     mc.docComment(dc -> {
                         dc.text("Processes the input data.");
                         dc.return_("the processed result");
-                        dc.throws_(JTypes.typeNamed("java.io.IOException"), "if processing fails");
+                        dc.throws_(JType.named("java.io.IOException"), "if processing fails");
                         dc.since("2.0");
                     });
                     mc.body(b -> {
-                        b.return_(JExprs.str("done"));
+                        b.return_(JExpr.str("done"));
                     });
                 });
             });
@@ -666,7 +664,7 @@ class DocCommentTest extends AbstractGeneratingTestCase {
     @Test
     void docRefWithNonImportedType() throws IOException {
         final JSources sources = createSources(SourceVersion.JAVA_17);
-        final JType ioException = JTypes.typeNamed("java.io.IOException");
+        final JType ioException = JType.named("java.io.IOException");
         sources.createSourceFile("com.example", "DocRefNonImported", sf -> {
             sf.class_("DocRefNonImported", cc -> {
                 cc.public_();
@@ -706,7 +704,7 @@ class DocCommentTest extends AbstractGeneratingTestCase {
                         });
                     });
                     mc.body(b -> {
-                        b.return_(JExprs.str("name"));
+                        b.return_(JExpr.str("name"));
                     });
                 });
             });
@@ -726,7 +724,7 @@ class DocCommentTest extends AbstractGeneratingTestCase {
     @Test
     void throwsWithInlineContent() throws IOException {
         final JSources sources = createSources(SourceVersion.JAVA_17);
-        final JType ioException = JTypes.typeNamed("java.io.IOException");
+        final JType ioException = JType.named("java.io.IOException");
         sources.createSourceFile("com.example", "ThrowsRichDoc", sf -> {
             sf.class_("ThrowsRichDoc", cc -> {
                 cc.public_();
@@ -977,7 +975,7 @@ class DocCommentTest extends AbstractGeneratingTestCase {
                     mc.returning(JType.STRING);
                     mc.docComment(DocInlineCreator::inheritDoc);
                     mc.body(b -> {
-                        b.return_(JExprs.str(""));
+                        b.return_(JExpr.str(""));
                     });
                 });
             });
@@ -1003,7 +1001,7 @@ class DocCommentTest extends AbstractGeneratingTestCase {
                     mc.public_();
                     mc.returning(JType.INT);
                     mc.docComment(dc -> {
-                        dc.inheritDoc(JTypes.typeNamed("java.lang.Object"));
+                        dc.inheritDoc(JType.named("java.lang.Object"));
                     });
                     mc.body(b -> {
                         b.return_(JExpr.ZERO);
@@ -1248,7 +1246,7 @@ class DocCommentTest extends AbstractGeneratingTestCase {
                 cc.public_();
                 cc.field("serialPersistentFields", fc -> {
                     fc.private_();
-                    fc.type(JTypes.typeNamed("java.io.ObjectStreamField").array());
+                    fc.type(JType.named("java.io.ObjectStreamField").array());
                     fc.docComment(dc -> {
                         dc.text("Serializable fields.");
                         dc.serialField("name", JType.STRING, "the person's name");
@@ -1325,7 +1323,7 @@ class DocCommentTest extends AbstractGeneratingTestCase {
                     fc.static_();
                     fc.final_();
                     fc.type(JType.INT);
-                    fc.init(JExprs.decimal(100));
+                    fc.init(JExpr.decimal(100));
                     fc.docComment(dc -> {
                         dc.text("The maximum value is ");
                         dc.value();
@@ -1353,7 +1351,7 @@ class DocCommentTest extends AbstractGeneratingTestCase {
                 cc.public_();
                 cc.docComment(dc -> {
                     dc.text("Max is ");
-                    dc.value(JTypes.typeNamed("java.lang.Integer").docRef("MAX_VALUE"));
+                    dc.value(JType.named("java.lang.Integer").docRef("MAX_VALUE"));
                     dc.text(".");
                 });
             });
@@ -1417,7 +1415,7 @@ class DocCommentTest extends AbstractGeneratingTestCase {
                     cc.field("x", fc -> {
                         fc.type(JType.INT);
                         fc.docComment(dc -> {
-                            dc.throws_(JTypes.typeNamed("java.lang.Exception"), "never");
+                            dc.throws_(JType.named("java.lang.Exception"), "never");
                         });
                     });
                 });

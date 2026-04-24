@@ -1,5 +1,9 @@
 package org.jboss.jdeparser.impl;
 
+import static org.jboss.jdeparser.impl.DocInlineCreatorImpl.typeName;
+
+import java.io.IOException;
+
 import org.jboss.jdeparser.JDocReference;
 import org.jboss.jdeparser.JType;
 
@@ -11,5 +15,11 @@ import org.jboss.jdeparser.JType;
  * @param member the member identifier (e.g., {@code "length()"} or
  *               {@code "CASE_INSENSITIVE_ORDER"})
  */
-public record DocReferenceImpl(JType type, String member) implements JDocReference {
+public record DocReferenceImpl(JType type, String member) implements JDocReference, Writable {
+    public void write(final SourceFileWriter w) throws IOException {
+        if (type != null) {
+            w.writeUnescaped(w.resolveClassName(typeName(type)));
+        }
+        w.writeUnescaped("#" + member);
+    }
 }

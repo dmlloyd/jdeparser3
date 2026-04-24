@@ -4,17 +4,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.function.Consumer;
 
 import org.jboss.jdeparser.JExpr;
-import org.jboss.jdeparser.JExprs;
 import org.jboss.jdeparser.JSources;
 import org.jboss.jdeparser.JType;
-import org.jboss.jdeparser.JTypes;
 import org.jboss.jdeparser.SourceVersion;
-import org.jboss.jdeparser.creator.ClassCreator;
 import org.jboss.jdeparser.creator.ModifierFlag;
-import org.jboss.jdeparser.impl.LambdaJExpr;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -41,15 +36,15 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
      */
     @Test
     void comprehensiveClass() throws IOException {
-        final JType listType = JTypes.typeNamed("java.util.List");
-        final JType arrayListType = JTypes.typeNamed("java.util.ArrayList");
-        final JType serializableType = JTypes.typeNamed("java.io.Serializable");
-        final JType comparableType = JTypes.typeNamed("java.lang.Comparable");
-        final JType overrideType = JTypes.typeNamed("java.lang.Override");
-        final JType suppressWarningsType = JTypes.typeNamed("java.lang.SuppressWarnings");
-        final JType illegalArgType = JTypes.typeNamed("java.lang.IllegalArgumentException");
-        final JType illegalStateType = JTypes.typeNamed("java.lang.IllegalStateException");
-        final JType objectsType = JTypes.typeNamed("java.util.Objects");
+        final JType listType = JType.named("java.util.List");
+        final JType arrayListType = JType.named("java.util.ArrayList");
+        final JType serializableType = JType.named("java.io.Serializable");
+        final JType comparableType = JType.named("java.lang.Comparable");
+        final JType overrideType = JType.named("java.lang.Override");
+        final JType suppressWarningsType = JType.named("java.lang.SuppressWarnings");
+        final JType illegalArgType = JType.named("java.lang.IllegalArgumentException");
+        final JType illegalStateType = JType.named("java.lang.IllegalStateException");
+        final JType objectsType = JType.named("java.util.Objects");
 
         final JSources sources = createSources(SourceVersion.JAVA_17);
         sources.createSourceFile("com.example.model", "Container", sf -> {
@@ -81,7 +76,7 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                     fc.static_();
                     fc.final_();
                     fc.type(JType.LONG);
-                    fc.init(JExprs.decimal(1L));
+                    fc.init(JExpr.decimal(1L));
                     fc.docComment(dc -> dc.text("Serial version UID."));
                 });
 
@@ -91,7 +86,7 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                     fc.static_();
                     fc.final_();
                     fc.type(JType.INT);
-                    fc.init(JExprs.decimal(16));
+                    fc.init(JExpr.decimal(16));
                     fc.docComment(dc -> dc.text("The default initial capacity."));
                 });
 
@@ -119,14 +114,13 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                 // static initializer
                 cc.staticInit(b -> {
                     b.lineComment("static initializer");
-                    b.emit(JExprs.callStatic(
-                        JTypes.typeNamed("java.lang.System"), "setProperty",
-                        JExprs.str("container.version"), JExprs.str("1.0")));
+                    final JType type = JType.named("java.lang.System");
+                    b.emit(type.call("setProperty", JExpr.str("container.version"), JExpr.str("1.0")));
                 });
 
                 // instance initializer
                 cc.instanceInit(b -> {
-                    b.emit(JExprs.$v("locked").assign(JExpr.FALSE));
+                    b.emit(JExpr.$v("locked").assign(JExpr.FALSE));
                 });
 
                 // default constructor
@@ -136,7 +130,7 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                         dc.text("Creates a container with the default capacity.");
                     });
                     ctor.body(b -> {
-                        b.callThis(JExprs.str("unnamed"), JExprs.$v("DEFAULT_CAPACITY"));
+                        b.callThis(JExpr.str("unnamed"), JExpr.$v("DEFAULT_CAPACITY"));
                     });
                 });
 
@@ -154,13 +148,13 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                     });
                     ctor.throws_(illegalArgType);
                     ctor.body(b -> {
-                        b.if_(JExprs.$v("capacity").le(JExpr.ZERO), then -> {
-                            then.throw_(JExprs.new_(illegalArgType, JExprs.str("capacity must be positive")));
+                        b.if_(JExpr.$v("capacity").le(JExpr.ZERO), then -> {
+                            then.throw_(illegalArgType.new_(List.of(new JExpr[] { JExpr.str("capacity must be positive") })));
                         });
                         b.emit(JExpr.THIS.field("name").assign(
-                            JExprs.callStatic(objectsType, "requireNonNull", JExprs.$v("name"))));
+                            objectsType.call("requireNonNull", JExpr.$v("name"))));
                         b.emit(JExpr.THIS.field("items").assign(
-                            JExprs.new_(arrayListType, JExprs.$v("capacity"))));
+                            arrayListType.new_(List.of(new JExpr[] { JExpr.$v("capacity") }))));
                     });
                 });
 
@@ -168,18 +162,18 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                 cc.constructor(ctor -> {
                     ctor.public_();
                     ctor.annotate(suppressWarningsType, a -> {
-                        a.value(JExprs.str("unchecked"));
+                        a.value(JExpr.str("unchecked"));
                     });
                     ctor.docComment(dc -> {
                         dc.text("Creates a container with the given items.");
                     });
-                    ctor.varargParam("items", JTypes.typeNamed("T"), p -> {
+                    ctor.varargParam("items", JType.named("T"), p -> {
                         p.docComment(dc -> dc.text("the initial items"));
                     });
                     ctor.body(b -> {
-                        b.callThis(JExprs.str("unnamed"), JExprs.$v("items").field("length"));
-                        b.forEach(JTypes.typeNamed("T"), "item", JExprs.$v("items"), loop -> {
-                            loop.emit(JExpr.THIS.field("items").call("add", JExprs.$v("item")));
+                        b.callThis(JExpr.str("unnamed"), JExpr.$v("items").field("length"));
+                        b.forEach(JType.named("T"), "item", JExpr.$v("items"), loop -> {
+                            loop.emit(JExpr.THIS.field("items").call("add", JExpr.$v("item")));
                         });
                     });
                 });
@@ -193,7 +187,7 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                         dc.return_("the name");
                     });
                     mc.body(b -> {
-                        b.return_(JExprs.$v("name"));
+                        b.return_(JExpr.$v("name"));
                     });
                 });
 
@@ -209,8 +203,8 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                     });
                     mc.throws_(illegalStateType);
                     mc.body(b -> {
-                        b.emit(JExprs.call("checkNotLocked"));
-                        b.emit(JExpr.THIS.field("name").assign(JExprs.$v("name")));
+                        b.emit(JExpr.callPlain("checkNotLocked"));
+                        b.emit(JExpr.THIS.field("name").assign(JExpr.$v("name")));
                     });
                 });
 
@@ -223,12 +217,12 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                         dc.text("Adds an item to the container.");
                         dc.return_("true if the item was added");
                     });
-                    mc.param("item", JTypes.typeNamed("T"), p -> {
+                    mc.param("item", JType.named("T"), p -> {
                         p.docComment(dc -> dc.text("the item to add"));
                     });
                     mc.body(b -> {
-                        b.emit(JExprs.call("checkNotLocked"));
-                        b.return_(JExprs.$v("items").call("add", JExprs.$v("item")));
+                        b.emit(JExpr.callPlain("checkNotLocked"));
+                        b.return_(JExpr.$v("items").call("add", JExpr.$v("item")));
                     });
                 });
 
@@ -245,15 +239,15 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                             c.text("a new list of transformed items");
                         });
                     });
-                    mc.param("fn", JTypes.typeNamed("java.util.function.Function"), p -> {
+                    mc.param("fn", JType.named("java.util.function.Function"), p -> {
                         p.docComment(dc -> dc.text("the transformation function"));
                     });
                     mc.body(b -> {
-                        b.var(listType, "result", JExprs.new_(arrayListType, JExprs.$v("items").call("size")));
-                        b.forEach(JTypes.typeNamed("T"), "item", JExprs.$v("items"), loop -> {
-                            loop.emit(JExprs.$v("result").call("add", JExprs.$v("fn").call("apply", JExprs.$v("item"))));
+                        b.var(listType, "result", arrayListType.new_(List.of(new JExpr[] { JExpr.$v("items").call("size") })));
+                        b.forEach(JType.named("T"), "item", JExpr.$v("items"), loop -> {
+                            loop.emit(JExpr.$v("result").call("add", JExpr.$v("fn").call("apply", JExpr.$v("item"))));
                         });
-                        b.return_(JExprs.$v("result"));
+                        b.return_(JExpr.$v("result"));
                     });
                 });
 
@@ -264,13 +258,14 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                     mc.typeParam("E", tp -> {
                         tp.extends_(comparableType);
                     });
-                    mc.returning(JTypes.typeNamed("com.example.model.Container"));
+                    mc.returning(JType.named("com.example.model.Container"));
                     mc.docComment(dc -> {
                         dc.text("Creates an empty container.");
                         dc.return_("a new empty container");
                     });
                     mc.body(b -> {
-                        b.return_(JExprs.new_(JTypes.typeNamed("com.example.model.Container")));
+                        final JType type = JType.named("com.example.model.Container");
+                        b.return_(type.new_(List.of(new JExpr[] {})));
                     });
                 });
 
@@ -282,8 +277,8 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                         dc.throws_(illegalStateType, "if the container is locked");
                     });
                     mc.body(b -> {
-                        b.if_(JExprs.$v("locked"), then -> {
-                            then.throw_(JExprs.new_(illegalStateType, JExprs.str("container is locked")));
+                        b.if_(JExpr.$v("locked"), then -> {
+                            then.throw_(illegalStateType.new_(List.of(new JExpr[] { JExpr.str("container is locked") })));
                         });
                     });
                 });
@@ -293,9 +288,9 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                     mc.public_();
                     mc.annotate(overrideType);
                     mc.returning(JType.INT);
-                    mc.param("other", JTypes.typeNamed("com.example.model.Container"));
+                    mc.param("other", JType.named("com.example.model.Container"));
                     mc.body(b -> {
-                        b.return_(JExprs.$v("name").call("compareTo", JExprs.$v("other").field("name")));
+                        b.return_(JExpr.$v("name").call("compareTo", JExpr.$v("other").field("name")));
                     });
                 });
 
@@ -305,8 +300,8 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                     mc.annotate(overrideType);
                     mc.returning(JType.STRING);
                     mc.body(b -> {
-                        b.return_(JExprs.str("Container{").call("concat", JExprs.$v("name"))
-                            .call("concat", JExprs.str("}")));
+                        b.return_(JExpr.str("Container{").call("concat", JExpr.$v("name"))
+                            .call("concat", JExpr.str("}")));
                     });
                 });
 
@@ -335,11 +330,11 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
      */
     @Test
     void comprehensiveInterface() throws IOException {
-        final JType iterableType = JTypes.typeNamed("java.lang.Iterable");
-        final JType streamType = JTypes.typeNamed("java.util.stream.Stream");
-        final JType optionalType = JTypes.typeNamed("java.util.Optional");
-        final JType comparatorType = JTypes.typeNamed("java.util.Comparator");
-        final JType overrideType = JTypes.typeNamed("java.lang.Override");
+        final JType iterableType = JType.named("java.lang.Iterable");
+        final JType streamType = JType.named("java.util.stream.Stream");
+        final JType optionalType = JType.named("java.util.Optional");
+        final JType comparatorType = JType.named("java.util.Comparator");
+        final JType overrideType = JType.named("java.lang.Override");
 
         final JSources sources = createSources(SourceVersion.JAVA_17);
         sources.createSourceFile("com.example.spi", "Repository", sf -> {
@@ -357,22 +352,22 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                 });
                 ic.typeParam("T", tp -> {});
                 ic.typeParam("ID", tp -> {
-                    tp.extends_(JTypes.typeNamed("java.io.Serializable"));
+                    tp.extends_(JType.named("java.io.Serializable"));
                 });
                 ic.extends_(iterableType);
-                ic.permits(JTypes.typeNamed("com.example.spi.AbstractRepository"));
-                ic.permits(JTypes.typeNamed("com.example.spi.ReadOnlyRepository"));
+                ic.permits(JType.named("com.example.spi.AbstractRepository"));
+                ic.permits(JType.named("com.example.spi.ReadOnlyRepository"));
 
                 // constant fields
                 ic.field("DEFAULT_PAGE_SIZE", fc -> {
                     fc.type(JType.INT);
-                    fc.init(JExprs.decimal(25));
+                    fc.init(JExpr.decimal(25));
                     fc.docComment(dc -> dc.text("Default page size for paginated queries."));
                 });
 
                 ic.field("MAX_BATCH_SIZE", fc -> {
                     fc.type(JType.INT);
-                    fc.init(JExprs.decimal(1000));
+                    fc.init(JExpr.decimal(1000));
                     fc.docComment(dc -> dc.text("Maximum batch size for bulk operations."));
                 });
 
@@ -383,18 +378,18 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                         dc.text("Finds an entity by its identifier.");
                         dc.return_("an optional containing the entity, or empty");
                     });
-                    mc.param("id", JTypes.typeNamed("ID"), p -> {
+                    mc.param("id", JType.named("ID"), p -> {
                         p.docComment(dc -> dc.text("the entity identifier"));
                     });
                 });
 
                 ic.method("save", mc -> {
-                    mc.returning(JTypes.typeNamed("T"));
+                    mc.returning(JType.named("T"));
                     mc.docComment(dc -> {
                         dc.text("Saves the given entity.");
                         dc.return_("the saved entity");
                     });
-                    mc.param("entity", JTypes.typeNamed("T"), p -> {
+                    mc.param("entity", JType.named("T"), p -> {
                         p.docComment(dc -> dc.text("the entity to save"));
                     });
                 });
@@ -408,7 +403,7 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                             c.text(" if the entity was deleted");
                         });
                     });
-                    mc.param("id", JTypes.typeNamed("ID"), p -> {
+                    mc.param("id", JType.named("ID"), p -> {
                         p.docComment(dc -> dc.text("the entity identifier"));
                     });
                 });
@@ -440,11 +435,11 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                             c.text(" if the entity exists");
                         });
                     });
-                    mc.param("id", JTypes.typeNamed("ID"), p -> {
+                    mc.param("id", JType.named("ID"), p -> {
                         p.docComment(dc -> dc.text("the entity identifier"));
                     });
                     mc.body(b -> {
-                        b.return_(JExprs.call("findById", JExprs.$v("id")).call("isPresent"));
+                        b.return_(JExpr.callPlain("findById", JExpr.$v("id")).call("isPresent"));
                     });
                 });
 
@@ -459,7 +454,7 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                         });
                     });
                     mc.body(b -> {
-                        b.return_(JExprs.call("count").eq(JExpr.ZERO));
+                        b.return_(JExpr.callPlain("count").eq(JExpr.ZERO));
                     });
                 });
 
@@ -467,7 +462,7 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                 ic.method("naturalOrder", mc -> {
                     mc.static_();
                     mc.typeParam("E", tp -> {
-                        tp.extends_(JTypes.typeNamed("java.lang.Comparable"));
+                        tp.extends_(JType.named("java.lang.Comparable"));
                     });
                     mc.returning(comparatorType);
                     mc.docComment(dc -> {
@@ -475,7 +470,8 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                         dc.return_("a natural-order comparator");
                     });
                     mc.body(b -> {
-                        b.return_(JExprs.methodRef(JTypes.typeNamed("Comparable"), "compareTo"));
+                        final JType type = JType.named("Comparable");
+                        b.return_(type.methodRef("compareTo"));
                     });
                 });
 
@@ -487,7 +483,7 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
 
                     lic.method("onSave", mc -> {
                         mc.docComment(dc -> dc.text("Called after an entity is saved."));
-                        mc.param("entity", JTypes.typeNamed("E"));
+                        mc.param("entity", JType.named("E"));
                     });
 
                     lic.method("onDelete", mc -> {
@@ -513,7 +509,7 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
      */
     @Test
     void comprehensiveEnum() throws IOException {
-        final JType overrideType = JTypes.typeNamed("java.lang.Override");
+        final JType overrideType = JType.named("java.lang.Override");
 
         final JSources sources = createSources(SourceVersion.JAVA_17);
         sources.createSourceFile("com.example.lang", "Operator", sf -> {
@@ -524,12 +520,12 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                     dc.text(" and evaluation logic.");
                     dc.since("1.0");
                 });
-                ec.implements_(JTypes.typeNamed("java.util.function.BinaryOperator"));
+                ec.implements_(JType.named("java.util.function.BinaryOperator"));
 
                 // constants with args and anonymous class bodies
                 ec.constant("ADD", c -> {
-                    c.arg(JExprs.str("+"));
-                    c.arg(JExprs.decimal(1));
+                    c.arg(JExpr.str("+"));
+                    c.arg(JExpr.decimal(1));
                     c.docComment(dc -> dc.text("Addition operator."));
                     c.body(body -> {
                         body.method("apply", mc -> {
@@ -539,9 +535,9 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                             mc.param("a", JType.OBJECT);
                             mc.param("b", JType.OBJECT);
                             mc.body(b -> {
-                                b.return_(JExprs.$v("a").cast(JTypes.typeNamed("Number"))
+                                b.return_(JExpr.$v("a").cast(JType.named("Number"))
                                     .call("doubleValue")
-                                    .add(JExprs.$v("b").cast(JTypes.typeNamed("Number"))
+                                    .add(JExpr.$v("b").cast(JType.named("Number"))
                                         .call("doubleValue")).paren().cast(JType.OBJECT));
                             });
                         });
@@ -549,8 +545,8 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                 });
 
                 ec.constant("SUBTRACT", c -> {
-                    c.arg(JExprs.str("-"));
-                    c.arg(JExprs.decimal(1));
+                    c.arg(JExpr.str("-"));
+                    c.arg(JExpr.decimal(1));
                     c.docComment(dc -> dc.text("Subtraction operator."));
                     c.body(body -> {
                         body.method("apply", mc -> {
@@ -560,9 +556,9 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                             mc.param("a", JType.OBJECT);
                             mc.param("b", JType.OBJECT);
                             mc.body(b -> {
-                                b.return_(JExprs.$v("a").cast(JTypes.typeNamed("Number"))
+                                b.return_(JExpr.$v("a").cast(JType.named("Number"))
                                     .call("doubleValue")
-                                    .sub(JExprs.$v("b").cast(JTypes.typeNamed("Number"))
+                                    .sub(JExpr.$v("b").cast(JType.named("Number"))
                                         .call("doubleValue")).paren().cast(JType.OBJECT));
                             });
                         });
@@ -570,8 +566,8 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                 });
 
                 ec.constant("MULTIPLY", c -> {
-                    c.arg(JExprs.str("*"));
-                    c.arg(JExprs.decimal(2));
+                    c.arg(JExpr.str("*"));
+                    c.arg(JExpr.decimal(2));
                     c.docComment(dc -> dc.text("Multiplication operator."));
                     c.body(body -> {
                         body.method("apply", mc -> {
@@ -581,9 +577,9 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                             mc.param("a", JType.OBJECT);
                             mc.param("b", JType.OBJECT);
                             mc.body(b -> {
-                                b.return_(JExprs.$v("a").cast(JTypes.typeNamed("Number"))
+                                b.return_(JExpr.$v("a").cast(JType.named("Number"))
                                     .call("doubleValue")
-                                    .mul(JExprs.$v("b").cast(JTypes.typeNamed("Number"))
+                                    .mul(JExpr.$v("b").cast(JType.named("Number"))
                                         .call("doubleValue")).paren().cast(JType.OBJECT));
                             });
                         });
@@ -591,8 +587,8 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                 });
 
                 ec.constant("DIVIDE", c -> {
-                    c.arg(JExprs.str("/"));
-                    c.arg(JExprs.decimal(2));
+                    c.arg(JExpr.str("/"));
+                    c.arg(JExpr.decimal(2));
                     c.docComment(dc -> dc.text("Division operator."));
                     c.body(body -> {
                         body.method("apply", mc -> {
@@ -602,9 +598,9 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                             mc.param("a", JType.OBJECT);
                             mc.param("b", JType.OBJECT);
                             mc.body(b -> {
-                                b.return_(JExprs.$v("a").cast(JTypes.typeNamed("Number"))
+                                b.return_(JExpr.$v("a").cast(JType.named("Number"))
                                     .call("doubleValue")
-                                    .div(JExprs.$v("b").cast(JTypes.typeNamed("Number"))
+                                    .div(JExpr.$v("b").cast(JType.named("Number"))
                                         .call("doubleValue")).paren().cast(JType.OBJECT));
                             });
                         });
@@ -636,8 +632,8 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                         p.docComment(dc -> dc.text("the precedence"));
                     });
                     ctor.body(b -> {
-                        b.emit(JExpr.THIS.field("symbol").assign(JExprs.$v("symbol")));
-                        b.emit(JExpr.THIS.field("precedence").assign(JExprs.$v("precedence")));
+                        b.emit(JExpr.THIS.field("symbol").assign(JExpr.$v("symbol")));
+                        b.emit(JExpr.THIS.field("precedence").assign(JExpr.$v("precedence")));
                     });
                 });
 
@@ -650,7 +646,7 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                         dc.return_("the symbol string");
                     });
                     mc.body(b -> {
-                        b.return_(JExprs.$v("symbol"));
+                        b.return_(JExpr.$v("symbol"));
                     });
                 });
 
@@ -662,7 +658,7 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                         dc.return_("the precedence level");
                     });
                     mc.body(b -> {
-                        b.return_(JExprs.$v("precedence"));
+                        b.return_(JExpr.$v("precedence"));
                     });
                 });
 
@@ -670,26 +666,26 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                 ec.method("fromSymbol", mc -> {
                     mc.public_();
                     mc.static_();
-                    mc.returning(JTypes.typeNamed("com.example.lang.Operator"));
+                    mc.returning(JType.named("com.example.lang.Operator"));
                     mc.docComment(dc -> {
                         dc.text("Returns the operator for the given symbol.");
                         dc.return_("the matching operator");
-                        dc.throws_(JTypes.typeNamed("java.lang.IllegalArgumentException"),
+                        dc.throws_(JType.named("java.lang.IllegalArgumentException"),
                             "if no operator matches");
                     });
                     mc.param("symbol", JType.STRING, p -> {
                         p.docComment(dc -> dc.text("the operator symbol"));
                     });
-                    mc.throws_(JTypes.typeNamed("java.lang.IllegalArgumentException"));
+                    mc.throws_(JType.named("java.lang.IllegalArgumentException"));
                     mc.body(b -> {
-                        b.forEach(JTypes.typeNamed("com.example.lang.Operator"), "op",
-                            JExprs.call("values"), loop -> {
-                                loop.if_(JExprs.$v("op").field("symbol").call("equals", JExprs.$v("symbol")), then -> {
-                                    then.return_(JExprs.$v("op"));
+                        b.forEach(JType.named("com.example.lang.Operator"), "op",
+                            JExpr.callPlain("values"), loop -> {
+                                loop.if_(JExpr.$v("op").field("symbol").call("equals", JExpr.$v("symbol")), then -> {
+                                    then.return_(JExpr.$v("op"));
                                 });
                             });
-                        b.throw_(JExprs.new_(JTypes.typeNamed("java.lang.IllegalArgumentException"),
-                            JExprs.str("Unknown operator: ").call("concat", JExprs.$v("symbol"))));
+                        final JType type = JType.named("java.lang.IllegalArgumentException");
+                        b.throw_(type.new_(List.of(new JExpr[] { JExpr.str("Unknown operator: ").call("concat", JExpr.$v("symbol")) })));
                     });
                 });
 
@@ -699,7 +695,7 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                     mc.annotate(overrideType);
                     mc.returning(JType.STRING);
                     mc.body(b -> {
-                        b.return_(JExprs.$v("symbol"));
+                        b.return_(JExpr.$v("symbol"));
                     });
                 });
             });
@@ -719,9 +715,9 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
      */
     @Test
     void comprehensiveRecord() throws IOException {
-        final JType overrideType = JTypes.typeNamed("java.lang.Override");
-        final JType comparableType = JTypes.typeNamed("java.lang.Comparable");
-        final JType illegalArgType = JTypes.typeNamed("java.lang.IllegalArgumentException");
+        final JType overrideType = JType.named("java.lang.Override");
+        final JType comparableType = JType.named("java.lang.Comparable");
+        final JType illegalArgType = JType.named("java.lang.IllegalArgumentException");
 
         final JSources sources = createSources(SourceVersion.JAVA_17);
         sources.createSourceFile("com.example.data", "Interval", sf -> {
@@ -738,10 +734,10 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                 rc.implements_(comparableType);
 
                 // components
-                rc.component("lower", JTypes.typeNamed("T"), comp -> {
+                rc.component("lower", JType.named("T"), comp -> {
                     comp.docComment(dc -> dc.text("the lower bound (inclusive)"));
                 });
-                rc.component("upper", JTypes.typeNamed("T"), comp -> {
+                rc.component("upper", JType.named("T"), comp -> {
                     comp.docComment(dc -> dc.text("the upper bound (inclusive)"));
                 });
 
@@ -756,9 +752,8 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
 
                 // compact constructor
                 rc.compactConstructor(b -> {
-                    b.if_(JExprs.$v("lower").call("compareTo", JExprs.$v("upper")).gt(JExpr.ZERO), then -> {
-                        then.throw_(JExprs.new_(illegalArgType,
-                            JExprs.str("lower bound must not exceed upper bound")));
+                    b.if_(JExpr.$v("lower").call("compareTo", JExpr.$v("upper")).gt(JExpr.ZERO), then -> {
+                        then.throw_(illegalArgType.new_(List.of(new JExpr[] { JExpr.str("lower bound must not exceed upper bound") })));
                     });
                 });
 
@@ -773,12 +768,12 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                             c.text(" if the value is within the interval");
                         });
                     });
-                    mc.param("value", JTypes.typeNamed("T"), p -> {
+                    mc.param("value", JType.named("T"), p -> {
                         p.docComment(dc -> dc.text("the value to test"));
                     });
                     mc.body(b -> {
-                        b.return_(JExprs.$v("lower").call("compareTo", JExprs.$v("value")).le(JExpr.ZERO)
-                            .and(JExprs.$v("upper").call("compareTo", JExprs.$v("value")).ge(JExpr.ZERO)));
+                        b.return_(JExpr.$v("lower").call("compareTo", JExpr.$v("value")).le(JExpr.ZERO)
+                            .and(JExpr.$v("upper").call("compareTo", JExpr.$v("value")).ge(JExpr.ZERO)));
                     });
                 });
 
@@ -792,12 +787,12 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                             c.text(" if the intervals overlap");
                         });
                     });
-                    mc.param("other", JTypes.typeNamed("com.example.data.Interval"), p -> {
+                    mc.param("other", JType.named("com.example.data.Interval"), p -> {
                         p.docComment(dc -> dc.text("the other interval"));
                     });
                     mc.body(b -> {
-                        b.return_(JExprs.$v("lower").call("compareTo", JExprs.$v("other").call("upper")).le(JExpr.ZERO)
-                            .and(JExprs.$v("upper").call("compareTo", JExprs.$v("other").call("lower")).ge(JExpr.ZERO)));
+                        b.return_(JExpr.$v("lower").call("compareTo", JExpr.$v("other").call("upper")).le(JExpr.ZERO)
+                            .and(JExpr.$v("upper").call("compareTo", JExpr.$v("other").call("lower")).ge(JExpr.ZERO)));
                     });
                 });
 
@@ -805,13 +800,13 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                     mc.public_();
                     mc.annotate(overrideType);
                     mc.returning(JType.INT);
-                    mc.param("other", JTypes.typeNamed("com.example.data.Interval"));
+                    mc.param("other", JType.named("com.example.data.Interval"));
                     mc.body(b -> {
-                        b.var(JType.INT, "cmp", JExprs.$v("lower").call("compareTo", JExprs.$v("other").call("lower")));
-                        b.if_(JExprs.$v("cmp").ne(JExpr.ZERO), then -> {
-                            then.return_(JExprs.$v("cmp"));
+                        b.var(JType.INT, "cmp", JExpr.$v("lower").call("compareTo", JExpr.$v("other").call("lower")));
+                        b.if_(JExpr.$v("cmp").ne(JExpr.ZERO), then -> {
+                            then.return_(JExpr.$v("cmp"));
                         });
-                        b.return_(JExprs.$v("upper").call("compareTo", JExprs.$v("other").call("upper")));
+                        b.return_(JExpr.$v("upper").call("compareTo", JExpr.$v("other").call("upper")));
                     });
                 });
 
@@ -822,16 +817,16 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                     mc.typeParam("C", tp -> {
                         tp.extends_(comparableType);
                     });
-                    mc.returning(JTypes.typeNamed("com.example.data.Interval"));
+                    mc.returning(JType.named("com.example.data.Interval"));
                     mc.docComment(dc -> {
                         dc.text("Creates an interval from the given bounds.");
                         dc.return_("a new interval");
                     });
-                    mc.param("lower", JTypes.typeNamed("C"));
-                    mc.param("upper", JTypes.typeNamed("C"));
+                    mc.param("lower", JType.named("C"));
+                    mc.param("upper", JType.named("C"));
                     mc.body(b -> {
-                        b.return_(JExprs.new_(JTypes.typeNamed("com.example.data.Interval"),
-                            JExprs.$v("lower"), JExprs.$v("upper")));
+                        final JType type = JType.named("com.example.data.Interval");
+                        b.return_(type.new_(List.of(new JExpr[] { JExpr.$v("lower"), JExpr.$v("upper") })));
                     });
                 });
 
@@ -841,15 +836,15 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                     mc.typeParam("C", tp -> {
                         tp.extends_(comparableType);
                     });
-                    mc.returning(JTypes.typeNamed("com.example.data.Interval"));
+                    mc.returning(JType.named("com.example.data.Interval"));
                     mc.docComment(dc -> {
                         dc.text("Creates a single-point interval.");
                         dc.return_("an interval where lower equals upper");
                     });
-                    mc.param("value", JTypes.typeNamed("C"));
+                    mc.param("value", JType.named("C"));
                     mc.body(b -> {
-                        b.return_(JExprs.new_(JTypes.typeNamed("com.example.data.Interval"),
-                            JExprs.$v("value"), JExprs.$v("value")));
+                        final JType type = JType.named("com.example.data.Interval");
+                        b.return_(type.new_(List.of(new JExpr[] { JExpr.$v("value"), JExpr.$v("value") })));
                     });
                 });
 
@@ -859,10 +854,10 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                     mc.annotate(overrideType);
                     mc.returning(JType.STRING);
                     mc.body(b -> {
-                        b.return_(JExprs.str("[").call("concat", JExprs.$v("lower").call("toString"))
-                            .call("concat", JExprs.str(".."))
-                            .call("concat", JExprs.$v("upper").call("toString"))
-                            .call("concat", JExprs.str("]")));
+                        b.return_(JExpr.str("[").call("concat", JExpr.$v("lower").call("toString"))
+                            .call("concat", JExpr.str(".."))
+                            .call("concat", JExpr.$v("upper").call("toString"))
+                            .call("concat", JExpr.str("]")));
                     });
                 });
             });
@@ -882,11 +877,11 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
      */
     @Test
     void comprehensiveAnnotation() throws IOException {
-        final JType retentionType = JTypes.typeNamed("java.lang.annotation.Retention");
-        final JType retentionPolicyType = JTypes.typeNamed("java.lang.annotation.RetentionPolicy");
-        final JType targetType = JTypes.typeNamed("java.lang.annotation.Target");
-        final JType elementTypeType = JTypes.typeNamed("java.lang.annotation.ElementType");
-        final JType documentedType = JTypes.typeNamed("java.lang.annotation.Documented");
+        final JType retentionType = JType.named("java.lang.annotation.Retention");
+        final JType retentionPolicyType = JType.named("java.lang.annotation.RetentionPolicy");
+        final JType targetType = JType.named("java.lang.annotation.Target");
+        final JType elementTypeType = JType.named("java.lang.annotation.ElementType");
+        final JType documentedType = JType.named("java.lang.annotation.Documented");
 
         final JSources sources = createSources(SourceVersion.JAVA_17);
         sources.createSourceFile("com.example.annotation", "RestEndpoint", sf -> {
@@ -905,26 +900,26 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                 });
                 ac.annotate(documentedType);
                 ac.annotate(retentionType, a -> {
-                    a.value(JExprs.$v("RetentionPolicy").field("RUNTIME"));
+                    a.value(JExpr.$v("RetentionPolicy").field("RUNTIME"));
                 });
                 ac.annotate(targetType, a -> {
-                    a.value(JExprs.$v("ElementType").field("METHOD"));
+                    a.value(JExpr.$v("ElementType").field("METHOD"));
                 });
 
                 // elements without defaults
                 ac.element("path", JType.STRING);
 
                 // elements with defaults
-                ac.element("method", JType.STRING, JExprs.str("GET"));
-                ac.element("produces", JType.STRING, JExprs.str("application/json"));
-                ac.element("consumes", JType.STRING, JExprs.str("application/json"));
-                ac.element("timeout", JType.INT, JExprs.decimal(30));
+                ac.element("method", JType.STRING, JExpr.str("GET"));
+                ac.element("produces", JType.STRING, JExpr.str("application/json"));
+                ac.element("consumes", JType.STRING, JExpr.str("application/json"));
+                ac.element("timeout", JType.INT, JExpr.decimal(30));
                 ac.element("async", JType.BOOLEAN, JExpr.FALSE);
 
                 // constant
                 ac.constant("VERSION", fc -> {
                     fc.type(JType.STRING);
-                    fc.init(JExprs.str("2.0"));
+                    fc.init(JExpr.str("2.0"));
                     fc.docComment(dc -> dc.text("The API version."));
                 });
             });

@@ -1,5 +1,6 @@
 package org.jboss.jdeparser;
 
+import io.smallrye.common.constraint.Assert;
 import org.jboss.jdeparser.impl.DocReferenceImpl;
 
 /**
@@ -17,4 +18,14 @@ import org.jboss.jdeparser.impl.DocReferenceImpl;
  * @see JType#docRef(String)
  */
 public sealed interface JDocReference permits DocReferenceImpl {
+    /**
+     * Create a rootless program element reference.
+     *
+     * @param member the member to reference (must not be {@code null})
+     * @return the doc reference (not {@code null})
+     */
+    static JDocReference of(String member) {
+        Assert.checkNotNullParam("member", member);
+        return new DocReferenceImpl(null, member);
+    }
 }

@@ -167,7 +167,7 @@ public final class WildcardJType extends AbstractJType {
      * @throws IllegalStateException always, since wildcard types cannot have class literals
      */
     @Override
-    public JExpr classLiteral() {
+    public JExpr class_() {
         throw new IllegalStateException("Wildcard types cannot have class literals");
     }
 

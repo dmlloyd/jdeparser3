@@ -2,10 +2,9 @@ package org.jboss.jdeparser.test;
 
 import java.io.IOException;
 
-import org.jboss.jdeparser.JExprs;
+import org.jboss.jdeparser.JExpr;
 import org.jboss.jdeparser.JSources;
 import org.jboss.jdeparser.JType;
-import org.jboss.jdeparser.JTypes;
 import org.jboss.jdeparser.SourceVersion;
 import org.junit.jupiter.api.Test;
 
@@ -52,7 +51,7 @@ class ImportTest extends AbstractGeneratingTestCase {
                     mc.public_();
                     mc.returning(JType.STRING);
                     mc.body(b -> {
-                        b.return_(JExprs.$v("message"));
+                        b.return_(JExpr.$v("message"));
                     });
                 });
             });
@@ -191,7 +190,7 @@ class ImportTest extends AbstractGeneratingTestCase {
      */
     @Test
     void explicitImportUsesSimpleName() throws IOException {
-        final JType listType = JTypes.typeNamed("java.util.List");
+        final JType listType = JType.named("java.util.List");
         final JSources sources = createSources(SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "WithImport", sf -> {
             sf.import_(listType);
@@ -221,7 +220,7 @@ class ImportTest extends AbstractGeneratingTestCase {
      */
     @Test
     void nonImportedTypeRemainsFullyQualified() throws IOException {
-        final JType listType = JTypes.typeNamed("java.util.List");
+        final JType listType = JType.named("java.util.List");
         final JSources sources = createSources(SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "NoImport", sf -> {
             sf.class_("NoImport", cc -> {
@@ -248,9 +247,9 @@ class ImportTest extends AbstractGeneratingTestCase {
      */
     @Test
     void multipleExplicitImports() throws IOException {
-        final JType listType = JTypes.typeNamed("java.util.List");
-        final JType mapType = JTypes.typeNamed("java.util.Map");
-        final JType setType = JTypes.typeNamed("java.util.Set");
+        final JType listType = JType.named("java.util.List");
+        final JType mapType = JType.named("java.util.Map");
+        final JType setType = JType.named("java.util.Set");
         final JSources sources = createSources(SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "MultiImport", sf -> {
             sf.import_(listType);
@@ -297,7 +296,7 @@ class ImportTest extends AbstractGeneratingTestCase {
      */
     @Test
     void importedParameterizedTypeUsesSimpleNames() throws IOException {
-        final JType listType = JTypes.typeNamed("java.util.List");
+        final JType listType = JType.named("java.util.List");
         final JSources sources = createSources(SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "GenericField", sf -> {
             sf.import_(listType);
@@ -325,7 +324,7 @@ class ImportTest extends AbstractGeneratingTestCase {
      */
     @Test
     void importViaClassObjectUsesSimpleName() throws IOException {
-        final JType listType = JTypes.typeOf(java.util.List.class);
+        final JType listType = JType.of(java.util.List.class);
         final JSources sources = createSources(SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "ClassImport", sf -> {
             sf.import_(java.util.List.class);
@@ -355,7 +354,7 @@ class ImportTest extends AbstractGeneratingTestCase {
      */
     @Test
     void samePackageTypeUsesSimpleName() throws IOException {
-        final JType peerType = JTypes.typeNamed("com.example.Peer");
+        final JType peerType = JType.named("com.example.Peer");
         final JSources sources = createSources(SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "SamePackage", sf -> {
             sf.class_("SamePackage", cc -> {
@@ -388,7 +387,7 @@ class ImportTest extends AbstractGeneratingTestCase {
      */
     @Test
     void explicitImportShadowsJavaLangType() throws IOException {
-        final JType customString = JTypes.typeNamed("com.example.String");
+        final JType customString = JType.named("com.example.String");
         final JSources sources = createSources(SourceVersion.JAVA_17);
         sources.createSourceFile("org.test", "Shadowed", sf -> {
             sf.import_(customString);
@@ -429,8 +428,8 @@ class ImportTest extends AbstractGeneratingTestCase {
      */
     @Test
     void explicitImportShadowsSamePackageType() throws IOException {
-        final JType importedPeer = JTypes.typeNamed("com.other.Peer");
-        final JType samePackagePeer = JTypes.typeNamed("com.example.Peer");
+        final JType importedPeer = JType.named("com.other.Peer");
+        final JType samePackagePeer = JType.named("com.example.Peer");
         final JSources sources = createSources(SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "PeerConflict", sf -> {
             sf.import_(importedPeer);
@@ -468,7 +467,7 @@ class ImportTest extends AbstractGeneratingTestCase {
      */
     @Test
     void shadowingOnlyAffectsConflictingName() throws IOException {
-        final JType customString = JTypes.typeNamed("com.example.String");
+        final JType customString = JType.named("com.example.String");
         final JSources sources = createSources(SourceVersion.JAVA_17);
         sources.createSourceFile("org.test", "PartialShadow", sf -> {
             sf.import_(customString);
@@ -514,7 +513,7 @@ class ImportTest extends AbstractGeneratingTestCase {
      */
     @Test
     void samePackageTypeShadowsJavaLangType() throws IOException {
-        final JType samePackageObject = JTypes.typeNamed("com.example.Object");
+        final JType samePackageObject = JType.named("com.example.Object");
         final JSources sources = createSources(SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "SamePackageWins", sf -> {
             sf.class_("SamePackageWins", cc -> {
@@ -554,7 +553,7 @@ class ImportTest extends AbstractGeneratingTestCase {
      */
     @Test
     void explicitImportOfSamePackageTypeWithJavaLangConflict() throws IOException {
-        final JType samePackageObject = JTypes.typeNamed("com.example.Object");
+        final JType samePackageObject = JType.named("com.example.Object");
         final JSources sources = createSources(SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "Disambiguated", sf -> {
             sf.import_(samePackageObject);
@@ -591,7 +590,7 @@ class ImportTest extends AbstractGeneratingTestCase {
      */
     @Test
     void explicitJavaLangImportResolvesAmbiguityWithSamePackage() throws IOException {
-        final JType samePackageObject = JTypes.typeNamed("com.example.Object");
+        final JType samePackageObject = JType.named("com.example.Object");
         final JSources sources = createSources(SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "PreferLang", sf -> {
             // explicitly import java.lang.Object to disambiguate
@@ -629,9 +628,9 @@ class ImportTest extends AbstractGeneratingTestCase {
      */
     @Test
     void mixedImportResolution() throws IOException {
-        final JType listType = JTypes.typeNamed("java.util.List");
-        final JType fileType = JTypes.typeNamed("java.io.File");
-        final JType peerType = JTypes.typeNamed("com.example.Peer");
+        final JType listType = JType.named("java.util.List");
+        final JType fileType = JType.named("java.io.File");
+        final JType peerType = JType.named("com.example.Peer");
         final JSources sources = createSources(SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "Mixed", sf -> {
             sf.import_(listType);

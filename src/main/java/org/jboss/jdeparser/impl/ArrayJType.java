@@ -3,6 +3,8 @@ package org.jboss.jdeparser.impl;
 import java.io.IOException;
 import java.util.List;
 
+import io.smallrye.common.constraint.Assert;
+import org.jboss.jdeparser.JExpr;
 import org.jboss.jdeparser.JType;
 
 /**
@@ -33,6 +35,27 @@ public final class ArrayJType extends AbstractJType {
      */
     public JType elementType() {
         return elementType;
+    }
+
+    /**
+     * {@return the dimensions of this array type}
+     */
+    @Override
+    public int dimensions() {
+        return elementType instanceof ArrayJType at ? at.dimensions() + 1 : 1;
+    }
+
+    @Override
+    public JExpr new_(final List<JExpr> args) {
+        Assert.checkMinimumParameter("args.size()", 1, args.size());
+        Assert.checkMaximumParameter("args.size()", dimensions(), args.size());
+        return new NewArrayJExpr(this, args);
+    }
+
+    @Override
+    public JExpr newArrayInit(final List<JExpr> elements) {
+        Assert.checkNotNullParam("elements", elements);
+        return new ArrayInitJExpr(this, (LiteralArrayJExpr) JExpr.arrayLiteral(elements));
     }
 
     /**

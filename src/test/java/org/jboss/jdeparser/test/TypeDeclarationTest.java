@@ -2,7 +2,7 @@ package org.jboss.jdeparser.test;
 
 import java.io.IOException;
 
-import org.jboss.jdeparser.JExprs;
+import org.jboss.jdeparser.JExpr;
 import org.jboss.jdeparser.JSources;
 import org.jboss.jdeparser.JType;
 import org.jboss.jdeparser.SourceVersion;
@@ -51,12 +51,12 @@ class TypeDeclarationTest extends AbstractGeneratingTestCase {
             sf.enum_("Planet", ec -> {
                 ec.public_();
                 ec.constant("MERCURY", c -> {
-                    c.arg(JExprs.decimal(3));
-                    c.arg(JExprs.decimal(2440));
+                    c.arg(JExpr.decimal(3));
+                    c.arg(JExpr.decimal(2440));
                 });
                 ec.constant("VENUS", c -> {
-                    c.arg(JExprs.decimal(5));
-                    c.arg(JExprs.decimal(6052));
+                    c.arg(JExpr.decimal(5));
+                    c.arg(JExpr.decimal(6052));
                 });
             });
         });
@@ -124,7 +124,7 @@ class TypeDeclarationTest extends AbstractGeneratingTestCase {
             sf.annotationInterface_("MyAnnotation", ac -> {
                 ac.public_();
                 ac.element("value", JType.STRING);
-                ac.element("count", JType.INT, JExprs.decimal(0));
+                ac.element("count", JType.INT, JExpr.decimal(0));
             });
         });
         sources.writeSources();

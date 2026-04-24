@@ -161,7 +161,7 @@ public final class IntersectionJType extends AbstractJType {
      * @throws IllegalStateException always, since intersection types cannot have class literals
      */
     @Override
-    public JExpr classLiteral() {
+    public JExpr class_() {
         throw new IllegalStateException("Intersection types cannot have class literals");
     }
 

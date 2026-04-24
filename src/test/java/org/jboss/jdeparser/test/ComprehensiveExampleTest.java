@@ -1,12 +1,11 @@
 package org.jboss.jdeparser.test;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.jboss.jdeparser.JExpr;
-import org.jboss.jdeparser.JExprs;
 import org.jboss.jdeparser.JSources;
 import org.jboss.jdeparser.JType;
-import org.jboss.jdeparser.JTypes;
 import org.jboss.jdeparser.SourceVersion;
 import org.jboss.jdeparser.creator.BlockCreator;
 import org.jboss.jdeparser.creator.ModifierFlag;
@@ -44,7 +43,7 @@ class ComprehensiveExampleTest extends AbstractGeneratingTestCase {
                     con.public_();
                     con.param("name", JType.STRING);
                     con.body(b -> {
-                        b.emit(JExpr.THIS.field("name").assign(JExprs.$v("name")));
+                        b.emit(JExpr.THIS.field("name").assign(JExpr.$v("name")));
                     });
                 });
 
@@ -52,7 +51,7 @@ class ComprehensiveExampleTest extends AbstractGeneratingTestCase {
                     mc.public_();
                     mc.returning(JType.STRING);
                     mc.body(b -> {
-                        b.return_(JExprs.str("Hello, ").call("concat", JExprs.$v("name")));
+                        b.return_(JExpr.str("Hello, ").call("concat", JExpr.$v("name")));
                     });
                 });
             });
@@ -84,24 +83,24 @@ class ComprehensiveExampleTest extends AbstractGeneratingTestCase {
                         b.var(JType.INT, "total", JExpr.ZERO);
 
                         // for (int item : items)
-                        b.forEach(JType.INT, "item", JExprs.$v("items"), loop -> {
-                            loop.if_(JExprs.$v("item").gt(JExpr.ZERO), then -> {
-                                then.emit(JExprs.$v("total").addAssign(JExprs.$v("item")));
+                        b.forEach(JType.INT, "item", JExpr.$v("items"), loop -> {
+                            loop.if_(JExpr.$v("item").gt(JExpr.ZERO), then -> {
+                                then.emit(JExpr.$v("total").addAssign(JExpr.$v("item")));
                             });
                         });
 
                         // while (total > 100)
-                        b.while_(JExprs.$v("total").gt(JExprs.decimal(100)), loop -> {
-                            loop.emit(JExprs.$v("total").divAssign(JExprs.decimal(2)));
+                        b.while_(JExpr.$v("total").gt(JExpr.decimal(100)), loop -> {
+                            loop.emit(JExpr.$v("total").divAssign(JExpr.decimal(2)));
                         });
 
                         // do { ... } while (total < 0)
                         b.doWhile(
-                            loop -> loop.emit(JExprs.$v("total").preInc()),
-                            JExprs.$v("total").lt(JExpr.ZERO)
+                            loop -> loop.emit(JExpr.inc(JExpr.$v("total"))),
+                            JExpr.$v("total").lt(JExpr.ZERO)
                         );
 
-                        b.return_(JExprs.$v("total"));
+                        b.return_(JExpr.$v("total"));
                     });
                 });
             });
@@ -131,13 +130,13 @@ class ComprehensiveExampleTest extends AbstractGeneratingTestCase {
                     mc.body(b -> {
                         b.try_(tb -> {
                             tb.body(tryBody -> {
-                                tryBody.emit(JExprs.call("doWork"));
+                                tryBody.emit(JExpr.callPlain("doWork"));
                             });
                             tb.catch_(JType.OBJECT, "e", catchBody -> {
-                                catchBody.emit(JExprs.$v("e").call("printStackTrace"));
+                                catchBody.emit(JExpr.$v("e").call("printStackTrace"));
                             });
                             tb.finally_(finallyBody -> {
-                                finallyBody.emit(JExprs.call("cleanup"));
+                                finallyBody.emit(JExpr.callPlain("cleanup"));
                             });
                         });
                     });
@@ -165,8 +164,8 @@ class ComprehensiveExampleTest extends AbstractGeneratingTestCase {
         sources.createSourceFile("com.example", "Child", sf -> {
             sf.class_("Child", cc -> {
                 cc.public_();
-                cc.extends_(JTypes.typeNamed("com.example.Parent"));
-                cc.implements_(JTypes.typeNamed("java.io.Serializable"));
+                cc.extends_(JType.named("com.example.Parent"));
+                cc.implements_(JType.named("java.io.Serializable"));
                 cc.method("doStuff", mc -> {
                     mc.public_();
                     mc.body(BlockCreator::callSuper);
@@ -192,8 +191,8 @@ class ComprehensiveExampleTest extends AbstractGeneratingTestCase {
             sf.interface_("Shape", ic -> {
                 ic.public_();
                 ic.sealed_();
-                ic.permits(JTypes.typeNamed("com.example.Circle"));
-                ic.permits(JTypes.typeNamed("com.example.Rectangle"));
+                ic.permits(JType.named("com.example.Circle"));
+                ic.permits(JType.named("com.example.Rectangle"));
                 ic.method("area", mc -> {
                     mc.returning(JType.DOUBLE);
                 });
@@ -218,12 +217,12 @@ class ComprehensiveExampleTest extends AbstractGeneratingTestCase {
             sf.enum_("Direction", ec -> {
                 ec.public_();
                 ec.constant("NORTH", c -> {
-                    c.arg(JExprs.decimal(0));
-                    c.arg(JExprs.decimal(-1));
+                    c.arg(JExpr.decimal(0));
+                    c.arg(JExpr.decimal(-1));
                 });
                 ec.constant("SOUTH", c -> {
-                    c.arg(JExprs.decimal(0));
-                    c.arg(JExprs.decimal(1));
+                    c.arg(JExpr.decimal(0));
+                    c.arg(JExpr.decimal(1));
                 });
                 ec.field("dx", fc -> {
                     fc.private_();
@@ -239,8 +238,8 @@ class ComprehensiveExampleTest extends AbstractGeneratingTestCase {
                     con.param("dx", JType.INT);
                     con.param("dy", JType.INT);
                     con.body(b -> {
-                        b.emit(JExpr.THIS.field("dx").assign(JExprs.$v("dx")));
-                        b.emit(JExpr.THIS.field("dy").assign(JExprs.$v("dy")));
+                        b.emit(JExpr.THIS.field("dx").assign(JExpr.$v("dx")));
+                        b.emit(JExpr.THIS.field("dy").assign(JExpr.$v("dy")));
                     });
                 });
             });
@@ -268,10 +267,9 @@ class ComprehensiveExampleTest extends AbstractGeneratingTestCase {
                 rc.component("min", JType.INT);
                 rc.component("max", JType.INT);
                 rc.compactConstructor(b -> {
-                    b.if_(JExprs.$v("min").gt(JExprs.$v("max")), then -> {
-                        then.throw_(JExprs.new_(
-                            JTypes.typeNamed("java.lang.IllegalArgumentException"),
-                            JExprs.str("min > max")));
+                    b.if_(JExpr.$v("min").gt(JExpr.$v("max")), then -> {
+                        final JType type = JType.named("java.lang.IllegalArgumentException");
+                        then.throw_(type.new_(List.of(new JExpr[] { JExpr.str("min > max") })));
                     });
                 });
             });
@@ -299,15 +297,15 @@ class ComprehensiveExampleTest extends AbstractGeneratingTestCase {
                     mc.param("x", JType.INT);
                     mc.returning(JType.STRING);
                     mc.body(b -> {
-                        b.switch_(JExprs.$v("x"), sw -> {
+                        b.switch_(JExpr.$v("x"), sw -> {
                             sw.case_(JExpr.ZERO, body -> {
-                                body.return_(JExprs.str("zero"));
+                                body.return_(JExpr.str("zero"));
                             });
                             sw.case_(JExpr.ONE, body -> {
-                                body.return_(JExprs.str("one"));
+                                body.return_(JExpr.str("one"));
                             });
                             sw.default_(body -> {
-                                body.return_(JExprs.str("other"));
+                                body.return_(JExpr.str("other"));
                             });
                         });
                     });
@@ -336,7 +334,7 @@ class ComprehensiveExampleTest extends AbstractGeneratingTestCase {
                 ic.method("print", mc -> {
                     mc.addFlag(ModifierFlag.DEFAULT);
                     mc.body(b -> {
-                        b.emit(JExprs.call("println", JExpr.THIS.call("toString")));
+                        b.emit(JExpr.callPlain("println", JExpr.THIS.call("toString")));
                     });
                 });
             });

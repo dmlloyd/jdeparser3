@@ -3,7 +3,6 @@ package org.jboss.jdeparser.test;
 import java.io.IOException;
 
 import org.jboss.jdeparser.JExpr;
-import org.jboss.jdeparser.JExprs;
 import org.jboss.jdeparser.JSources;
 import org.jboss.jdeparser.JType;
 import org.jboss.jdeparser.SourceVersion;
@@ -41,7 +40,7 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
                 cc.method("test", mc -> {
                     mc.param("x", JType.INT);
                     mc.body(b -> {
-                        b.if_(JExprs.$v("x").gt(JExpr.ZERO), BlockCreator::return_);
+                        b.if_(JExpr.$v("x").gt(JExpr.ZERO), BlockCreator::return_);
                     });
                 });
             });
@@ -61,7 +60,7 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
                 cc.method("test", mc -> {
                     mc.param("x", JType.INT);
                     mc.body(b -> {
-                        b.if_(JExprs.$v("x").gt(JExpr.ZERO), BlockCreator::return_);
+                        b.if_(JExpr.$v("x").gt(JExpr.ZERO), BlockCreator::return_);
                     });
                 });
             });
@@ -126,7 +125,7 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
             sf.class_("Cls1", cc -> {
                 cc.method("run", mc -> {
                     mc.body(b -> {
-                        b.emit(JExprs.$v("x").assign(JExpr.ZERO));
+                        b.emit(JExpr.$v("x").assign(JExpr.ZERO));
                     });
                 });
             });
@@ -145,7 +144,7 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
             sf.class_("Cls2", cc -> {
                 cc.method("run", mc -> {
                     mc.body(b -> {
-                        b.emit(JExprs.$v("x").assign(JExpr.ZERO));
+                        b.emit(JExpr.$v("x").assign(JExpr.ZERO));
                     });
                 });
             });
@@ -170,7 +169,7 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
             sf.class_("Cls1", cc -> {
                 cc.field("nums", fc -> {
                     fc.type(JType.INT.array());
-                    fc.init(JExprs.newArrayInit(JType.INT, JExprs.decimal(1), JExprs.decimal(2)));
+                    fc.init(JType.INT.array().newArrayInit(JExpr.decimal(1), JExpr.decimal(2)));
                 });
             });
         });
@@ -188,7 +187,7 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
             sf.class_("Cls2", cc -> {
                 cc.field("nums", fc -> {
                     fc.type(JType.INT.array());
-                    fc.init(JExprs.newArrayInit(JType.INT, JExprs.decimal(1), JExprs.decimal(2)));
+                    fc.init(JType.INT.array().newArrayInit(JExpr.decimal(1), JExpr.decimal(2)));
                 });
             });
         });
@@ -212,7 +211,7 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
             sf.class_("Cls1", cc -> {
                 cc.method("run", mc -> {
                     mc.body(b -> {
-                        b.emit(JExprs.call("method", JExprs.$v("a"), JExprs.$v("b")));
+                        b.emit(JExpr.callPlain("method", JExpr.$v("a"), JExpr.$v("b")));
                     });
                 });
             });
@@ -231,7 +230,7 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
             sf.class_("Cls2", cc -> {
                 cc.method("run", mc -> {
                     mc.body(b -> {
-                        b.emit(JExprs.call("method", JExprs.$v("a"), JExprs.$v("b")));
+                        b.emit(JExpr.callPlain("method", JExpr.$v("a"), JExpr.$v("b")));
                     });
                 });
             });
@@ -256,7 +255,7 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
             sf.class_("Cls1", cc -> {
                 cc.field("fn", fc -> {
                     fc.type(JType.OBJECT);
-                    fc.init(JExprs.lambda("x", JExprs.$v("x")));
+                    fc.init(JExpr.lambda("x", JExpr.$v("x")));
                 });
             });
         });
@@ -274,7 +273,7 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
             sf.class_("Cls2", cc -> {
                 cc.field("fn", fc -> {
                     fc.type(JType.OBJECT);
-                    fc.init(JExprs.lambda("x", JExprs.$v("x")));
+                    fc.init(JExpr.lambda("x", JExpr.$v("x")));
                 });
             });
         });
@@ -301,8 +300,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
                     mc.body(b -> {
                         b.for_(fb -> {
                             fb.init(JType.INT, "i", JExpr.ZERO);
-                            fb.condition(JExprs.$v("i").lt(JExprs.$v("n")));
-                            fb.update(JExprs.$v("i").postInc());
+                            fb.condition(JExpr.$v("i").lt(JExpr.$v("n")));
+                            fb.update(JExpr.$v("i").inc());
                             fb.body(BlockCreator::empty);
                         });
                     });
@@ -326,8 +325,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
                     mc.body(b -> {
                         b.for_(fb -> {
                             fb.init(JType.INT, "i", JExpr.ZERO);
-                            fb.condition(JExprs.$v("i").lt(JExprs.$v("n")));
-                            fb.update(JExprs.$v("i").postInc());
+                            fb.condition(JExpr.$v("i").lt(JExpr.$v("n")));
+                            fb.update(JExpr.$v("i").inc());
                             fb.body(BlockCreator::empty);
                         });
                     });
@@ -354,7 +353,7 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
             sf.class_("Cls1", cc -> {
                 cc.method("run", mc -> {
                     mc.body(b -> {
-                        b.while_(JExprs.$v("x").gt(JExpr.ZERO), BlockCreator::empty);
+                        b.while_(JExpr.$v("x").gt(JExpr.ZERO), BlockCreator::empty);
                     });
                 });
             });
@@ -373,7 +372,7 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
             sf.class_("Cls2", cc -> {
                 cc.method("run", mc -> {
                     mc.body(b -> {
-                        b.while_(JExprs.$v("x").gt(JExpr.ZERO), BlockCreator::empty);
+                        b.while_(JExpr.$v("x").gt(JExpr.ZERO), BlockCreator::empty);
                     });
                 });
             });
@@ -401,8 +400,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
                     mc.body(b -> {
                         b.for_(fb -> {
                             fb.init(JType.INT, "i", JExpr.ZERO);
-                            fb.condition(JExprs.$v("i").lt(JExprs.$v("n")));
-                            fb.update(JExprs.$v("i").postInc());
+                            fb.condition(JExpr.$v("i").lt(JExpr.$v("n")));
+                            fb.update(JExpr.$v("i").inc());
                             fb.body(BlockCreator::empty);
                         });
                     });
@@ -426,8 +425,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
                     mc.body(b -> {
                         b.for_(fb -> {
                             fb.init(JType.INT, "i", JExpr.ZERO);
-                            fb.condition(JExprs.$v("i").lt(JExprs.$v("n")));
-                            fb.update(JExprs.$v("i").postInc());
+                            fb.condition(JExpr.$v("i").lt(JExpr.$v("n")));
+                            fb.update(JExpr.$v("i").inc());
                             fb.body(BlockCreator::empty);
                         });
                     });
@@ -454,7 +453,7 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
             sf.class_("Cls1", cc -> {
                 cc.field("flag", fc -> {
                     fc.type(JType.BOOLEAN);
-                    fc.init(JExprs.$v("x").gt(JExpr.ZERO));
+                    fc.init(JExpr.$v("x").gt(JExpr.ZERO));
                 });
             });
         });
@@ -472,7 +471,7 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
             sf.class_("Cls2", cc -> {
                 cc.field("flag", fc -> {
                     fc.type(JType.BOOLEAN);
-                    fc.init(JExprs.$v("x").gt(JExpr.ZERO));
+                    fc.init(JExpr.$v("x").gt(JExpr.ZERO));
                 });
             });
         });

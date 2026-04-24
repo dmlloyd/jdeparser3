@@ -2,6 +2,7 @@ package org.jboss.jdeparser.impl;
 
 import java.io.IOException;
 
+import org.jboss.jdeparser.JExpr;
 import org.jboss.jdeparser.JType;
 
 /**
@@ -60,6 +61,16 @@ public final class ReferenceJType extends AbstractJType {
     @Override
     public JType erasure() {
         return this;
+    }
+
+    @Override
+    public JExpr this_() {
+        return new QualifiedJExpr(this, Tokens.$KW.THIS);
+    }
+
+    @Override
+    public JExpr super_() {
+        return new QualifiedJExpr(this, Tokens.$KW.SUPER);
     }
 
     /**

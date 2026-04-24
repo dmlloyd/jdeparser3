@@ -388,25 +388,13 @@ public abstract non-sealed class AbstractJExpr implements JExpr, Writable {
 
     /** {@inheritDoc} */
     @Override
-    public JExpr postInc() {
+    public JExpr inc() {
         return new UnaryJExpr(Tokens.$UNOP.PP, this, false, Prec.POSTFIX);
     }
 
     /** {@inheritDoc} */
     @Override
-    public JExpr postDec() {
+    public JExpr dec() {
         return new UnaryJExpr(Tokens.$UNOP.MM, this, false, Prec.POSTFIX);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public JExpr preInc() {
-        return new UnaryJExpr(Tokens.$UNOP.PP, this, true, Prec.UNARY);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public JExpr preDec() {
-        return new UnaryJExpr(Tokens.$UNOP.MM, this, true, Prec.UNARY);
     }
 }
