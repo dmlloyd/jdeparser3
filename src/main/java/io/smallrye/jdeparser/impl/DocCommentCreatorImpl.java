@@ -37,9 +37,6 @@ public final class DocCommentCreatorImpl extends DocInlineCreatorImpl implements
     /** Accumulated block tags in order. */
     private final List<Writable> blockTags = new ArrayList<>();
 
-    /** Whether a {@code {@return ...}} inline tag was used. */
-    private boolean hasInlineReturn;
-
     /**
      * Constructs a new doc comment creator.
      *
@@ -76,7 +73,6 @@ public final class DocCommentCreatorImpl extends DocInlineCreatorImpl implements
             ic.write(w);
             w.writeUnescaped("}");
         });
-        hasInlineReturn = true;
     }
 
     /** {@inheritDoc} */

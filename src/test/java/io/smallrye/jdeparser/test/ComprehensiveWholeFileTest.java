@@ -338,7 +338,7 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
         final Type streamType = Type.named("java.util.stream.Stream");
         final Type optionalType = Type.named("java.util.Optional");
         final Type comparatorType = Type.named("java.util.Comparator");
-        final Type overrideType = Type.named("java.lang.Override");
+        Type.named("java.lang.Override");
 
         final Sources sources = createSources(SourceVersion.JAVA_17);
         sources.createSourceFile("com.example.spi", "Repository", sf -> {

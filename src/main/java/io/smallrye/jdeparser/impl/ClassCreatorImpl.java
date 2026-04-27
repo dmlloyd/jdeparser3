@@ -38,9 +38,6 @@ public final class ClassCreatorImpl extends AbstractCreator implements ClassCrea
     /** The class name. */
     private final String name;
 
-    /** Whether this is a top-level class (affects modifier location). */
-    private final boolean topLevel;
-
     /** The modifier holder. */
     private final ModifierHolder modifiers;
 
@@ -75,7 +72,6 @@ public final class ClassCreatorImpl extends AbstractCreator implements ClassCrea
     public ClassCreatorImpl(final SourceVersion version, final String name, final boolean topLevel) {
         super(version);
         this.name = name;
-        this.topLevel = topLevel;
         this.modifiers = new ModifierHolder(topLevel ? ModifierLocation.CLASS : ModifierLocation.CLASS);
     }
 
