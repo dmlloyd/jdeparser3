@@ -17,7 +17,7 @@ public final class NewArrayExpr extends AbstractExpr {
      * Constructs a new array creation expression.
      *
      * @param arrayType the array type
-     * @param sizes  the dimension size expressions
+     * @param sizes the dimension size expressions
      */
     public NewArrayExpr(final ArrayType arrayType, final List<Expr> sizes) {
         this.arrayType = arrayType;
@@ -58,7 +58,8 @@ public final class NewArrayExpr extends AbstractExpr {
             writeExpr(writer, dim);
             writer.write(Tokens.$BRACKET.CLOSE);
             if (i == sizes.size() - 1) {
-                for (i++; i < dims; i++) {}
+                for (i++; i < dims; i++) {
+                }
                 writer.write(Tokens.$BRACKET.OPEN);
                 writer.write(Tokens.$BRACKET.CLOSE);
             }

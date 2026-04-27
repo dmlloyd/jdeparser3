@@ -32,10 +32,10 @@ public final class BinaryExpr extends AbstractExpr {
     /**
      * Constructs a new binary expression.
      *
-     * @param left  the left-hand operand (never {@code null})
+     * @param left the left-hand operand (never {@code null})
      * @param token the operator token (never {@code null})
      * @param right the right-hand operand (never {@code null})
-     * @param prec  the precedence level (never {@code null})
+     * @param prec the precedence level (never {@code null})
      * @param assoc the associativity (never {@code null})
      */
     public BinaryExpr(final Expr left, final Tokens.$BINOP token, final Expr right, final Prec prec, final Assoc assoc) {

@@ -1,18 +1,19 @@
 package io.smallrye.jdeparser.test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import io.smallrye.jdeparser.Expr;
-import io.smallrye.jdeparser.Sources;
-import io.smallrye.jdeparser.Type;
-import io.smallrye.jdeparser.SourceVersion;
-import io.smallrye.jdeparser.creator.ModifierFlag;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import io.smallrye.jdeparser.Expr;
+import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Sources;
+import io.smallrye.jdeparser.Type;
+import io.smallrye.jdeparser.creator.ModifierFlag;
 
 /**
  * Comprehensive whole-file comparison tests that exercise as many features
@@ -152,9 +153,9 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                             then.throw_(illegalArgType.new_(List.of(new Expr[] { Expr.str("capacity must be positive") })));
                         });
                         b.emit(Expr.THIS.field("name").assign(
-                            objectsType.call("requireNonNull", Expr.$v("name"))));
+                                objectsType.call("requireNonNull", Expr.$v("name"))));
                         b.emit(Expr.THIS.field("items").assign(
-                            arrayListType.new_(List.of(new Expr[] { Expr.$v("capacity") }))));
+                                arrayListType.new_(List.of(new Expr[] { Expr.$v("capacity") }))));
                     });
                 });
 
@@ -301,7 +302,7 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                     mc.returning(Type.STRING);
                     mc.body(b -> {
                         b.return_(Expr.str("Container{").call("concat", Expr.$v("name"))
-                            .call("concat", Expr.str("}")));
+                                .call("concat", Expr.str("}")));
                     });
                 });
 
@@ -309,9 +310,12 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                 cc.enum_("State", ec -> {
                     ec.public_();
                     ec.docComment(dc -> dc.text("Container lifecycle states."));
-                    ec.constant("OPEN", c -> {});
-                    ec.constant("CLOSED", c -> {});
-                    ec.constant("LOCKED", c -> {});
+                    ec.constant("OPEN", c -> {
+                    });
+                    ec.constant("CLOSED", c -> {
+                    });
+                    ec.constant("LOCKED", c -> {
+                    });
                 });
             });
         });
@@ -350,7 +354,8 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                     dc.text(" Supports CRUD operations and querying.");
                     dc.since("2.0");
                 });
-                ic.typeParam("T", tp -> {});
+                ic.typeParam("T", tp -> {
+                });
                 ic.typeParam("ID", tp -> {
                     tp.extends_(Type.named("java.io.Serializable"));
                 });
@@ -479,7 +484,8 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                 ic.interface_("Listener", lic -> {
                     lic.public_();
                     lic.docComment(dc -> dc.text("Listener for repository change events."));
-                    lic.typeParam("E", tp -> {});
+                    lic.typeParam("E", tp -> {
+                    });
 
                     lic.method("onSave", mc -> {
                         mc.docComment(dc -> dc.text("Called after an entity is saved."));
@@ -536,9 +542,10 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                             mc.param("b", Type.OBJECT);
                             mc.body(b -> {
                                 b.return_(Expr.$v("a").cast(Type.named("Number"))
-                                    .call("doubleValue")
-                                    .add(Expr.$v("b").cast(Type.named("Number"))
-                                        .call("doubleValue")).paren().cast(Type.OBJECT));
+                                        .call("doubleValue")
+                                        .add(Expr.$v("b").cast(Type.named("Number"))
+                                                .call("doubleValue"))
+                                        .paren().cast(Type.OBJECT));
                             });
                         });
                     });
@@ -557,9 +564,10 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                             mc.param("b", Type.OBJECT);
                             mc.body(b -> {
                                 b.return_(Expr.$v("a").cast(Type.named("Number"))
-                                    .call("doubleValue")
-                                    .sub(Expr.$v("b").cast(Type.named("Number"))
-                                        .call("doubleValue")).paren().cast(Type.OBJECT));
+                                        .call("doubleValue")
+                                        .sub(Expr.$v("b").cast(Type.named("Number"))
+                                                .call("doubleValue"))
+                                        .paren().cast(Type.OBJECT));
                             });
                         });
                     });
@@ -578,9 +586,10 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                             mc.param("b", Type.OBJECT);
                             mc.body(b -> {
                                 b.return_(Expr.$v("a").cast(Type.named("Number"))
-                                    .call("doubleValue")
-                                    .mul(Expr.$v("b").cast(Type.named("Number"))
-                                        .call("doubleValue")).paren().cast(Type.OBJECT));
+                                        .call("doubleValue")
+                                        .mul(Expr.$v("b").cast(Type.named("Number"))
+                                                .call("doubleValue"))
+                                        .paren().cast(Type.OBJECT));
                             });
                         });
                     });
@@ -599,9 +608,10 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                             mc.param("b", Type.OBJECT);
                             mc.body(b -> {
                                 b.return_(Expr.$v("a").cast(Type.named("Number"))
-                                    .call("doubleValue")
-                                    .div(Expr.$v("b").cast(Type.named("Number"))
-                                        .call("doubleValue")).paren().cast(Type.OBJECT));
+                                        .call("doubleValue")
+                                        .div(Expr.$v("b").cast(Type.named("Number"))
+                                                .call("doubleValue"))
+                                        .paren().cast(Type.OBJECT));
                             });
                         });
                     });
@@ -671,7 +681,7 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                         dc.text("Returns the operator for the given symbol.");
                         dc.return_("the matching operator");
                         dc.throws_(Type.named("java.lang.IllegalArgumentException"),
-                            "if no operator matches");
+                                "if no operator matches");
                     });
                     mc.param("symbol", Type.STRING, p -> {
                         p.docComment(dc -> dc.text("the operator symbol"));
@@ -679,13 +689,14 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                     mc.throws_(Type.named("java.lang.IllegalArgumentException"));
                     mc.body(b -> {
                         b.forEach(Type.named("com.example.lang.Operator"), "op",
-                            Expr.callPlain("values"), loop -> {
-                                loop.if_(Expr.$v("op").field("symbol").call("equals", Expr.$v("symbol")), then -> {
-                                    then.return_(Expr.$v("op"));
+                                Expr.callPlain("values"), loop -> {
+                                    loop.if_(Expr.$v("op").field("symbol").call("equals", Expr.$v("symbol")), then -> {
+                                        then.return_(Expr.$v("op"));
+                                    });
                                 });
-                            });
                         final Type type = Type.named("java.lang.IllegalArgumentException");
-                        b.throw_(type.new_(List.of(new Expr[] { Expr.str("Unknown operator: ").call("concat", Expr.$v("symbol")) })));
+                        b.throw_(type.new_(
+                                List.of(new Expr[] { Expr.str("Unknown operator: ").call("concat", Expr.$v("symbol")) })));
                     });
                 });
 
@@ -753,7 +764,8 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                 // compact constructor
                 rc.compactConstructor(b -> {
                     b.if_(Expr.$v("lower").call("compareTo", Expr.$v("upper")).gt(Expr.ZERO), then -> {
-                        then.throw_(illegalArgType.new_(List.of(new Expr[] { Expr.str("lower bound must not exceed upper bound") })));
+                        then.throw_(illegalArgType
+                                .new_(List.of(new Expr[] { Expr.str("lower bound must not exceed upper bound") })));
                     });
                 });
 
@@ -773,7 +785,7 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                     });
                     mc.body(b -> {
                         b.return_(Expr.$v("lower").call("compareTo", Expr.$v("value")).le(Expr.ZERO)
-                            .and(Expr.$v("upper").call("compareTo", Expr.$v("value")).ge(Expr.ZERO)));
+                                .and(Expr.$v("upper").call("compareTo", Expr.$v("value")).ge(Expr.ZERO)));
                     });
                 });
 
@@ -792,7 +804,7 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                     });
                     mc.body(b -> {
                         b.return_(Expr.$v("lower").call("compareTo", Expr.$v("other").call("upper")).le(Expr.ZERO)
-                            .and(Expr.$v("upper").call("compareTo", Expr.$v("other").call("lower")).ge(Expr.ZERO)));
+                                .and(Expr.$v("upper").call("compareTo", Expr.$v("other").call("lower")).ge(Expr.ZERO)));
                     });
                 });
 
@@ -855,9 +867,9 @@ class ComprehensiveWholeFileTest extends AbstractGeneratingTestCase {
                     mc.returning(Type.STRING);
                     mc.body(b -> {
                         b.return_(Expr.str("[").call("concat", Expr.$v("lower").call("toString"))
-                            .call("concat", Expr.str(".."))
-                            .call("concat", Expr.$v("upper").call("toString"))
-                            .call("concat", Expr.str("]")));
+                                .call("concat", Expr.str(".."))
+                                .call("concat", Expr.$v("upper").call("toString"))
+                                .call("concat", Expr.str("]")));
                     });
                 });
             });

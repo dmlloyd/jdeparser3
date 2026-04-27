@@ -9,7 +9,7 @@ import io.smallrye.jdeparser.Type;
  * such as {@code Outer.Inner}.
  * <p>
  * A nested type is formed by qualifying an inner type name with its
- * enclosing type.  Standard type operations like {@link #array()},
+ * enclosing type. Standard type operations like {@link #array()},
  * {@link #typeArg}, and {@link #nestedType} are inherited from
  * {@link AbstractType} and work as expected.
  */
@@ -25,7 +25,7 @@ public final class NestedType extends AbstractType {
      * Constructs a new nested type reference.
      *
      * @param outer the enclosing type
-     * @param name  the simple name of the nested type (e.g., {@code "Entry"})
+     * @param name the simple name of the nested type (e.g., {@code "Entry"})
      */
     public NestedType(final Type outer, final String name) {
         this.outer = outer;

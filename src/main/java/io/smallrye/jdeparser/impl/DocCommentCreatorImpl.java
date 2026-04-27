@@ -6,11 +6,10 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import io.smallrye.common.constraint.Assert;
-
 import io.smallrye.jdeparser.DocReference;
-import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.LanguageFeature;
 import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.creator.DocCommentCreator;
 import io.smallrye.jdeparser.creator.DocInlineCreator;
 
@@ -44,11 +43,12 @@ public final class DocCommentCreatorImpl extends DocInlineCreatorImpl implements
     /**
      * Constructs a new doc comment creator.
      *
-     * @param version    the source version
+     * @param version the source version
      * @param sourceFile the enclosing source file creator, or {@code null}
-     * @param context    the declaration context for tag validation, or {@code null}
+     * @param context the declaration context for tag validation, or {@code null}
      */
-    public DocCommentCreatorImpl(final SourceVersion version, final SourceFileCreatorImpl sourceFile, final DocContext context) {
+    public DocCommentCreatorImpl(final SourceVersion version, final SourceFileCreatorImpl sourceFile,
+            final DocContext context) {
         super(version, sourceFile, context);
     }
 
@@ -289,7 +289,7 @@ public final class DocCommentCreatorImpl extends DocInlineCreatorImpl implements
      * creator when a parameter or record component has documentation, so that
      * write-time aggregation is not needed.
      *
-     * @param paramName   the parameter name
+     * @param paramName the parameter name
      * @param description the inline content for the parameter description, or {@code null}
      */
     public void addParamTag(final String paramName, final DocInlineCreatorImpl description) {
@@ -310,7 +310,7 @@ public final class DocCommentCreatorImpl extends DocInlineCreatorImpl implements
      * aggregation is not needed.
      *
      * @param typeParamName the type parameter name
-     * @param description   the inline content for the type parameter description, or {@code null}
+     * @param description the inline content for the type parameter description, or {@code null}
      */
     public void addTypeParamTag(final String typeParamName, final DocInlineCreatorImpl description) {
         blockTags.add(w -> {

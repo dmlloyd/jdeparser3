@@ -6,9 +6,8 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import io.smallrye.common.constraint.Assert;
-
-import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.creator.AccessLevel;
 import io.smallrye.jdeparser.creator.AnnotationCreator;
 import io.smallrye.jdeparser.creator.BlockCreator;
@@ -59,7 +58,7 @@ public final class RecordCreatorImpl extends AbstractCreator implements RecordCr
      * Constructs a new record creator.
      *
      * @param version the source version
-     * @param name    the record name
+     * @param name the record name
      */
     public RecordCreatorImpl(final SourceVersion version, final String name) {
         super(version);
@@ -329,7 +328,7 @@ public final class RecordCreatorImpl extends AbstractCreator implements RecordCr
         } else {
             writer.write(FormatPreferences.Space.WITHIN_PAREN_RECORD);
             AbstractExpr.writeList(writer, components, FormatPreferences.Space.AFTER_COMMA_RECORD_COMPONENT,
-                FormatPreferences.Wrapping.RECORD_COMPONENT_LIST);
+                    FormatPreferences.Wrapping.RECORD_COMPONENT_LIST);
             writer.write(FormatPreferences.Space.WITHIN_PAREN_RECORD);
         }
         writer.write(Tokens.$PAREN.CLOSE);
@@ -338,13 +337,13 @@ public final class RecordCreatorImpl extends AbstractCreator implements RecordCr
     /**
      * Writes a comma-separated list of types with wrapping support.
      *
-     * @param writer   the writer
-     * @param types    the types
+     * @param writer the writer
+     * @param types the types
      * @param wrapping the wrapping context
      * @throws IOException if an I/O error occurs
      */
     private static void writeTypeList(final SourceFileWriter writer, final List<Type> types,
-                                      final FormatPreferences.Wrapping wrapping) throws IOException {
+            final FormatPreferences.Wrapping wrapping) throws IOException {
         AbstractExpr.writeList(writer, types, FormatPreferences.Space.AFTER_COMMA, wrapping);
     }
 }

@@ -19,7 +19,7 @@ public sealed interface SwitchCreator permits SwitchCreatorImpl {
      * Adds a case with a single constant value.
      *
      * @param value the case constant expression
-     * @param body  the callback for the case body
+     * @param body the callback for the case body
      */
     void case_(Expr value, Consumer<BlockCreator> body);
 
@@ -27,15 +27,15 @@ public sealed interface SwitchCreator permits SwitchCreatorImpl {
      * Adds a case with multiple constant values (e.g., {@code case 3, 5, 6:}).
      *
      * @param values the case constant expressions
-     * @param body   the callback for the case body
+     * @param body the callback for the case body
      */
     void case_(List<Expr> values, Consumer<BlockCreator> body);
 
     /**
      * Adds a type pattern case (Java 21+): {@code case Type name -> ...}.
      *
-     * @param type    the pattern type
-     * @param name    the binding variable name
+     * @param type the pattern type
+     * @param name the binding variable name
      * @param builder the callback to configure the case (may include guard via {@link CaseCreator#when_(Expr)})
      */
     void case_(Type type, String name, Consumer<CaseCreator> builder);

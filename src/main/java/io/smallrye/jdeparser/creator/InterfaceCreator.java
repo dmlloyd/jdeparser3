@@ -9,7 +9,7 @@ import io.smallrye.jdeparser.impl.InterfaceCreatorImpl;
  * A creator for building an interface declaration.
  * <p>
  * All methods defined via this creator use the {@code DEFAULT} modifier flag
- * to indicate a default method.  Method body validation is based on the
+ * to indicate a default method. Method body validation is based on the
  * modifier combination: abstract methods cannot have bodies, while default,
  * static, and private methods require bodies.
  */
@@ -32,7 +32,7 @@ public sealed interface InterfaceCreator extends ModifiableCreator permits Inter
     /**
      * Adds a type parameter to this interface.
      *
-     * @param name    the type parameter name
+     * @param name the type parameter name
      * @param builder the callback to configure the type parameter
      */
     void typeParam(String name, Consumer<TypeParamCreator> builder);
@@ -40,7 +40,7 @@ public sealed interface InterfaceCreator extends ModifiableCreator permits Inter
     /**
      * Defines a method in this interface.
      *
-     * @param name    the method name
+     * @param name the method name
      * @param builder the callback to configure the method
      */
     void method(String name, Consumer<MethodCreator> builder);
@@ -48,7 +48,7 @@ public sealed interface InterfaceCreator extends ModifiableCreator permits Inter
     /**
      * Defines a constant field in this interface.
      *
-     * @param name    the field name
+     * @param name the field name
      * @param builder the callback to configure the field
      */
     void field(String name, Consumer<FieldCreator> builder);
@@ -56,7 +56,7 @@ public sealed interface InterfaceCreator extends ModifiableCreator permits Inter
     /**
      * Defines a nested class.
      *
-     * @param name    the class name
+     * @param name the class name
      * @param builder the callback to define the class
      */
     void class_(String name, Consumer<ClassCreator> builder);
@@ -64,7 +64,7 @@ public sealed interface InterfaceCreator extends ModifiableCreator permits Inter
     /**
      * Defines a nested interface.
      *
-     * @param name    the interface name
+     * @param name the interface name
      * @param builder the callback to define the interface
      */
     void interface_(String name, Consumer<InterfaceCreator> builder);
@@ -72,7 +72,7 @@ public sealed interface InterfaceCreator extends ModifiableCreator permits Inter
     /**
      * Defines a nested enum.
      *
-     * @param name    the enum name
+     * @param name the enum name
      * @param builder the callback to define the enum
      */
     void enum_(String name, Consumer<EnumCreator> builder);
@@ -80,7 +80,7 @@ public sealed interface InterfaceCreator extends ModifiableCreator permits Inter
     /**
      * Defines a nested record.
      *
-     * @param name    the record name
+     * @param name the record name
      * @param builder the callback to define the record
      */
     void record_(String name, Consumer<RecordCreator> builder);
@@ -88,7 +88,7 @@ public sealed interface InterfaceCreator extends ModifiableCreator permits Inter
     /**
      * Defines a nested annotation type.
      *
-     * @param name    the annotation type name
+     * @param name the annotation type name
      * @param builder the callback to define the annotation type
      */
     void annotationInterface_(String name, Consumer<AnnotationInterfaceCreator> builder);

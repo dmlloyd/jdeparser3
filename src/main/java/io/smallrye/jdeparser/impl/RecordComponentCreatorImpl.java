@@ -4,9 +4,8 @@ import java.io.IOException;
 import java.util.function.Consumer;
 
 import io.smallrye.common.constraint.Assert;
-
-import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.creator.AnnotationCreator;
 import io.smallrye.jdeparser.creator.DocInlineCreator;
 import io.smallrye.jdeparser.creator.RecordComponentCreator;
@@ -39,8 +38,8 @@ public final class RecordComponentCreatorImpl extends AbstractCreator implements
      * Constructs a new record component creator.
      *
      * @param version the source version
-     * @param name    the component name
-     * @param type    the component type
+     * @param name the component name
+     * @param type the component type
      */
     public RecordComponentCreatorImpl(final SourceVersion version, final String name, final Type type) {
         super(version);

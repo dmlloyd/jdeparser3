@@ -6,10 +6,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import io.smallrye.jdeparser.JDeparser;
-import io.smallrye.jdeparser.Sources;
 import io.smallrye.jdeparser.SourceVersion;
-import io.smallrye.jdeparser.format.FormatPreferences;
+import io.smallrye.jdeparser.Sources;
 import io.smallrye.jdeparser.format.Filer;
+import io.smallrye.jdeparser.format.FormatPreferences;
 
 /**
  * Base class for source generation tests.
@@ -49,7 +49,7 @@ public abstract class AbstractGeneratingTestCase {
      * and source version.
      *
      * @param preferences the format preferences
-     * @param version     the target source version
+     * @param version the target source version
      * @return a new sources instance backed by the in-memory filer
      */
     protected Sources createSources(final FormatPreferences preferences, final SourceVersion version) {
@@ -60,7 +60,7 @@ public abstract class AbstractGeneratingTestCase {
      * Retrieves the generated source content for the given package and file name.
      *
      * @param packageName the package name (e.g. {@code "com.example"})
-     * @param fileName    the file name without extension (e.g. {@code "MyClass"})
+     * @param fileName the file name without extension (e.g. {@code "MyClass"})
      * @return the generated source content as a string
      * @throws IllegalArgumentException if no file was generated with the given key
      */
@@ -68,7 +68,7 @@ public abstract class AbstractGeneratingTestCase {
         final StringWriter writer = sourceFiles.get(new Key(packageName, fileName));
         if (writer == null) {
             throw new IllegalArgumentException(
-                "No generated file for package '" + packageName + "', file '" + fileName + "'");
+                    "No generated file for package '" + packageName + "', file '" + fileName + "'");
         }
         return writer.toString();
     }
@@ -84,7 +84,7 @@ public abstract class AbstractGeneratingTestCase {
      * Key for the in-memory source file map.
      *
      * @param packageName the package name
-     * @param fileName    the file name (without extension)
+     * @param fileName the file name (without extension)
      */
     private record Key(String packageName, String fileName) {
     }

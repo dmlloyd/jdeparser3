@@ -12,7 +12,7 @@ import io.smallrye.jdeparser.Var;
  * upper-bounded ({@code ? extends X}), or lower-bounded ({@code ? super X}).
  * <p>
  * Wildcard types are used exclusively as type arguments and cannot be
- * used directly as types for most operations.  Consequently, most methods
+ * used directly as types for most operations. Consequently, most methods
  * inherited from {@link AbstractType} are overridden to throw
  * {@link IllegalStateException}.
  */
@@ -35,8 +35,8 @@ public final class WildcardType extends AbstractType {
      * Constructs a new wildcard type.
      *
      * @param extends_ {@code true} for {@code ? extends bound} or unbounded,
-     *                 {@code false} for {@code ? super bound}
-     * @param bound    the bound type, or {@code null} for an unbounded wildcard
+     *        {@code false} for {@code ? super bound}
+     * @param bound the bound type, or {@code null} for an unbounded wildcard
      */
     public WildcardType(final boolean extends_, final Type bound) {
         this.extends_ = extends_;

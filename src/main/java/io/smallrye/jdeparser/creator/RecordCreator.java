@@ -20,7 +20,7 @@ public sealed interface RecordCreator extends ModifiableCreator permits RecordCr
     /**
      * Adds a type parameter to this record.
      *
-     * @param name    the type parameter name
+     * @param name the type parameter name
      * @param builder the callback to configure the type parameter
      */
     void typeParam(String name, Consumer<TypeParamCreator> builder);
@@ -36,8 +36,8 @@ public sealed interface RecordCreator extends ModifiableCreator permits RecordCr
     /**
      * Defines a record component with configuration (annotations, documentation).
      *
-     * @param name    the component name
-     * @param type    the component type
+     * @param name the component name
+     * @param type the component type
      * @param builder the callback to configure the component
      */
     void component(String name, Type type, Consumer<RecordComponentCreator> builder);
@@ -52,7 +52,7 @@ public sealed interface RecordCreator extends ModifiableCreator permits RecordCr
     /**
      * Defines a method in this record.
      *
-     * @param name    the method name
+     * @param name the method name
      * @param builder the callback to configure the method
      */
     void method(String name, Consumer<MethodCreator> builder);
@@ -60,7 +60,7 @@ public sealed interface RecordCreator extends ModifiableCreator permits RecordCr
     /**
      * Defines a field in this record (static fields only).
      *
-     * @param name    the field name
+     * @param name the field name
      * @param builder the callback to configure the field
      */
     void field(String name, Consumer<FieldCreator> builder);

@@ -6,7 +6,7 @@ package io.smallrye.jdeparser.impl;
  * <p>
  * The token state machine tracks which kind of token was last written
  * (keyword, identifier, number, punctuation, etc.) so the formatter can
- * insert appropriate spacing between adjacent tokens.  Every token
+ * insert appropriate spacing between adjacent tokens. Every token
  * written via {@link SourceFileWriter#write(Token)} becomes the new
  * state, and subsequent tokens query the state to decide whether a
  * separating space is required.

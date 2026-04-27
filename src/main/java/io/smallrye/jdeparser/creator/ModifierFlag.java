@@ -7,7 +7,7 @@ import java.util.function.Consumer;
  * Non-access modifier flags for Java declarations.
  * <p>
  * Each constant represents a modifier keyword that can be applied to
- * various Java declarations.  Not every flag is valid in every context;
+ * various Java declarations. Not every flag is valid in every context;
  * see {@link ModifierLocation} for context-specific validation.
  *
  * @see Modifier
@@ -77,7 +77,7 @@ public enum ModifierFlag implements Modifier {
      * exclusive with this flag.
      * <p>
      * This captures universal exclusion relationships (e.g. {@code abstract}
-     * and {@code final} are always exclusive).  Context-specific restrictions
+     * and {@code final} are always exclusive). Context-specific restrictions
      * (e.g. which flags are valid on a method vs. a field) are handled
      * separately by {@link ModifierLocation}.
      *

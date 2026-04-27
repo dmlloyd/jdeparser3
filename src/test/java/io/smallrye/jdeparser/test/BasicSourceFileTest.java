@@ -1,16 +1,17 @@
 package io.smallrye.jdeparser.test;
 
-import java.io.IOException;
-
-import io.smallrye.jdeparser.Expr;
-import io.smallrye.jdeparser.Sources;
-import io.smallrye.jdeparser.Type;
-import io.smallrye.jdeparser.SourceVersion;
-import io.smallrye.jdeparser.creator.ModifiableCreator;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.IOException;
+
+import org.junit.jupiter.api.Test;
+
+import io.smallrye.jdeparser.Expr;
+import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Sources;
+import io.smallrye.jdeparser.Type;
+import io.smallrye.jdeparser.creator.ModifiableCreator;
 
 /**
  * Basic tests verifying source file generation produces output.
@@ -130,10 +131,9 @@ class BasicSourceFileTest extends AbstractGeneratingTestCase {
                     mc.param("x", Type.INT);
                     mc.body(b -> {
                         b.ifElse(
-                            Expr.$v("x").gt(Expr.ZERO),
-                            then -> then.return_(Expr.str("positive")),
-                            else_ -> else_.return_(Expr.str("non-positive"))
-                        );
+                                Expr.$v("x").gt(Expr.ZERO),
+                                then -> then.return_(Expr.str("positive")),
+                                else_ -> else_.return_(Expr.str("non-positive")));
                     });
                 });
             });

@@ -6,10 +6,9 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import io.smallrye.common.constraint.Assert;
-
 import io.smallrye.jdeparser.Expr;
-import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.creator.BlockCreator;
 import io.smallrye.jdeparser.creator.TryCreator;
 import io.smallrye.jdeparser.format.FormatPreferences;
@@ -151,7 +150,8 @@ public final class TryCreatorImpl extends AbstractCreator implements TryCreator,
             writer.write(FormatPreferences.Space.BEFORE_PAREN_CATCH);
             writer.write(Tokens.$PAREN.OPEN);
             writer.write(FormatPreferences.Space.WITHIN_PAREN_CATCH);
-            AbstractExpr.writeList(writer, c.types, FormatPreferences.Space.AROUND_MULTI_CATCH_OR, Tokens.$PUNCT.BAR, FormatPreferences.Space.AROUND_MULTI_CATCH_OR);
+            AbstractExpr.writeList(writer, c.types, FormatPreferences.Space.AROUND_MULTI_CATCH_OR, Tokens.$PUNCT.BAR,
+                    FormatPreferences.Space.AROUND_MULTI_CATCH_OR);
             writer.sp();
             writer.writeName(c.name);
             writer.write(FormatPreferences.Space.WITHIN_PAREN_CATCH);
@@ -182,8 +182,8 @@ public final class TryCreatorImpl extends AbstractCreator implements TryCreator,
      * A catch clause with exception types, variable name, and body.
      *
      * @param types the exception types (at least one; multiple for multi-catch)
-     * @param name  the exception variable name
-     * @param body  the catch body
+     * @param name the exception variable name
+     * @param body the catch body
      */
     private record CatchClause(List<Type> types, String name, BlockCreatorImpl body) {
     }

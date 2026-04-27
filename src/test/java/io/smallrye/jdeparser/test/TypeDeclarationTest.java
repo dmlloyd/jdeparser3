@@ -1,14 +1,15 @@
 package io.smallrye.jdeparser.test;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.IOException;
 
-import io.smallrye.jdeparser.Expr;
-import io.smallrye.jdeparser.Sources;
-import io.smallrye.jdeparser.Type;
-import io.smallrye.jdeparser.SourceVersion;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import io.smallrye.jdeparser.Expr;
+import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Sources;
+import io.smallrye.jdeparser.Type;
 
 /**
  * Tests for various type declarations: enum, interface, record, annotation.
@@ -26,9 +27,12 @@ class TypeDeclarationTest extends AbstractGeneratingTestCase {
         sources.createSourceFile("com.example", "Color", sf -> {
             sf.enum_("Color", ec -> {
                 ec.public_();
-                ec.constant("RED", c -> {});
-                ec.constant("GREEN", c -> {});
-                ec.constant("BLUE", c -> {});
+                ec.constant("RED", c -> {
+                });
+                ec.constant("GREEN", c -> {
+                });
+                ec.constant("BLUE", c -> {
+                });
             });
         });
         sources.writeSources();
@@ -87,7 +91,7 @@ class TypeDeclarationTest extends AbstractGeneratingTestCase {
         final String source = getSource("com.example", "Greeter");
         assertTrue(source.contains("public interface Greeter"), "should contain interface declaration");
         assertTrue(source.contains("String greet(String name);"),
-            "should contain abstract method");
+                "should contain abstract method");
     }
 
     /**
@@ -130,7 +134,7 @@ class TypeDeclarationTest extends AbstractGeneratingTestCase {
         sources.writeSources();
         final String source = getSource("com.example", "MyAnnotation");
         assertTrue(source.contains("public @interface MyAnnotation"),
-            "should contain annotation type");
+                "should contain annotation type");
         assertTrue(source.contains("String value();"), "should contain value element");
         assertTrue(source.contains("int count() default 0;"), "should contain count element with default");
     }

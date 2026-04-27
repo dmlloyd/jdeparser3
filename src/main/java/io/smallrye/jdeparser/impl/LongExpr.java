@@ -19,7 +19,7 @@ public final class LongExpr extends AbstractExpr {
      * Constructs a new long literal expression.
      *
      * @param value the long value
-     * @param base  the numeric base for rendering (2, 8, 10, or 16)
+     * @param base the numeric base for rendering (2, 8, 10, or 16)
      */
     public LongExpr(final long value, final int base) {
         this.value = value;

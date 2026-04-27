@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.List;
 
 import io.smallrye.common.constraint.Assert;
-
 import io.smallrye.jdeparser.Expr;
 import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.Var;
@@ -41,25 +40,25 @@ public abstract non-sealed class AbstractExpr implements Expr, Writable {
      * <p>
      * Parentheses are added when:
      * <ul>
-     *   <li>The sub-expression has lower precedence than the parent</li>
-     *   <li>The sub-expression has equal precedence but is on the
-     *       non-associative side (e.g., right operand of a left-associative
-     *       operator)</li>
+     * <li>The sub-expression has lower precedence than the parent</li>
+     * <li>The sub-expression has equal precedence but is on the
+     * non-associative side (e.g., right operand of a left-associative
+     * operator)</li>
      * </ul>
      *
-     * @param writer     the source file writer
-     * @param sub        the sub-expression to write
+     * @param writer the source file writer
+     * @param sub the sub-expression to write
      * @param parentPrec the precedence of the enclosing operator
      * @param parentAssoc the associativity of the enclosing operator
-     * @param side       which side of the parent this sub-expression is on
+     * @param side which side of the parent this sub-expression is on
      * @throws IOException if an I/O error occurs
      */
     protected static void writeSubExpr(final SourceFileWriter writer, final Expr sub,
-                                       final Prec parentPrec, final Assoc parentAssoc,
-                                       final Assoc side) throws IOException {
+            final Prec parentPrec, final Assoc parentAssoc,
+            final Assoc side) throws IOException {
         final AbstractExpr asub = (AbstractExpr) sub;
         final boolean needParens = asub.precedence().ordinal() < parentPrec.ordinal()
-            || asub.precedence() == parentPrec && parentAssoc != side;
+                || asub.precedence() == parentPrec && parentAssoc != side;
         if (needParens) {
             writer.write(Tokens.$PAREN.OPEN);
             writer.write(FormatPreferences.Space.WITHIN_PAREN_EXPR);
@@ -75,7 +74,7 @@ public abstract non-sealed class AbstractExpr implements Expr, Writable {
      * Writes an expression, casting to Writable and invoking write().
      *
      * @param writer the source file writer
-     * @param expr   the expression to write
+     * @param expr the expression to write
      * @throws IOException if an I/O error occurs
      */
     protected static void writeExpr(final SourceFileWriter writer, final Expr expr) throws IOException {
@@ -86,7 +85,7 @@ public abstract non-sealed class AbstractExpr implements Expr, Writable {
      * Writes a type, casting to Writable and invoking write().
      *
      * @param writer the source file writer
-     * @param type   the type to write
+     * @param type the type to write
      * @throws IOException if an I/O error occurs
      */
     protected static void writeType(final SourceFileWriter writer, final Type type) throws IOException {
@@ -97,12 +96,12 @@ public abstract non-sealed class AbstractExpr implements Expr, Writable {
      * Writes a comma-separated list of writable items.
      *
      * @param writer the source file writer
-     * @param items  the items to write
-     * @param space  the spacing rule to apply after each comma
+     * @param items the items to write
+     * @param space the spacing rule to apply after each comma
      * @throws IOException if an I/O error occurs
      */
     protected static void writeList(final SourceFileWriter writer, final List<?> items,
-                                    final FormatPreferences.Space space) throws IOException {
+            final FormatPreferences.Space space) throws IOException {
         writeList(writer, items, Tokens.$PUNCT.COMMA, space);
     }
 
@@ -110,30 +109,30 @@ public abstract non-sealed class AbstractExpr implements Expr, Writable {
      * Writes a comma-separated list of writable items.
      *
      * @param writer the source file writer
-     * @param items  the items to write
-     * @param token  the token of the delimiter
-     * @param space  the spacing rule to apply after each delimiter
+     * @param items the items to write
+     * @param token the token of the delimiter
+     * @param space the spacing rule to apply after each delimiter
      * @throws IOException if an I/O error occurs
      */
     protected static void writeList(final SourceFileWriter writer, final List<?> items, final Token token,
-                                    final FormatPreferences.Space space) throws IOException {
+            final FormatPreferences.Space space) throws IOException {
         writeList(writer, items, null, token, space);
     }
 
     /**
      * Writes a comma-separated list of writable items.
      *
-     * @param writer      the source file writer
-     * @param items       the items to write
+     * @param writer the source file writer
+     * @param items the items to write
      * @param beforeSpace the spacing rule to apply before each delimiter
-     * @param token       the token of the delimiter
-     * @param afterSpace  the spacing rule to apply after each delimiter
+     * @param token the token of the delimiter
+     * @param afterSpace the spacing rule to apply after each delimiter
      * @throws IOException if an I/O error occurs
      */
     protected static void writeList(final SourceFileWriter writer, final List<?> items,
-                                    final FormatPreferences.Space beforeSpace,
-                                    final Token token,
-                                    final FormatPreferences.Space afterSpace) throws IOException {
+            final FormatPreferences.Space beforeSpace,
+            final Token token,
+            final FormatPreferences.Space afterSpace) throws IOException {
         int size = items.size();
         if (size > 0) {
             ((Writable) items.get(0)).write(writer);
@@ -153,15 +152,15 @@ public abstract non-sealed class AbstractExpr implements Expr, Writable {
     /**
      * Writes a comma-separated list of writable items with wrapping support.
      *
-     * @param writer   the source file writer
-     * @param items    the items to write
-     * @param space    the spacing rule to apply after each comma when not wrapping
+     * @param writer the source file writer
+     * @param items the items to write
+     * @param space the spacing rule to apply after each comma when not wrapping
      * @param wrapping the wrapping context
      * @throws IOException if an I/O error occurs
      */
     protected static void writeList(final SourceFileWriter writer, final List<?> items,
-                                    final FormatPreferences.Space space,
-                                    final FormatPreferences.Wrapping wrapping) throws IOException {
+            final FormatPreferences.Space space,
+            final FormatPreferences.Wrapping wrapping) throws IOException {
         writeList(writer, items, null, Tokens.$PUNCT.COMMA, space, wrapping);
     }
 
@@ -169,25 +168,25 @@ public abstract non-sealed class AbstractExpr implements Expr, Writable {
      * Writes a delimiter-separated list of writable items with wrapping support.
      * <p>
      * When the wrapping mode is {@link FormatPreferences.WrappingMode#ALWAYS_WRAP},
-     * each element after the first is placed on a new line.  When the mode is
+     * each element after the first is placed on a new line. When the mode is
      * {@link FormatPreferences.WrappingMode#WRAP_ONLY_IF_LONG}, elements wrap to
      * a new line when the current column reaches the configured line length.
      * In both wrapping modes, continuation lines are indented by
      * {@link FormatPreferences.Indentation#LINE_CONTINUATION}.
      *
-     * @param writer      the source file writer
-     * @param items       the items to write
+     * @param writer the source file writer
+     * @param items the items to write
      * @param beforeSpace the spacing rule to apply before each delimiter (may be {@code null})
-     * @param token       the delimiter token
-     * @param afterSpace  the spacing rule to apply after each delimiter when not wrapping
-     * @param wrapping    the wrapping context
+     * @param token the delimiter token
+     * @param afterSpace the spacing rule to apply after each delimiter when not wrapping
+     * @param wrapping the wrapping context
      * @throws IOException if an I/O error occurs
      */
     protected static void writeList(final SourceFileWriter writer, final List<?> items,
-                                    final FormatPreferences.Space beforeSpace,
-                                    final Token token,
-                                    final FormatPreferences.Space afterSpace,
-                                    final FormatPreferences.Wrapping wrapping) throws IOException {
+            final FormatPreferences.Space beforeSpace,
+            final Token token,
+            final FormatPreferences.Space afterSpace,
+            final FormatPreferences.Wrapping wrapping) throws IOException {
         int size = items.size();
         if (size == 0) {
             return;

@@ -7,18 +7,17 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import io.smallrye.common.constraint.Assert;
-
 import io.smallrye.jdeparser.Expr;
 import io.smallrye.jdeparser.Label;
-import io.smallrye.jdeparser.Type;
-import io.smallrye.jdeparser.Var;
 import io.smallrye.jdeparser.LanguageFeature;
 import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
+import io.smallrye.jdeparser.Var;
 import io.smallrye.jdeparser.creator.BlockCreator;
 import io.smallrye.jdeparser.creator.ClassCreator;
 import io.smallrye.jdeparser.creator.ForCreator;
-import io.smallrye.jdeparser.creator.LocalVarCreator;
 import io.smallrye.jdeparser.creator.InterfaceCreator;
+import io.smallrye.jdeparser.creator.LocalVarCreator;
 import io.smallrye.jdeparser.creator.SwitchCreator;
 import io.smallrye.jdeparser.creator.TryCreator;
 import io.smallrye.jdeparser.format.FormatPreferences;
@@ -28,7 +27,7 @@ import io.smallrye.jdeparser.format.FormatPreferences;
  * {@link Writable} content nodes and writes them as a brace-delimited block.
  * <p>
  * Each statement-producing method creates a {@link Writable} lambda or
- * content object and adds it to the internal content list.  When written,
+ * content object and adds it to the internal content list. When written,
  * the block emits {@code &#123;}, indented content, and {@code &#125;}.
  */
 public final class BlockCreatorImpl extends AbstractCreator implements BlockCreator {
@@ -71,7 +70,7 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
      * statement depending on the {@link FormatPreferences.Opt#SINGLE_STATEMENT_BRACES} option.
      * <p>
      * When the option is enabled (or the block has zero or more than one statement),
-     * the block is rendered with braces as usual.  When the option is disabled and
+     * the block is rendered with braces as usual. When the option is disabled and
      * the block has exactly one statement, the single statement is rendered without
      * braces on an indented continuation line.
      * <p>
@@ -79,12 +78,12 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
      * statement is syntactically valid without braces (e.g., {@code if}, {@code while},
      * {@code for}).
      *
-     * @param writer      the writer
+     * @param writer the writer
      * @param beforeBrace the space to write before the opening brace (used only when braces are rendered)
      * @throws IOException if an I/O error occurs
      */
     public void writeStatementBody(final SourceFileWriter writer,
-                                   final FormatPreferences.Space beforeBrace) throws IOException {
+            final FormatPreferences.Space beforeBrace) throws IOException {
         if (content.size() == 1
                 && !writer.getFormat().hasOption(FormatPreferences.Opt.SINGLE_STATEMENT_BRACES)) {
             writer.nl();
@@ -116,7 +115,7 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
     /** {@inheritDoc} */
     @Override
     public Var var(final Type type, final String name, final Expr init,
-                    final Consumer<LocalVarCreator> builder) {
+            final Consumer<LocalVarCreator> builder) {
         checkActive();
         Assert.checkNotNullParam("type", type);
         Assert.checkNotNullParam("name", name);
@@ -135,7 +134,7 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
     /** {@inheritDoc} */
     @Override
     public Var var(final String name, final Expr init,
-                    final Consumer<LocalVarCreator> builder) {
+            final Consumer<LocalVarCreator> builder) {
         checkActive();
         Assert.checkNotNullParam("name", name);
         Assert.checkNotEmptyParam("name", name);
@@ -178,7 +177,7 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
     /** {@inheritDoc} */
     @Override
     public void ifElse(final Expr condition, final Consumer<BlockCreator> ifBody,
-                        final Consumer<BlockCreator> elseBody) {
+            final Consumer<BlockCreator> elseBody) {
         checkActive();
         Assert.checkNotNullParam("condition", condition);
         Assert.checkNotNullParam("ifBody", ifBody);
@@ -269,7 +268,7 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
     /** {@inheritDoc} */
     @Override
     public Var forEach(final Type type, final String name, final Expr iterable,
-                         final Consumer<BlockCreator> body) {
+            final Consumer<BlockCreator> body) {
         checkActive();
         Assert.checkNotNullParam("type", type);
         Assert.checkNotNullParam("name", name);
@@ -564,7 +563,7 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
             } else {
                 w.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_CALL);
                 AbstractExpr.writeList(w, argList, FormatPreferences.Space.AFTER_COMMA,
-                    FormatPreferences.Wrapping.ARGUMENT_LIST);
+                        FormatPreferences.Wrapping.ARGUMENT_LIST);
                 w.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_CALL);
             }
             w.write(Tokens.$PAREN.CLOSE);
@@ -587,7 +586,7 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
             } else {
                 w.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_CALL);
                 AbstractExpr.writeList(w, argList, FormatPreferences.Space.AFTER_COMMA,
-                    FormatPreferences.Wrapping.ARGUMENT_LIST);
+                        FormatPreferences.Wrapping.ARGUMENT_LIST);
                 w.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_CALL);
             }
             w.write(Tokens.$PAREN.CLOSE);

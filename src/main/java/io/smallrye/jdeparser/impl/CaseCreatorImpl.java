@@ -3,7 +3,6 @@ package io.smallrye.jdeparser.impl;
 import java.util.function.Consumer;
 
 import io.smallrye.common.constraint.Assert;
-
 import io.smallrye.jdeparser.Expr;
 import io.smallrye.jdeparser.SourceVersion;
 import io.smallrye.jdeparser.creator.BlockCreator;

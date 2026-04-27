@@ -11,7 +11,7 @@ import io.smallrye.jdeparser.Var;
  * Represents a Java primitive type ({@code int}, {@code boolean}, {@code void}, etc.).
  * <p>
  * Instances are pre-allocated as static constants and should be accessed via
- * those constants rather than being constructed directly.  Most type operations
+ * those constants rather than being constructed directly. Most type operations
  * that are only meaningful for reference types (e.g., {@link #typeArg},
  * {@link #nestedType}, {@link #field}) throw {@link IllegalStateException}.
  */
@@ -56,9 +56,9 @@ public final class PrimitiveType extends AbstractType {
     /**
      * Constructs a new primitive type representation.
      *
-     * @param keyword   the Java keyword (e.g., {@code "int"})
+     * @param keyword the Java keyword (e.g., {@code "int"})
      * @param boxedName the qualified name of the wrapper class (e.g., {@code "java.lang.Integer"}),
-     *                  or {@code null} for {@code void}
+     *        or {@code null} for {@code void}
      */
     private PrimitiveType(final String keyword, final String boxedName) {
         this.keyword = keyword;

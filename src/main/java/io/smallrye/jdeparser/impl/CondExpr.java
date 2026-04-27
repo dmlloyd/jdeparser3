@@ -27,8 +27,8 @@ public final class CondExpr extends AbstractExpr {
      * Constructs a new ternary conditional expression.
      *
      * @param condition the condition expression (never {@code null})
-     * @param ifTrue    the true-branch expression (never {@code null})
-     * @param ifFalse   the false-branch expression (never {@code null})
+     * @param ifTrue the true-branch expression (never {@code null})
+     * @param ifFalse the false-branch expression (never {@code null})
      */
     public CondExpr(final Expr condition, final Expr ifTrue, final Expr ifFalse) {
         this.condition = condition;

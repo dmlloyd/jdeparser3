@@ -10,7 +10,7 @@ import java.nio.file.Path;
  * Abstraction for opening output files during source generation.
  * <p>
  * Implementations handle the mapping from package name and file name
- * to an output {@link Writer}.  Factory methods are provided for common
+ * to an output {@link Writer}. Factory methods are provided for common
  * output targets: a directory on the filesystem, or an annotation
  * processing {@link javax.annotation.processing.Filer}.
  */
@@ -20,7 +20,7 @@ public interface Filer {
      * Opens a writer for the given source file.
      *
      * @param packageName the package name (e.g. {@code "com.example"})
-     * @param fileName    the file name without extension (e.g. {@code "MyClass"})
+     * @param fileName the file name without extension (e.g. {@code "MyClass"})
      * @return a writer to which the source file content should be written
      * @throws IOException if the writer cannot be opened
      */
@@ -45,8 +45,8 @@ public interface Filer {
     static Filer newInstance(final Path outputDir) {
         return (packageName, fileName) -> {
             final Path dir = packageName.isEmpty()
-                ? outputDir
-                : outputDir.resolve(packageName.replace('.', '/'));
+                    ? outputDir
+                    : outputDir.resolve(packageName.replace('.', '/'));
             Files.createDirectories(dir);
             return Files.newBufferedWriter(dir.resolve(fileName + ".java"));
         };
@@ -61,8 +61,8 @@ public interface Filer {
     static Filer newInstance(final javax.annotation.processing.Filer filer) {
         return (packageName, fileName) -> {
             final String qualifiedName = packageName.isEmpty()
-                ? fileName
-                : packageName + "." + fileName;
+                    ? fileName
+                    : packageName + "." + fileName;
             return filer.createSourceFile(qualifiedName).openWriter();
         };
     }

@@ -19,9 +19,9 @@ public final class TypeCallExpr extends AbstractExpr {
     /**
      * Constructs a new static method call expression.
      *
-     * @param type   the type on which the method is called
+     * @param type the type on which the method is called
      * @param method the method name
-     * @param args   the argument expressions
+     * @param args the argument expressions
      */
     public TypeCallExpr(final Type type, final String method, final List<Expr> args) {
         this.type = type;
@@ -82,7 +82,7 @@ public final class TypeCallExpr extends AbstractExpr {
         } else {
             writer.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_CALL);
             writeList(writer, args, FormatPreferences.Space.AFTER_COMMA,
-                FormatPreferences.Wrapping.ARGUMENT_LIST);
+                    FormatPreferences.Wrapping.ARGUMENT_LIST);
             writer.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_CALL);
         }
         writer.write(Tokens.$PAREN.CLOSE);

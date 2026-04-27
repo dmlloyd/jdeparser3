@@ -24,7 +24,7 @@ public final class LambdaExpr extends AbstractExpr {
     /**
      * Constructs a lambda expression with an expression body.
      *
-     * @param params   the lambda parameters
+     * @param params the lambda parameters
      * @param exprBody the expression body
      */
     public LambdaExpr(final List<LambdaParam> params, final Expr exprBody) {
@@ -36,7 +36,7 @@ public final class LambdaExpr extends AbstractExpr {
     /**
      * Constructs a lambda expression with a block body.
      *
-     * @param params    the lambda parameters
+     * @param params the lambda parameters
      * @param blockBody the block body creator
      */
     public LambdaExpr(final List<LambdaParam> params, final BlockCreatorImpl blockBody) {

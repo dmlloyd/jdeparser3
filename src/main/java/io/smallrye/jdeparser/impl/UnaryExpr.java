@@ -30,10 +30,10 @@ public final class UnaryExpr extends AbstractExpr {
     /**
      * Constructs a new unary expression.
      *
-     * @param token   the operator token (never {@code null})
+     * @param token the operator token (never {@code null})
      * @param operand the operand expression (never {@code null})
-     * @param prefix  {@code true} for prefix, {@code false} for postfix
-     * @param prec    the precedence level (never {@code null})
+     * @param prefix {@code true} for prefix, {@code false} for postfix
+     * @param prec the precedence level (never {@code null})
      */
     public UnaryExpr(final Tokens.$UNOP token, final Expr operand, final boolean prefix, final Prec prec) {
         this.token = token;

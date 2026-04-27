@@ -1,7 +1,6 @@
 package io.smallrye.jdeparser.impl;
 
 import io.smallrye.common.constraint.Assert;
-
 import io.smallrye.jdeparser.Label;
 
 /**

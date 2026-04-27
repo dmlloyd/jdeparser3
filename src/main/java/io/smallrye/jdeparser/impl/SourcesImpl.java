@@ -12,12 +12,11 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import io.smallrye.common.constraint.Assert;
-
-import io.smallrye.jdeparser.Sources;
 import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Sources;
 import io.smallrye.jdeparser.creator.SourceFileCreator;
-import io.smallrye.jdeparser.format.FormatPreferences;
 import io.smallrye.jdeparser.format.Filer;
+import io.smallrye.jdeparser.format.FormatPreferences;
 
 /**
  * Implementation of {@link Sources} that manages a collection of source files
@@ -43,8 +42,8 @@ public final class SourcesImpl implements Sources {
     /**
      * Constructs a new source file collection.
      *
-     * @param filer         the filer for creating output files
-     * @param preferences   the formatting preferences
+     * @param filer the filer for creating output files
+     * @param preferences the formatting preferences
      * @param sourceVersion the target source version
      */
     public SourcesImpl(final Filer filer, final FormatPreferences preferences, final SourceVersion sourceVersion) {
@@ -56,7 +55,7 @@ public final class SourcesImpl implements Sources {
     /** {@inheritDoc} */
     @Override
     public void createSourceFile(final String packageName, final String fileName,
-                                  final Consumer<SourceFileCreator> builder) {
+            final Consumer<SourceFileCreator> builder) {
         Assert.checkNotNullParam("packageName", packageName);
         Assert.checkNotNullParam("fileName", fileName);
         Assert.checkNotEmptyParam("fileName", fileName);
@@ -83,7 +82,7 @@ public final class SourcesImpl implements Sources {
     public void writeSources() throws IOException {
         for (SourceFileCreatorImpl sf : sourceFiles) {
             try (Writer out = filer.openWriter(sf.packageName(), sf.fileName());
-                 SourceFileWriter writer = new SourceFileWriter(out, preferences, sourceVersion)) {
+                    SourceFileWriter writer = new SourceFileWriter(out, preferences, sourceVersion)) {
                 sf.write(writer);
             }
         }

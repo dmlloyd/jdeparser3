@@ -31,7 +31,7 @@ public interface Writable {
      * when it appears in a type body member list.
      * <p>
      * Returns {@code null} by default, meaning no specific spacing is applied
-     * (a simple newline is used).  Overridden by method, constructor, and
+     * (a simple newline is used). Overridden by method, constructor, and
      * type declaration writables to return the appropriate constant.
      *
      * @return the spacing constant, or {@code null} for default newline spacing

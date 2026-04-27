@@ -6,10 +6,9 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import io.smallrye.common.constraint.Assert;
-
 import io.smallrye.jdeparser.Expr;
-import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.creator.AnnotationCreator;
 import io.smallrye.jdeparser.creator.ClassCreator;
 import io.smallrye.jdeparser.creator.DocCommentCreator;
@@ -43,7 +42,7 @@ public final class EnumConstantCreatorImpl extends AbstractCreator implements En
      * Constructs a new enum constant creator.
      *
      * @param version the source version
-     * @param name    the constant name
+     * @param name the constant name
      */
     public EnumConstantCreatorImpl(final SourceVersion version, final String name) {
         super(version);
@@ -136,7 +135,7 @@ public final class EnumConstantCreatorImpl extends AbstractCreator implements En
             writer.write(Tokens.$PAREN.OPEN);
             writer.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_CALL);
             AbstractExpr.writeList(writer, args, FormatPreferences.Space.AFTER_COMMA,
-                FormatPreferences.Wrapping.ARGUMENT_LIST);
+                    FormatPreferences.Wrapping.ARGUMENT_LIST);
             writer.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_CALL);
             writer.write(Tokens.$PAREN.CLOSE);
         } else if (writer.getFormat().hasOption(FormatPreferences.Opt.ENUM_EMPTY_PARENS)) {

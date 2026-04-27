@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.EnumSet;
 
 import io.smallrye.common.constraint.Assert;
-
 import io.smallrye.jdeparser.creator.AccessLevel;
 import io.smallrye.jdeparser.creator.ModifierFlag;
 import io.smallrye.jdeparser.creator.ModifierLocation;
@@ -15,7 +14,7 @@ import io.smallrye.jdeparser.creator.ModifierLocation;
  * <p>
  * The holder validates modifiers against a {@link ModifierLocation} to
  * ensure only valid modifiers are applied (e.g., {@code transient} is
- * not valid on a method).  It also enforces mutual exclusion rules
+ * not valid on a method). It also enforces mutual exclusion rules
  * defined by {@link ModifierFlag#isExclusiveWith(ModifierFlag)}.
  *
  * @see ModifierLocation
@@ -88,7 +87,7 @@ public final class ModifierHolder {
      *
      * @param flag the flag to add
      * @throws IllegalArgumentException if the flag is not valid for this location,
-     *                                  or conflicts with an existing flag
+     *         or conflicts with an existing flag
      */
     public void addFlag(final ModifierFlag flag) {
         Assert.checkNotNullParam("flag", flag);
@@ -142,7 +141,8 @@ public final class ModifierHolder {
             case PUBLIC -> writer.write(Tokens.$KW.PUBLIC);
             case PROTECTED -> writer.write(Tokens.$KW.PROTECTED);
             case PRIVATE -> writer.write(Tokens.$KW.PRIVATE);
-            case PACKAGE_PRIVATE -> {}
+            case PACKAGE_PRIVATE -> {
+            }
         }
         // flags in JLS recommended order
         writeIf(writer, ModifierFlag.ABSTRACT, Tokens.$KW.ABSTRACT);
@@ -162,8 +162,8 @@ public final class ModifierHolder {
      * Writes the keyword for a modifier flag if it is set.
      *
      * @param writer the writer
-     * @param flag   the flag to check
-     * @param token  the keyword token to write
+     * @param flag the flag to check
+     * @param token the keyword token to write
      * @throws IOException if an I/O error occurs
      */
     private void writeIf(final SourceFileWriter writer, final ModifierFlag flag, final Tokens.$KW token)

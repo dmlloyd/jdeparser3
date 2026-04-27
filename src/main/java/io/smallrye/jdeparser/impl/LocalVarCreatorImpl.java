@@ -4,10 +4,9 @@ import java.io.IOException;
 import java.util.function.Consumer;
 
 import io.smallrye.common.constraint.Assert;
-
 import io.smallrye.jdeparser.Expr;
-import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.creator.AnnotationCreator;
 import io.smallrye.jdeparser.creator.LocalVarCreator;
 
@@ -39,9 +38,9 @@ public final class LocalVarCreatorImpl extends AbstractCreator implements LocalV
      * Constructs a new local variable creator.
      *
      * @param version the source version
-     * @param name    the variable name
-     * @param type    the variable type, or {@code null} for inferred type
-     * @param init    the initializer expression
+     * @param name the variable name
+     * @param type the variable type, or {@code null} for inferred type
+     * @param init the initializer expression
      */
     public LocalVarCreatorImpl(final SourceVersion version, final String name, final Type type, final Expr init) {
         super(version);

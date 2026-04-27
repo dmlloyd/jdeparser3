@@ -10,7 +10,7 @@ import io.smallrye.jdeparser.impl.SourcesImpl;
  * A collection of source files to be generated.
  * <p>
  * Obtained from {@link JDeparser#createSources}, this is the top-level
- * container for defining source files.  After all source files have been
+ * container for defining source files. After all source files have been
  * defined via {@link #createSourceFile}, call {@link #writeSources()} to
  * write all generated source files to the configured output.
  *
@@ -22,8 +22,8 @@ public sealed interface Sources permits SourcesImpl {
      * Defines a new source file in the given package.
      *
      * @param packageName the package name (e.g., {@code "com.example"})
-     * @param fileName    the file name without the {@code .java} extension (e.g., {@code "MyClass"})
-     * @param builder     the callback to define the source file contents
+     * @param fileName the file name without the {@code .java} extension (e.g., {@code "MyClass"})
+     * @param builder the callback to define the source file contents
      */
     void createSourceFile(String packageName, String fileName, Consumer<SourceFileCreator> builder);
 

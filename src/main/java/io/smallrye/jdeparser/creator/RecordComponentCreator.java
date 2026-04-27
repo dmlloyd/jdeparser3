@@ -10,5 +10,6 @@ import io.smallrye.jdeparser.impl.RecordComponentCreatorImpl;
  * so that documentation set here is contributed as inline content
  * within the enclosing record's Javadoc comment.
  */
-public sealed interface RecordComponentCreator extends AnnotatableCreator, DocCommentableCreator<DocInlineCreator> permits RecordComponentCreatorImpl {
+public sealed interface RecordComponentCreator
+        extends AnnotatableCreator, DocCommentableCreator<DocInlineCreator> permits RecordComponentCreatorImpl {
 }

@@ -6,7 +6,7 @@ import java.io.IOException;
  * An expression representing a {@code float} literal.
  * <p>
  * The literal can be rendered in either decimal or hexadecimal floating-point
- * notation, as determined by {@link #isHex()}.  The rendered literal always
+ * notation, as determined by {@link #isHex()}. The rendered literal always
  * includes the {@code f} or {@code F} suffix.
  */
 public final class FloatExpr extends AbstractExpr {
@@ -18,8 +18,8 @@ public final class FloatExpr extends AbstractExpr {
      * Constructs a new float literal expression.
      *
      * @param value the float value
-     * @param hex   {@code true} to render in hexadecimal float notation,
-     *              {@code false} for decimal notation
+     * @param hex {@code true} to render in hexadecimal float notation,
+     *        {@code false} for decimal notation
      */
     public FloatExpr(final float value, final boolean hex) {
         this.value = value;

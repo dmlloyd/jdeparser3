@@ -23,8 +23,8 @@ public sealed interface ConstructorCreator extends ModifiableCreator permits Con
     /**
      * Adds a parameter to this constructor with configuration.
      *
-     * @param name    the parameter name
-     * @param type    the parameter type
+     * @param name the parameter name
+     * @param type the parameter type
      * @param builder the callback to configure the parameter
      */
     void param(String name, Type type, Consumer<ParamCreator> builder);
@@ -32,8 +32,8 @@ public sealed interface ConstructorCreator extends ModifiableCreator permits Con
     /**
      * Adds a varargs parameter to this constructor.
      *
-     * @param name    the parameter name
-     * @param type    the array element type
+     * @param name the parameter name
+     * @param type the array element type
      * @param builder the callback to configure the parameter
      */
     void varargParam(String name, Type type, Consumer<ParamCreator> builder);
@@ -48,7 +48,7 @@ public sealed interface ConstructorCreator extends ModifiableCreator permits Con
     /**
      * Adds a type parameter to this constructor.
      *
-     * @param name    the type parameter name
+     * @param name the type parameter name
      * @param builder the callback to configure the type parameter
      */
     void typeParam(String name, Consumer<TypeParamCreator> builder);

@@ -1,29 +1,30 @@
 package io.smallrye.jdeparser.test;
 
-import java.io.IOException;
-
-import io.smallrye.jdeparser.Expr;
-import io.smallrye.jdeparser.Sources;
-import io.smallrye.jdeparser.Type;
-import io.smallrye.jdeparser.SourceVersion;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.IOException;
+
+import org.junit.jupiter.api.Test;
+
+import io.smallrye.jdeparser.Expr;
+import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Sources;
+import io.smallrye.jdeparser.Type;
 
 /**
  * Tests for automatic import resolution and {@code java.lang} auto-importing.
  * <p>
  * Verifies that:
  * <ul>
- *   <li>{@code java.lang} types are automatically written with simple names
- *       and do not produce import statements</li>
- *   <li>Explicitly imported types are written with simple names and produce
- *       the corresponding import statement</li>
- *   <li>Non-imported types from other packages remain fully qualified</li>
- *   <li>Same-package types are written with simple names without import
- *       statements</li>
+ * <li>{@code java.lang} types are automatically written with simple names
+ * and do not produce import statements</li>
+ * <li>Explicitly imported types are written with simple names and produce
+ * the corresponding import statement</li>
+ * <li>Non-imported types from other packages remain fully qualified</li>
+ * <li>Same-package types are written with simple names without import
+ * statements</li>
  * </ul>
  */
 class ImportTest extends AbstractGeneratingTestCase {
@@ -380,7 +381,7 @@ class ImportTest extends AbstractGeneratingTestCase {
      * type with the same simple name.
      * <p>
      * Per JLS §7.5.1, a single-type-import declaration shadows types inherited
-     * from {@code java.lang}.  When {@code com.example.String} is explicitly
+     * from {@code java.lang}. When {@code com.example.String} is explicitly
      * imported, {@code java.lang.String} must be written fully qualified.
      *
      * @throws IOException if source generation fails
@@ -420,7 +421,7 @@ class ImportTest extends AbstractGeneratingTestCase {
      * type with the same simple name.
      * <p>
      * Per JLS §7.5.1, a single-type-import declaration shadows types declared
-     * in the same package.  When {@code com.other.Peer} is explicitly imported
+     * in the same package. When {@code com.other.Peer} is explicitly imported
      * into package {@code com.example}, a same-package {@code com.example.Peer}
      * must be written fully qualified.
      *
@@ -506,7 +507,7 @@ class ImportTest extends AbstractGeneratingTestCase {
      * the same-package type takes precedence and uses the simple name.
      * <p>
      * Per JLS §6.5.2, same-package types are resolved at step 3, before
-     * on-demand imports ({@code java.lang.*}) at step 4.  The same-package
+     * on-demand imports ({@code java.lang.*}) at step 4. The same-package
      * type shadows the {@code java.lang} type, which must be fully qualified.
      *
      * @throws IOException if source generation fails
@@ -545,7 +546,7 @@ class ImportTest extends AbstractGeneratingTestCase {
      * simple name and the {@code java.lang} type must be fully qualified.
      * <p>
      * Per JLS §6.5.2, same-package types already take precedence over
-     * {@code java.lang} on-demand imports (step 3 before step 4).  An
+     * {@code java.lang} on-demand imports (step 3 before step 4). An
      * explicit single-type-import of the same-package type is redundant
      * but harmless, and the result should be the same.
      *

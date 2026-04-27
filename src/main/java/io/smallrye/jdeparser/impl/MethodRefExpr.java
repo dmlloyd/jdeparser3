@@ -21,7 +21,7 @@ public final class MethodRefExpr extends AbstractExpr {
      * Constructs a method reference on an expression receiver: {@code expr::method}.
      *
      * @param receiver the receiver expression
-     * @param method   the method name (or {@code "new"} for constructor references)
+     * @param method the method name (or {@code "new"} for constructor references)
      */
     public MethodRefExpr(final Expr receiver, final String method) {
         this.receiver = receiver;
@@ -32,7 +32,7 @@ public final class MethodRefExpr extends AbstractExpr {
     /**
      * Constructs a method reference on a type: {@code Type::method}.
      *
-     * @param type   the type
+     * @param type the type
      * @param method the method name (or {@code "new"} for constructor references)
      */
     public MethodRefExpr(final Type type, final String method) {

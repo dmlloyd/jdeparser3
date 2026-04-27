@@ -11,7 +11,7 @@ import io.smallrye.jdeparser.format.FormatPreferences;
  * such as {@code List<String>} or {@code Map<String, Integer>}.
  * <p>
  * Once type arguments have been applied, further calls to {@link #typeArg}
- * are rejected with an {@link IllegalStateException}.  The {@link #erasure()}
+ * are rejected with an {@link IllegalStateException}. The {@link #erasure()}
  * operation delegates to the raw type's erasure.
  */
 public final class NarrowedType extends AbstractType {
@@ -25,7 +25,7 @@ public final class NarrowedType extends AbstractType {
     /**
      * Constructs a new parameterized type.
      *
-     * @param rawType  the raw type to which type arguments are applied
+     * @param rawType the raw type to which type arguments are applied
      * @param typeArgs the type arguments (defensively copied to an unmodifiable list)
      */
     public NarrowedType(final Type rawType, final List<Type> typeArgs) {

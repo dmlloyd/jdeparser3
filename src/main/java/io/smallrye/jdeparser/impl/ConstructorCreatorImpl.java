@@ -6,9 +6,8 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import io.smallrye.common.constraint.Assert;
-
-import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.creator.AccessLevel;
 import io.smallrye.jdeparser.creator.AnnotationCreator;
 import io.smallrye.jdeparser.creator.BlockCreator;
@@ -272,14 +271,14 @@ public final class ConstructorCreatorImpl extends AbstractCreator implements Con
         } else {
             writer.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_DECLARATION);
             AbstractExpr.writeList(writer, params, FormatPreferences.Space.AFTER_COMMA,
-                FormatPreferences.Wrapping.PARAMETER_LIST);
+                    FormatPreferences.Wrapping.PARAMETER_LIST);
             writer.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_DECLARATION);
         }
         writer.write(Tokens.$PAREN.CLOSE);
         if (!throwsTypes.isEmpty()) {
             writer.write(Tokens.$KW.THROWS);
             AbstractExpr.writeList(writer, throwsTypes, FormatPreferences.Space.AFTER_COMMA,
-                FormatPreferences.Wrapping.EXCEPTION_LIST);
+                    FormatPreferences.Wrapping.EXCEPTION_LIST);
         }
         writer.write(FormatPreferences.Space.BEFORE_BRACE_METHOD);
         if (body != null) {

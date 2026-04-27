@@ -300,8 +300,8 @@ public sealed interface Expr permits Var, AbstractExpr {
     /**
      * Creates a switch expression on this value (Java 14+): {@code switch (thisValue) { /* cases *\u200D/ }}.
      *
-     * @param version  the source version for feature validation
-     * @param builder  the switch case builder
+     * @param version the source version for feature validation
+     * @param builder the switch case builder
      * @return the switch expression
      */
     default Expr switch_(final SourceVersion version, final Consumer<SwitchCreator> builder) {
@@ -318,7 +318,7 @@ public sealed interface Expr permits Var, AbstractExpr {
      * Creates an expression-body lambda with a single untyped parameter: {@code x -> expr}.
      *
      * @param param the parameter name
-     * @param body  the expression body
+     * @param body the expression body
      * @return the lambda expression
      */
     static Expr lambda(final String param, final Expr body) {
@@ -332,7 +332,7 @@ public sealed interface Expr permits Var, AbstractExpr {
      * Creates an expression-body lambda with multiple untyped parameters: {@code (x, y) -> expr}.
      *
      * @param params the parameter names
-     * @param body   the expression body
+     * @param body the expression body
      * @return the lambda expression
      */
     static Expr lambda(final List<String> params, final Expr body) {
@@ -340,21 +340,20 @@ public sealed interface Expr permits Var, AbstractExpr {
         Assert.checkNotEmptyParam("params", params);
         Assert.checkNotNullParam("body", body);
         return new LambdaExpr(
-            params.stream().map(LambdaExpr.LambdaParam::new).toList(),
-            body
-        );
+                params.stream().map(LambdaExpr.LambdaParam::new).toList(),
+                body);
     }
 
     /**
      * Creates a block-body lambda with a single untyped parameter: {@code x -> { /* statements *\u200D/ }}.
      *
      * @param version the source version for feature validation
-     * @param param   the parameter name
-     * @param body    the block body builder
+     * @param param the parameter name
+     * @param body the block body builder
      * @return the lambda expression
      */
     static Expr lambda(final SourceVersion version, final String param,
-        final Consumer<BlockCreator> body) {
+            final Consumer<BlockCreator> body) {
         Assert.checkNotNullParam("version", version);
         Assert.checkNotNullParam("param", param);
         Assert.checkNotEmptyParam("param", param);
@@ -369,12 +368,12 @@ public sealed interface Expr permits Var, AbstractExpr {
      * Creates a block-body lambda with multiple untyped parameters: {@code (x, y) -> /* statements *\u200D/}.
      *
      * @param version the source version for feature validation
-     * @param params  the parameter names
-     * @param body    the block body builder
+     * @param params the parameter names
+     * @param body the block body builder
      * @return the lambda expression
      */
     static Expr lambda(final SourceVersion version, final List<String> params,
-        final Consumer<BlockCreator> body) {
+            final Consumer<BlockCreator> body) {
         Assert.checkNotNullParam("version", version);
         Assert.checkNotNullParam("params", params);
         Assert.checkNotEmptyParam("params", params);
@@ -383,16 +382,15 @@ public sealed interface Expr permits Var, AbstractExpr {
         body.accept(bc);
         bc.finish();
         return new LambdaExpr(
-            params.stream().map(LambdaExpr.LambdaParam::new).toList(),
-            bc
-        );
+                params.stream().map(LambdaExpr.LambdaParam::new).toList(),
+                bc);
     }
 
     /**
      * Creates an expression-body lambda with typed parameters: {@code (Type1 x, Type2 y) -> expr}.
      *
      * @param params the typed parameters (name-type pairs)
-     * @param body   the expression body
+     * @param body the expression body
      * @return the lambda expression
      */
     static Expr lambdaTyped(final List<LambdaExpr.LambdaParam> params, final Expr body) {
@@ -406,12 +404,12 @@ public sealed interface Expr permits Var, AbstractExpr {
      * Creates a block-body lambda with typed parameters: {@code (Type1 x, Type2 y) -> { }/* statements *\u200D/ }}.
      *
      * @param version the source version for feature validation
-     * @param params  the typed parameters (name-type pairs)
-     * @param body    the block body builder
+     * @param params the typed parameters (name-type pairs)
+     * @param body the block body builder
      * @return the lambda expression
      */
     static Expr lambdaTyped(final SourceVersion version, final List<LambdaExpr.LambdaParam> params,
-        final Consumer<BlockCreator> body) {
+            final Consumer<BlockCreator> body) {
         Assert.checkNotNullParam("version", version);
         Assert.checkNotNullParam("params", params);
         Assert.checkNotEmptyParam("params", params);
@@ -457,7 +455,8 @@ public sealed interface Expr permits Var, AbstractExpr {
     Expr div(Expr operand);
 
     /**
-     * Returns an expression representing the remainder of this expression divided by the given operand ({@code this % operand}).
+     * Returns an expression representing the remainder of this expression divided by the given operand
+     * ({@code this % operand}).
      *
      * @param operand the right-hand operand
      * @return the remainder expression
@@ -522,7 +521,8 @@ public sealed interface Expr permits Var, AbstractExpr {
     Expr shl(Expr operand);
 
     /**
-     * Returns an expression representing the signed right shift of this expression by the given operand ({@code this >> operand}).
+     * Returns an expression representing the signed right shift of this expression by the given operand
+     * ({@code this >> operand}).
      *
      * @param operand the shift distance
      * @return the signed right shift expression
@@ -530,7 +530,8 @@ public sealed interface Expr permits Var, AbstractExpr {
     Expr shr(Expr operand);
 
     /**
-     * Returns an expression representing the unsigned right shift of this expression by the given operand ({@code this >>> operand}).
+     * Returns an expression representing the unsigned right shift of this expression by the given operand
+     * ({@code this >>> operand}).
      *
      * @param operand the shift distance
      * @return the unsigned right shift expression
@@ -540,7 +541,8 @@ public sealed interface Expr permits Var, AbstractExpr {
     // Relational operations
 
     /**
-     * Returns an expression representing the equality comparison of this expression and the given operand ({@code this == operand}).
+     * Returns an expression representing the equality comparison of this expression and the given operand
+     * ({@code this == operand}).
      *
      * @param operand the right-hand operand
      * @return the equality expression
@@ -548,7 +550,8 @@ public sealed interface Expr permits Var, AbstractExpr {
     Expr eq(Expr operand);
 
     /**
-     * Returns an expression representing the inequality comparison of this expression and the given operand ({@code this != operand}).
+     * Returns an expression representing the inequality comparison of this expression and the given operand
+     * ({@code this != operand}).
      *
      * @param operand the right-hand operand
      * @return the inequality expression
@@ -556,7 +559,8 @@ public sealed interface Expr permits Var, AbstractExpr {
     Expr ne(Expr operand);
 
     /**
-     * Returns an expression representing the less-than comparison of this expression and the given operand ({@code this < operand}).
+     * Returns an expression representing the less-than comparison of this expression and the given operand
+     * ({@code this < operand}).
      *
      * @param operand the right-hand operand
      * @return the less-than expression
@@ -564,7 +568,8 @@ public sealed interface Expr permits Var, AbstractExpr {
     Expr lt(Expr operand);
 
     /**
-     * Returns an expression representing the greater-than comparison of this expression and the given operand ({@code this > operand}).
+     * Returns an expression representing the greater-than comparison of this expression and the given operand
+     * ({@code this > operand}).
      *
      * @param operand the right-hand operand
      * @return the greater-than expression
@@ -572,7 +577,8 @@ public sealed interface Expr permits Var, AbstractExpr {
     Expr gt(Expr operand);
 
     /**
-     * Returns an expression representing the less-than-or-equal comparison of this expression and the given operand ({@code this <= operand}).
+     * Returns an expression representing the less-than-or-equal comparison of this expression and the given operand
+     * ({@code this <= operand}).
      *
      * @param operand the right-hand operand
      * @return the less-than-or-equal expression
@@ -580,7 +586,8 @@ public sealed interface Expr permits Var, AbstractExpr {
     Expr le(Expr operand);
 
     /**
-     * Returns an expression representing the greater-than-or-equal comparison of this expression and the given operand ({@code this >= operand}).
+     * Returns an expression representing the greater-than-or-equal comparison of this expression and the given operand
+     * ({@code this >= operand}).
      *
      * @param operand the right-hand operand
      * @return the greater-than-or-equal expression

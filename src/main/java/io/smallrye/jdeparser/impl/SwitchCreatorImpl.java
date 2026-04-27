@@ -6,10 +6,9 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import io.smallrye.common.constraint.Assert;
-
 import io.smallrye.jdeparser.Expr;
-import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.creator.BlockCreator;
 import io.smallrye.jdeparser.creator.CaseCreator;
 import io.smallrye.jdeparser.creator.SwitchCreator;

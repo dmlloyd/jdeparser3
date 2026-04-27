@@ -6,9 +6,8 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import io.smallrye.common.constraint.Assert;
-
-import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.creator.AccessLevel;
 import io.smallrye.jdeparser.creator.AnnotationCreator;
 import io.smallrye.jdeparser.creator.AnnotationInterfaceCreator;
@@ -61,7 +60,7 @@ public final class InterfaceCreatorImpl extends AbstractCreator implements Inter
      * Constructs a new interface creator.
      *
      * @param version the source version
-     * @param name    the interface name
+     * @param name the interface name
      */
     public InterfaceCreatorImpl(final SourceVersion version, final String name) {
         super(version);
@@ -353,13 +352,13 @@ public final class InterfaceCreatorImpl extends AbstractCreator implements Inter
     /**
      * Writes a comma-separated list of types with wrapping support.
      *
-     * @param writer   the writer
-     * @param types    the types
+     * @param writer the writer
+     * @param types the types
      * @param wrapping the wrapping context
      * @throws IOException if an I/O error occurs
      */
     private static void writeTypeList(final SourceFileWriter writer, final List<Type> types,
-                                      final FormatPreferences.Wrapping wrapping) throws IOException {
+            final FormatPreferences.Wrapping wrapping) throws IOException {
         AbstractExpr.writeList(writer, types, FormatPreferences.Space.AFTER_COMMA, wrapping);
     }
 }

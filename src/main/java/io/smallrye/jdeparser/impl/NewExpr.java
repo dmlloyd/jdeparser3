@@ -69,7 +69,7 @@ public final class NewExpr extends AbstractExpr {
         } else {
             writer.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_CALL);
             writeList(writer, args, FormatPreferences.Space.AFTER_COMMA,
-                FormatPreferences.Wrapping.ARGUMENT_LIST);
+                    FormatPreferences.Wrapping.ARGUMENT_LIST);
             writer.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_CALL);
         }
         writer.write(Tokens.$PAREN.CLOSE);

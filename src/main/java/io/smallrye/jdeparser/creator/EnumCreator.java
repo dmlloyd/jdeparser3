@@ -20,7 +20,7 @@ public sealed interface EnumCreator extends ModifiableCreator permits EnumCreato
     /**
      * Defines an enum constant.
      *
-     * @param name    the constant name
+     * @param name the constant name
      * @param builder the callback to configure the constant
      */
     void constant(String name, Consumer<EnumConstantCreator> builder);
@@ -28,7 +28,7 @@ public sealed interface EnumCreator extends ModifiableCreator permits EnumCreato
     /**
      * Defines a field in this enum.
      *
-     * @param name    the field name
+     * @param name the field name
      * @param builder the callback to configure the field
      */
     void field(String name, Consumer<FieldCreator> builder);
@@ -36,7 +36,7 @@ public sealed interface EnumCreator extends ModifiableCreator permits EnumCreato
     /**
      * Defines a method in this enum.
      *
-     * @param name    the method name
+     * @param name the method name
      * @param builder the callback to configure the method
      */
     void method(String name, Consumer<MethodCreator> builder);

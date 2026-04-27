@@ -3,7 +3,7 @@ package io.smallrye.jdeparser;
 /**
  * Represents a target Java source version for code generation.
  * <p>
- * Each constant corresponds to a Java SE release.  The source version
+ * Each constant corresponds to a Java SE release. The source version
  * controls which {@linkplain LanguageFeature language features} are
  * permitted during source generation; attempting to use a feature that
  * requires a higher version than the configured target will result in
@@ -87,8 +87,7 @@ public enum SourceVersion {
     public void require(final LanguageFeature feature) {
         if (!supports(feature)) {
             throw new IllegalStateException(
-                feature.name() + " requires " + feature.minimumVersion() + " but target is " + this
-            );
+                    feature.name() + " requires " + feature.minimumVersion() + " but target is " + this);
         }
     }
 }

@@ -10,7 +10,7 @@ import io.smallrye.jdeparser.Type;
  * <p>
  * Supports both the classic form {@code expr instanceof Type} and the
  * pattern-matching form {@code expr instanceof Type name} introduced in
- * Java 16.  The presence of a binding variable is indicated by
+ * Java 16. The presence of a binding variable is indicated by
  * {@link #hasBindingVar()}.
  * <p>
  * The {@code instanceof} operator has {@link Prec#RELATIONAL} precedence
@@ -30,8 +30,8 @@ public final class InstanceOfExpr extends AbstractExpr {
     /**
      * Constructs a new {@code instanceof} expression.
      *
-     * @param operand    the expression being tested (never {@code null})
-     * @param type       the type to test against (never {@code null})
+     * @param operand the expression being tested (never {@code null})
+     * @param type the type to test against (never {@code null})
      * @param bindingVar the binding variable name, or {@code null} for the classic form
      */
     public InstanceOfExpr(final Expr operand, final Type type, final String bindingVar) {

@@ -1,18 +1,19 @@
 package io.smallrye.jdeparser.test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import io.smallrye.jdeparser.Expr;
-import io.smallrye.jdeparser.Sources;
-import io.smallrye.jdeparser.Type;
-import io.smallrye.jdeparser.SourceVersion;
-import io.smallrye.jdeparser.creator.ModifierFlag;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import io.smallrye.jdeparser.Expr;
+import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Sources;
+import io.smallrye.jdeparser.Type;
+import io.smallrye.jdeparser.creator.ModifierFlag;
 
 /**
  * Tests that compare complete generated source files against pre-created
@@ -110,8 +111,10 @@ class WholeFileTest extends AbstractGeneratingTestCase {
         sources.createSourceFile("com.example", "Converter", sf -> {
             sf.interface_("Converter", ic -> {
                 ic.public_();
-                ic.typeParam("F", tp -> {});
-                ic.typeParam("T", tp -> {});
+                ic.typeParam("F", tp -> {
+                });
+                ic.typeParam("T", tp -> {
+                });
                 ic.method("convert", mc -> {
                     mc.returning(Type.named("T"));
                     mc.param("input", Type.named("F"));
@@ -168,7 +171,7 @@ class WholeFileTest extends AbstractGeneratingTestCase {
      * against the generated source.
      *
      * @param fileName the file name (without extension for the generated file,
-     *                 with .java suffix for the resource)
+     *        with .java suffix for the resource)
      * @throws IOException if the resource cannot be loaded
      */
     private void assertMatchesExpected(final String fileName) throws IOException {

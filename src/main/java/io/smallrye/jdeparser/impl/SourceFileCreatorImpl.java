@@ -10,10 +10,9 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import io.smallrye.common.constraint.Assert;
-
-import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.LanguageFeature;
 import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.creator.AnnotationInterfaceCreator;
 import io.smallrye.jdeparser.creator.ClassCreator;
 import io.smallrye.jdeparser.creator.EnumCreator;
@@ -60,13 +59,13 @@ public final class SourceFileCreatorImpl extends AbstractCreator implements Sour
     /**
      * Constructs a new source file creator.
      *
-     * @param sources     the owning sources collection
-     * @param version     the source version
+     * @param sources the owning sources collection
+     * @param version the source version
      * @param packageName the package name
-     * @param fileName    the file name (without extension)
+     * @param fileName the file name (without extension)
      */
     public SourceFileCreatorImpl(final SourcesImpl sources, final SourceVersion version,
-                                 final String packageName, final String fileName) {
+            final String packageName, final String fileName) {
         super(version);
         this.sources = sources;
         this.packageName = packageName;

@@ -27,8 +27,8 @@ public final class AssignExpr extends AbstractExpr {
      * Constructs a new assignment expression.
      *
      * @param target the assignment target (never {@code null})
-     * @param token  the operator token (never {@code null})
-     * @param value  the value to assign (never {@code null})
+     * @param token the operator token (never {@code null})
+     * @param value the value to assign (never {@code null})
      */
     public AssignExpr(final Expr target, final Tokens.$BINOP token, final Expr value) {
         this.target = target;

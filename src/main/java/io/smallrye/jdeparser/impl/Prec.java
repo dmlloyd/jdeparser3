@@ -4,7 +4,7 @@ package io.smallrye.jdeparser.impl;
  * Java operator precedence levels, ordered from lowest to highest.
  * <p>
  * Used internally to determine when parentheses must be emitted around
- * sub-expressions during source generation.  Higher ordinal values
+ * sub-expressions during source generation. Higher ordinal values
  * indicate tighter binding.
  *
  * @see Assoc

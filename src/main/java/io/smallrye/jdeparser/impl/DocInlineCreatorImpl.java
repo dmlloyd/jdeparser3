@@ -7,11 +7,10 @@ import java.util.List;
 import java.util.Set;
 
 import io.smallrye.common.constraint.Assert;
-
 import io.smallrye.jdeparser.DocReference;
-import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.LanguageFeature;
 import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.creator.DocInlineCreator;
 
 /**
@@ -21,10 +20,10 @@ import io.smallrye.jdeparser.creator.DocInlineCreator;
  * <p>
  * This class serves two roles:
  * <ol>
- *   <li>Base class for {@link DocCommentCreatorImpl}, providing all inline
- *       method implementations via inheritance.</li>
- *   <li>Standalone inline content collector used for block tag body content
- *       (e.g., the description in {@code @return} or {@code @throws} tags).</li>
+ * <li>Base class for {@link DocCommentCreatorImpl}, providing all inline
+ * method implementations via inheritance.</li>
+ * <li>Standalone inline content collector used for block tag body content
+ * (e.g., the description in {@code @return} or {@code @throws} tags).</li>
  * </ol>
  * <p>
  * Type names in {@code {@link}} and {@code {@linkplain}} tags are resolved
@@ -42,9 +41,9 @@ public non-sealed class DocInlineCreatorImpl extends AbstractCreator implements 
     /**
      * Constructs a new inline content creator.
      *
-     * @param version    the source version
+     * @param version the source version
      * @param sourceFile the enclosing source file creator, or {@code null}
-     * @param context    the declaration context for tag validation, or {@code null}
+     * @param context the declaration context for tag validation, or {@code null}
      */
     public DocInlineCreatorImpl(final SourceVersion version, final SourceFileCreatorImpl sourceFile, final DocContext context) {
         super(version);
@@ -64,15 +63,14 @@ public non-sealed class DocInlineCreatorImpl extends AbstractCreator implements 
     /**
      * Validates that the current context is one of the allowed contexts for a tag.
      *
-     * @param tagName         the tag name for error messages
+     * @param tagName the tag name for error messages
      * @param allowedContexts the set of contexts in which the tag is valid
      * @throws IllegalStateException if the context is not allowed
      */
     void requireContext(final String tagName, final Set<DocContext> allowedContexts) {
         if (context != null && !allowedContexts.contains(context)) {
             throw new IllegalStateException(
-                "@" + tagName + " is not valid in " + context.displayName() + " documentation comments"
-            );
+                    "@" + tagName + " is not valid in " + context.displayName() + " documentation comments");
         }
     }
 
@@ -307,8 +305,7 @@ public non-sealed class DocInlineCreatorImpl extends AbstractCreator implements 
 
     /** Module, package, type, and overview. */
     static final Set<DocContext> CONTEXT_AUTHOR_VERSION = EnumSet.of(
-        DocContext.MODULE, DocContext.PACKAGE, DocContext.TYPE, DocContext.OTHER
-    );
+            DocContext.MODULE, DocContext.PACKAGE, DocContext.TYPE, DocContext.OTHER);
 
     /** Type, method, and field. */
     static final Set<DocContext> CONTEXT_HIDDEN = EnumSet.of(DocContext.TYPE, DocContext.METHOD, DocContext.FIELD);
@@ -327,8 +324,7 @@ public non-sealed class DocInlineCreatorImpl extends AbstractCreator implements 
 
     /** Module, type, constructor, method, and field. */
     static final Set<DocContext> CONTEXT_DEPRECATED = EnumSet.of(
-        DocContext.MODULE, DocContext.TYPE, DocContext.CONSTRUCTOR, DocContext.METHOD, DocContext.FIELD
-    );
+            DocContext.MODULE, DocContext.TYPE, DocContext.CONSTRUCTOR, DocContext.METHOD, DocContext.FIELD);
 
     /**
      * Returns whether this creator has any inline content fragments.
@@ -346,7 +342,7 @@ public non-sealed class DocInlineCreatorImpl extends AbstractCreator implements 
      * This method is {@code final} so that it always writes just the inline
      * parts, even when called on a {@link DocCommentCreatorImpl} (which
      * overrides {@link #write(SourceFileWriter)} to emit the full comment
-     * block).  It is used by {@code @param} tag writers to embed inline
+     * block). It is used by {@code @param} tag writers to embed inline
      * content within a block tag.
      *
      * @param writer the source file writer

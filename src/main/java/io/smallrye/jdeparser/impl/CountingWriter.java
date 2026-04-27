@@ -7,8 +7,8 @@ import java.io.Writer;
  * A writer wrapper that tracks line and column position as characters
  * are written, and buffers output for efficiency.
  * <p>
- * Line and column numbers are 1-indexed.  The column is reset to 1 on
- * each newline ({@code '\n'}) or carriage return ({@code '\r'}).  Line
+ * Line and column numbers are 1-indexed. The column is reset to 1 on
+ * each newline ({@code '\n'}) or carriage return ({@code '\r'}). Line
  * numbers increment only on {@code '\n'}.
  * <p>
  * Internally, a 4 KB buffer reduces the number of system-level write
@@ -156,7 +156,7 @@ public final class CountingWriter extends Writer {
     /**
      * Writes a portion of a {@link StringBuilder} to this writer.
      *
-     * @param b   the string builder
+     * @param b the string builder
      * @param off the start offset
      * @param len the number of characters to write
      * @throws IOException if an I/O error occurs

@@ -9,48 +9,36 @@
     <version>3.0-SNAPSHOT</version>
 
     <parent>
-        <groupId>org.jboss</groupId>
-        <artifactId>jboss-parent</artifactId>
-        <version>51</version>
+        <groupId>io.smallrye</groupId>
+        <artifactId>smallrye-parent</artifactId>
+        <version>49</version>
     </parent>
 
     <name>JDeparser</name>
-
+    <description>A Java source code generation library</description>
     <url>https://github.com/smallrye/jdeparser</url>
 
-    <description>A Java source code generation library</description>
-
-    <licenses>
-        <license>
-            <name>Apache License, Version 2.0</name>
-            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
+    <scm>
+        <url>https://github.com/smallrye/jdeparser</url>
+        <connection>scm:git:git@github.com:smallrye/jdeparser</connection>
+        <developerConnection>scm:git:git@github.com:smallrye/jdeparser</developerConnection>
+      <tag>HEAD</tag>
+    </scm>
 
     <issueManagement>
         <system>GitHub</system>
         <url>https://github.com/smallrye/jdeparser/issues</url>
     </issueManagement>
 
-    <scm>
-        <connection>scm:git:git@github.com:smallrye/jdeparser.git</connection>
-        <developerConnection>scm:git:git@github.com:smallrye/jdeparser.git</developerConnection>
-        <url>https://github.com/smallrye/jdeparser</url>
-        <tag>HEAD</tag>
-    </scm>
-
-    <developers>
-        <developer>
-            <id>jdeparser-team</id>
-            <name>JDeparser Team</name>
-            <organization>JBoss</organization>
-            <organizationUrl>https://jboss.org</organizationUrl>
-        </developer>
-    </developers>
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
     <properties>
-        <maven.compiler.release>17</maven.compiler.release>
         <jdk.min.version>25</jdk.min.version>
     </properties>
 

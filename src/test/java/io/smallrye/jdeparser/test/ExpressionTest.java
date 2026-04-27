@@ -1,17 +1,18 @@
 package io.smallrye.jdeparser.test;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.IOException;
 import java.util.List;
 
-import io.smallrye.jdeparser.Expr;
-import io.smallrye.jdeparser.Sources;
-import io.smallrye.jdeparser.Type;
-import io.smallrye.jdeparser.SourceVersion;
-import io.smallrye.jdeparser.impl.LambdaExpr;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import io.smallrye.jdeparser.Expr;
+import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Sources;
+import io.smallrye.jdeparser.Type;
+import io.smallrye.jdeparser.impl.LambdaExpr;
 
 /**
  * Tests for expression generation: arithmetic, logical, comparisons,
@@ -124,7 +125,7 @@ class ExpressionTest extends AbstractGeneratingTestCase {
         sources.writeSources();
         final String source = getSource("com.example", "Check");
         assertTrue(source.contains("obj instanceof String"),
-            "should contain instanceof expression");
+                "should contain instanceof expression");
     }
 
     /**
@@ -140,7 +141,7 @@ class ExpressionTest extends AbstractGeneratingTestCase {
                 cc.method("run", mc -> {
                     mc.body(b -> {
                         b.emit(Expr.$v("builder").call("append", Expr.str("hello"))
-                            .call("append", Expr.str("world")).call("toString"));
+                                .call("append", Expr.str("world")).call("toString"));
                     });
                 });
             });
@@ -148,7 +149,7 @@ class ExpressionTest extends AbstractGeneratingTestCase {
         sources.writeSources();
         final String source = getSource("com.example", "Chain");
         assertTrue(source.contains(".append(\"hello\").append(\"world\").toString()"),
-            "should contain chained calls");
+                "should contain chained calls");
     }
 
     /**
@@ -1025,9 +1026,8 @@ class ExpressionTest extends AbstractGeneratingTestCase {
                 cc.field("fn", fc -> {
                     fc.type(Type.OBJECT);
                     fc.init(Expr.lambdaTyped(
-                        List.of(new LambdaExpr.LambdaParam("x", Type.INT)),
-                        Expr.$v("x").mul(Expr.decimal(2))
-                    ));
+                            List.of(new LambdaExpr.LambdaParam("x", Type.INT)),
+                            Expr.$v("x").mul(Expr.decimal(2))));
                 });
             });
         });
@@ -1074,7 +1074,7 @@ class ExpressionTest extends AbstractGeneratingTestCase {
             sf.class_("UpperWild", cc -> {
                 cc.field("nums", fc -> {
                     fc.type(Type.named("java.util.List").typeArg(
-                        Type.named("java.lang.Number").wildcardExtends()));
+                            Type.named("java.lang.Number").wildcardExtends()));
                     fc.init(Expr.NULL);
                 });
             });
@@ -1082,7 +1082,7 @@ class ExpressionTest extends AbstractGeneratingTestCase {
         sources.writeSources();
         final String source = getSource("com.example", "UpperWild");
         assertTrue(source.contains("List<? extends Number> nums"),
-            "should contain upper-bounded wildcard type");
+                "should contain upper-bounded wildcard type");
     }
 
     /**
@@ -1098,7 +1098,7 @@ class ExpressionTest extends AbstractGeneratingTestCase {
             sf.class_("LowerWild", cc -> {
                 cc.field("nums", fc -> {
                     fc.type(Type.named("java.util.List").typeArg(
-                        Type.named("java.lang.Integer").wildcardSuper()));
+                            Type.named("java.lang.Integer").wildcardSuper()));
                     fc.init(Expr.NULL);
                 });
             });
@@ -1106,7 +1106,7 @@ class ExpressionTest extends AbstractGeneratingTestCase {
         sources.writeSources();
         final String source = getSource("com.example", "LowerWild");
         assertTrue(source.contains("List<? super Integer> nums"),
-            "should contain lower-bounded wildcard type");
+                "should contain lower-bounded wildcard type");
     }
 
     /**
@@ -1123,15 +1123,13 @@ class ExpressionTest extends AbstractGeneratingTestCase {
                 cc.field("fn", fc -> {
                     fc.type(Type.OBJECT);
                     fc.init(Expr.lambdaTyped(
-                        SourceVersion.JAVA_17,
-                        List.of(
-                            new LambdaExpr.LambdaParam("s", Type.STRING),
-                            new LambdaExpr.LambdaParam("n", Type.INT)
-                        ),
-                        b -> {
-                            b.return_(Expr.$v("s").call("substring", Expr.$v("n")));
-                        }
-                    ));
+                            SourceVersion.JAVA_17,
+                            List.of(
+                                    new LambdaExpr.LambdaParam("s", Type.STRING),
+                                    new LambdaExpr.LambdaParam("n", Type.INT)),
+                            b -> {
+                                b.return_(Expr.$v("s").call("substring", Expr.$v("n")));
+                            }));
                 });
             });
         });

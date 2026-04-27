@@ -4,10 +4,9 @@ import java.io.IOException;
 import java.util.function.Consumer;
 
 import io.smallrye.common.constraint.Assert;
-
 import io.smallrye.jdeparser.Expr;
-import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.creator.AccessLevel;
 import io.smallrye.jdeparser.creator.AnnotationCreator;
 import io.smallrye.jdeparser.creator.DocCommentCreator;
@@ -47,10 +46,10 @@ public final class FieldCreatorImpl extends AbstractCreator implements FieldCrea
     /**
      * Constructs a new field creator.
      *
-     * @param version  the source version
-     * @param name     the field name
+     * @param version the source version
+     * @param name the field name
      * @param location the modifier location (e.g., {@link ModifierLocation#FIELD} or
-     *                 {@link ModifierLocation#INTERFACE_FIELD})
+     *        {@link ModifierLocation#INTERFACE_FIELD})
      */
     public FieldCreatorImpl(final SourceVersion version, final String name, final ModifierLocation location) {
         super(version);

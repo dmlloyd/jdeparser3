@@ -10,21 +10,21 @@ import io.smallrye.common.constraint.Assert;
 /**
  * Configuration controlling the formatting of generated Java source code.
  * <p>
- * Instances are created via the {@link #builder()} method.  All preferences
+ * Instances are created via the {@link #builder()} method. All preferences
  * have sensible defaults; the builder is used only to customize specific settings.
  * Preferences can also be loaded from a {@link Properties} object via
  * {@link Builder#fromProperties(Properties)}.
  * <p>
  * The configuration includes:
  * <ul>
- *   <li>{@linkplain Indentation Indentation sizes} for different contexts
- *       (class members, labels, line continuations, etc.)</li>
- *   <li>{@linkplain Space Spacing rules} controlling whitespace around operators,
- *       keywords, braces, parentheses, and other syntactic elements</li>
- *   <li>{@linkplain Wrapping Line wrapping modes} for lists (parameters, exceptions,
- *       type arguments, etc.)</li>
- *   <li>{@linkplain Opt Formatting options} for miscellaneous preferences</li>
- *   <li>General settings: line length, tab usage, tab width</li>
+ * <li>{@linkplain Indentation Indentation sizes} for different contexts
+ * (class members, labels, line continuations, etc.)</li>
+ * <li>{@linkplain Space Spacing rules} controlling whitespace around operators,
+ * keywords, braces, parentheses, and other syntactic elements</li>
+ * <li>{@linkplain Wrapping Line wrapping modes} for lists (parameters, exceptions,
+ * type arguments, etc.)</li>
+ * <li>{@linkplain Opt Formatting options} for miscellaneous preferences</li>
+ * <li>General settings: line length, tab usage, tab width</li>
  * </ul>
  *
  * @see Filer
@@ -263,7 +263,7 @@ public final class FormatPreferences {
     /**
      * An indentation context: a named location where indentation is applied.
      * <p>
-     * Each constant has a default indent size.  Indentation can be
+     * Each constant has a default indent size. Indentation can be
      * <em>relative</em> (accumulated on top of parent indentation) or
      * <em>absolute</em> (replacing parent indentation).
      */
@@ -355,7 +355,7 @@ public final class FormatPreferences {
          * positions (e.g., {@code if}, {@code while}, {@code for}).
          * <p>
          * When enabled (default), a block with exactly one statement is still
-         * rendered with braces.  When disabled, the single statement is rendered
+         * rendered with braces. When disabled, the single statement is rendered
          * without braces, indented on the following line.
          */
         SINGLE_STATEMENT_BRACES,
@@ -524,7 +524,7 @@ public final class FormatPreferences {
     /**
      * Builder for constructing {@link FormatPreferences} instances.
      * <p>
-     * All settings are initialized with sensible defaults.  Use the
+     * All settings are initialized with sensible defaults. Use the
      * setter methods to customize specific preferences.
      */
     public static final class Builder {
@@ -561,7 +561,7 @@ public final class FormatPreferences {
         }
 
         /**
-         * Initializes all defaults.  Called once from the constructor.
+         * Initializes all defaults. Called once from the constructor.
          */
         private void initDefaults() {
             // indentation defaults are provided by Indentation.defaultSize()
@@ -671,7 +671,7 @@ public final class FormatPreferences {
          * Sets the indent size for the given context.
          *
          * @param indentation the indentation context
-         * @param size        the indent size in spaces (must be non-negative)
+         * @param size the indent size in spaces (must be non-negative)
          * @return this builder
          */
         public Builder indent(final Indentation indentation, final int size) {
@@ -713,7 +713,7 @@ public final class FormatPreferences {
          * Sets the spacing type for the given context.
          *
          * @param space the spacing context
-         * @param type  the space type
+         * @param type the space type
          * @return this builder
          */
         public Builder space(final Space space, final SpaceType type) {
@@ -755,7 +755,7 @@ public final class FormatPreferences {
          * Sets the wrapping mode for the given context.
          *
          * @param wrapping the wrapping context
-         * @param mode     the wrapping mode
+         * @param mode the wrapping mode
          * @return this builder
          */
         public Builder wrapMode(final Wrapping wrapping, final WrappingMode mode) {
@@ -809,19 +809,19 @@ public final class FormatPreferences {
          * <p>
          * Recognized key patterns:
          * <ul>
-         *   <li>{@code line-length} — maximum line length (integer)</li>
-         *   <li>{@code use-tabs} — use tabs for indentation (boolean)</li>
-         *   <li>{@code tab-width} — tab display width (integer)</li>
-         *   <li>{@code indent.<name>} — indent size for context (integer),
-         *       where {@code <name>} is the lowercase, hyphen-separated form
-         *       of an {@link Indentation} constant (e.g., {@code members-top-level})</li>
-         *   <li>{@code indent.<name>.absolute} — whether indentation is absolute (boolean)</li>
-         *   <li>{@code space.<name>} — space type for context ({@code NONE},
-         *       {@code SPACE}, or {@code NEWLINE}), where {@code <name>} is the
-         *       lowercase, hyphen-separated form of a {@link Space} constant</li>
-         *   <li>{@code wrapping.<name>} — wrapping mode ({@code ALWAYS_WRAP},
-         *       {@code WRAP_ONLY_IF_LONG}, or {@code NEVER})</li>
-         *   <li>{@code option.<name>} — formatting option (boolean)</li>
+         * <li>{@code line-length} — maximum line length (integer)</li>
+         * <li>{@code use-tabs} — use tabs for indentation (boolean)</li>
+         * <li>{@code tab-width} — tab display width (integer)</li>
+         * <li>{@code indent.<name>} — indent size for context (integer),
+         * where {@code <name>} is the lowercase, hyphen-separated form
+         * of an {@link Indentation} constant (e.g., {@code members-top-level})</li>
+         * <li>{@code indent.<name>.absolute} — whether indentation is absolute (boolean)</li>
+         * <li>{@code space.<name>} — space type for context ({@code NONE},
+         * {@code SPACE}, or {@code NEWLINE}), where {@code <name>} is the
+         * lowercase, hyphen-separated form of a {@link Space} constant</li>
+         * <li>{@code wrapping.<name>} — wrapping mode ({@code ALWAYS_WRAP},
+         * {@code WRAP_ONLY_IF_LONG}, or {@code NEVER})</li>
+         * <li>{@code option.<name>} — formatting option (boolean)</li>
          * </ul>
          * <p>
          * Unknown keys are silently ignored.

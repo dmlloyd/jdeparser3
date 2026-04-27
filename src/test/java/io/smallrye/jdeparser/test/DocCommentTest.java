@@ -1,18 +1,19 @@
 package io.smallrye.jdeparser.test;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.IOException;
+
+import org.junit.jupiter.api.Test;
 
 import io.smallrye.jdeparser.DocReference;
 import io.smallrye.jdeparser.Expr;
+import io.smallrye.jdeparser.SourceVersion;
 import io.smallrye.jdeparser.Sources;
 import io.smallrye.jdeparser.Type;
-import io.smallrye.jdeparser.SourceVersion;
 import io.smallrye.jdeparser.creator.DocCommentCreator;
 import io.smallrye.jdeparser.creator.DocInlineCreator;
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests for all Javadoc/doc comment generation constructs.
@@ -64,7 +65,8 @@ class DocCommentTest extends AbstractGeneratingTestCase {
                     mc.docComment(dc -> {
                         dc.text("Does something useful.");
                     });
-                    mc.body(b -> {});
+                    mc.body(b -> {
+                    });
                 });
             });
         });
@@ -171,7 +173,7 @@ class DocCommentTest extends AbstractGeneratingTestCase {
         sources.writeSources();
         final String source = getSource("com.example", "ReturnInlineRich");
         assertTrue(source.contains("{@return the name, or {@code null} if not set (see {@link String})}"),
-            "should contain inline @return tag with nested inline content");
+                "should contain inline @return tag with nested inline content");
     }
 
     /**
@@ -222,7 +224,8 @@ class DocCommentTest extends AbstractGeneratingTestCase {
                         dc.text("Reads a file.");
                         dc.throws_(Type.named("java.io.IOException"), "if I/O fails");
                     });
-                    mc.body(b -> {});
+                    mc.body(b -> {
+                    });
                 });
             });
         });
@@ -296,7 +299,8 @@ class DocCommentTest extends AbstractGeneratingTestCase {
                         dc.text("An old method.");
                         dc.deprecated("Use newMethod instead");
                     });
-                    mc.body(b -> {});
+                    mc.body(b -> {
+                    });
                 });
             });
         });
@@ -738,7 +742,8 @@ class DocCommentTest extends AbstractGeneratingTestCase {
                             c.code("readable");
                         });
                     });
-                    mc.body(b -> {});
+                    mc.body(b -> {
+                    });
                 });
             });
         });
@@ -770,7 +775,8 @@ class DocCommentTest extends AbstractGeneratingTestCase {
                             c.text(" instead.");
                         });
                     });
-                    mc.body(b -> {});
+                    mc.body(b -> {
+                    });
                 });
             });
         });
@@ -819,7 +825,8 @@ class DocCommentTest extends AbstractGeneratingTestCase {
                         mc.docComment(dc -> {
                             dc.author("Nobody");
                         });
-                        mc.body(b -> {});
+                        mc.body(b -> {
+                        });
                     });
                 });
             });
@@ -866,7 +873,8 @@ class DocCommentTest extends AbstractGeneratingTestCase {
                         dc.text("Internal method.");
                         dc.hidden();
                     });
-                    mc.body(b -> {});
+                    mc.body(b -> {
+                    });
                 });
             });
         });
@@ -905,7 +913,8 @@ class DocCommentTest extends AbstractGeneratingTestCase {
                     cc.constructor(ctor -> {
                         ctor.public_();
                         ctor.docComment(DocCommentCreator::hidden);
-                        ctor.body(b -> {});
+                        ctor.body(b -> {
+                        });
                     });
                 });
             });
@@ -1110,7 +1119,7 @@ class DocCommentTest extends AbstractGeneratingTestCase {
         sources.writeSources();
         final String source = getSource("com.example", "SerialRich");
         assertTrue(source.contains("@serial A non-null {@link String} value."),
-            "should contain @serial tag with inline content");
+                "should contain @serial tag with inline content");
     }
 
     /**
@@ -1134,7 +1143,7 @@ class DocCommentTest extends AbstractGeneratingTestCase {
         sources.writeSources();
         final String source = getSource("com.example", "SerialInc");
         assertTrue(source.contains("@serial include"),
-            "should contain @serial include tag");
+                "should contain @serial include tag");
     }
 
     /**
@@ -1158,7 +1167,7 @@ class DocCommentTest extends AbstractGeneratingTestCase {
         sources.writeSources();
         final String source = getSource("com.example", "SerialExc");
         assertTrue(source.contains("@serial exclude"),
-            "should contain @serial exclude tag");
+                "should contain @serial exclude tag");
     }
 
     /**
@@ -1199,7 +1208,8 @@ class DocCommentTest extends AbstractGeneratingTestCase {
                         mc.docComment(dc -> {
                             dc.serialExclude();
                         });
-                        mc.body(b -> {});
+                        mc.body(b -> {
+                        });
                     });
                 });
             });
@@ -1223,7 +1233,8 @@ class DocCommentTest extends AbstractGeneratingTestCase {
                         dc.text("Custom serialization.");
                         dc.serialData("The default fields followed by a count.");
                     });
-                    mc.body(b -> {});
+                    mc.body(b -> {
+                    });
                 });
             });
         });
@@ -1438,7 +1449,8 @@ class DocCommentTest extends AbstractGeneratingTestCase {
                         mc.docComment(dc -> {
                             dc.serial("include");
                         });
-                        mc.body(b -> {});
+                        mc.body(b -> {
+                        });
                     });
                 });
             });

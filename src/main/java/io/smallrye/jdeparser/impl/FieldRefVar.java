@@ -20,8 +20,8 @@ public final class FieldRefVar extends AbstractVar {
      * Constructs a new field reference expression.
      *
      * @param receiver the receiver expression on which the field is accessed
-     *                 (must not be {@code null})
-     * @param name     the field name (must not be {@code null})
+     *        (must not be {@code null})
+     * @param name the field name (must not be {@code null})
      */
     public FieldRefVar(final Expr receiver, final String name) {
         this.receiver = receiver;

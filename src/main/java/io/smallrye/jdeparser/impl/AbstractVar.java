@@ -1,7 +1,6 @@
 package io.smallrye.jdeparser.impl;
 
 import io.smallrye.common.constraint.Assert;
-
 import io.smallrye.jdeparser.Expr;
 import io.smallrye.jdeparser.Var;
 
@@ -9,7 +8,7 @@ import io.smallrye.jdeparser.Var;
  * Abstract base class for all variable (assignable location) implementations.
  * <p>
  * Extends {@link AbstractExpr} and implements {@link Var}, providing
- * default implementations for all assignment operator methods.  Examples of
+ * default implementations for all assignment operator methods. Examples of
  * concrete subclasses include local variable references, field references,
  * and array element accesses.
  */

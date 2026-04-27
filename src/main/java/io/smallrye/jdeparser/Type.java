@@ -8,8 +8,8 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 
 import io.smallrye.common.constraint.Assert;
-import io.smallrye.jdeparser.creator.DocCommentCreator;
 import io.smallrye.jdeparser.creator.ClassCreator;
+import io.smallrye.jdeparser.creator.DocCommentCreator;
 import io.smallrye.jdeparser.impl.AbstractType;
 import io.smallrye.jdeparser.impl.AnonymousClassExpr;
 import io.smallrye.jdeparser.impl.ClassCreatorImpl;
@@ -98,15 +98,24 @@ public sealed interface Type permits AbstractType {
     static Type of(final Class<?> clazz) {
         Assert.checkNotNullParam("clazz", clazz);
         if (clazz.isPrimitive()) {
-            if (clazz == void.class) return VOID;
-            if (clazz == boolean.class) return BOOLEAN;
-            if (clazz == byte.class) return BYTE;
-            if (clazz == short.class) return SHORT;
-            if (clazz == int.class) return INT;
-            if (clazz == long.class) return LONG;
-            if (clazz == float.class) return FLOAT;
-            if (clazz == double.class) return DOUBLE;
-            if (clazz == char.class) return CHAR;
+            if (clazz == void.class)
+                return VOID;
+            if (clazz == boolean.class)
+                return BOOLEAN;
+            if (clazz == byte.class)
+                return BYTE;
+            if (clazz == short.class)
+                return SHORT;
+            if (clazz == int.class)
+                return INT;
+            if (clazz == long.class)
+                return LONG;
+            if (clazz == float.class)
+                return FLOAT;
+            if (clazz == double.class)
+                return DOUBLE;
+            if (clazz == char.class)
+                return CHAR;
             throw new IllegalArgumentException("Unknown primitive type: " + clazz);
         }
         if (clazz.isArray()) {
@@ -150,8 +159,7 @@ public sealed interface Type permits AbstractType {
             case DECLARED -> {
                 var declared = (DeclaredType) mirror;
                 var raw = new ReferenceType(
-                    declared.asElement().toString()
-                );
+                        declared.asElement().toString());
                 var typeArgs = declared.getTypeArguments();
                 if (typeArgs.isEmpty()) {
                     yield raw;
@@ -319,12 +327,12 @@ public sealed interface Type permits AbstractType {
      * Creates an anonymous class creation expression: {@code new Type(args) &#123; body &#125;}.
      *
      * @param version the source version for feature validation
-     * @param args    the constructor argument expressions
+     * @param args the constructor argument expressions
      * @param builder the anonymous class body builder
      * @return the anonymous class expression
      */
     default Expr new_(final SourceVersion version, final List<Expr> args,
-        final Consumer<ClassCreator> builder) {
+            final Consumer<ClassCreator> builder) {
         Assert.checkNotNullParam("version", version);
         Assert.checkNotNullParam("args", args);
         Assert.checkNotNullParam("builder", builder);
@@ -375,7 +383,7 @@ public sealed interface Type permits AbstractType {
      * API.
      *
      * @param member the member identifier (e.g., {@code "length()"},
-     *               {@code "CASE_INSENSITIVE_ORDER"})
+     *        {@code "CASE_INSENSITIVE_ORDER"})
      * @return the doc reference
      */
     DocReference docRef(String member);

@@ -1,7 +1,7 @@
 package io.smallrye.jdeparser.creator;
 
-import io.smallrye.jdeparser.SourceVersion;
 import io.smallrye.jdeparser.DocReference;
+import io.smallrye.jdeparser.SourceVersion;
 import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.impl.DocInlineCreatorImpl;
 
@@ -57,7 +57,7 @@ public sealed interface DocInlineCreator permits DocCommentCreator, DocInlineCre
      * Requires source version {@linkplain SourceVersion#JAVA_9 9}
      * or later.
      *
-     * @param term        the word or phrase to index
+     * @param term the word or phrase to index
      * @param description the short description of the index entry
      */
     void index(String term, String description);
@@ -90,7 +90,7 @@ public sealed interface DocInlineCreator permits DocCommentCreator, DocInlineCre
     /**
      * Adds an inline {@code {@link ...}} tag referencing a type with display text.
      *
-     * @param type  the type to link to
+     * @param type the type to link to
      * @param label the display text for the link
      */
     void link(Type type, String label);
@@ -106,7 +106,7 @@ public sealed interface DocInlineCreator permits DocCommentCreator, DocInlineCre
      * Adds an inline {@code {@link ...}} tag referencing a program element
      * with display text.
      *
-     * @param ref   the program element reference
+     * @param ref the program element reference
      * @param label the display text for the link
      */
     void link(DocReference ref, String label);
@@ -127,7 +127,7 @@ public sealed interface DocInlineCreator permits DocCommentCreator, DocInlineCre
      * Unlike {@link #link(Type, String)}, {@code {@linkplain}} renders
      * the label in plain text rather than code font.
      *
-     * @param type  the type to link to
+     * @param type the type to link to
      * @param label the display text for the link
      */
     void linkPlain(Type type, String label);
@@ -149,7 +149,7 @@ public sealed interface DocInlineCreator permits DocCommentCreator, DocInlineCre
      * Unlike {@link #link(DocReference, String)}, {@code {@linkplain}}
      * renders the label in plain text rather than code font.
      *
-     * @param ref   the program element reference
+     * @param ref the program element reference
      * @param label the display text for the link
      */
     void linkPlain(DocReference ref, String label);

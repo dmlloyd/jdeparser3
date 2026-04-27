@@ -19,19 +19,19 @@ import io.smallrye.jdeparser.format.FormatPreferences.SpaceType;
  * <p>
  * This writer maintains three interacting state machines:
  * <ol>
- *   <li><strong>Token state</strong> — tracks which kind of token was last
- *       written (keyword, identifier, number, etc.) so that appropriate
- *       whitespace is inserted between adjacent tokens.</li>
- *   <li><strong>Spacing state</strong> — a 5-state machine that defers
- *       spacing decisions (space, newline, or nothing) until the next
- *       content write, preventing trailing whitespace on lines.</li>
- *   <li><strong>Indent stack</strong> — a stack of {@link Indent} elements
- *       that determines indentation at the start of each new line.
- *       Supports both relative (accumulating) and absolute (replacing)
- *       indentation levels.</li>
+ * <li><strong>Token state</strong> — tracks which kind of token was last
+ * written (keyword, identifier, number, etc.) so that appropriate
+ * whitespace is inserted between adjacent tokens.</li>
+ * <li><strong>Spacing state</strong> — a 5-state machine that defers
+ * spacing decisions (space, newline, or nothing) until the next
+ * content write, preventing trailing whitespace on lines.</li>
+ * <li><strong>Indent stack</strong> — a stack of {@link Indent} elements
+ * that determines indentation at the start of each new line.
+ * Supports both relative (accumulating) and absolute (replacing)
+ * indentation levels.</li>
  * </ol>
  * <p>
- * Content is buffered line-by-line in a {@link StringBuilder}.  On each
+ * Content is buffered line-by-line in a {@link StringBuilder}. On each
  * newline, the buffer is flushed to the underlying {@link CountingWriter},
  * which tracks line and column positions.
  *
@@ -130,8 +130,8 @@ public final class SourceFileWriter implements Closeable {
     /**
      * Constructs a source file writer.
      *
-     * @param output  the underlying writer to emit source code to
-     * @param format  the formatting preferences
+     * @param output the underlying writer to emit source code to
+     * @param format the formatting preferences
      * @param version the source version for feature gating
      */
     public SourceFileWriter(final Writer output, final FormatPreferences format, final SourceVersion version) {
@@ -236,7 +236,7 @@ public final class SourceFileWriter implements Closeable {
      * emit it yet (non-trailing space).
      * <p>
      * The space is physically added by {@link #processSpacing()} when
-     * the next content write occurs.  This prevents trailing spaces
+     * the next content write occurs. This prevents trailing spaces
      * on otherwise-empty lines.
      */
     public void ntsp() {
@@ -272,7 +272,7 @@ public final class SourceFileWriter implements Closeable {
             }
             default -> {
                 // flush line buffer and write newline
-                if (! lineBuffer.isEmpty()) {
+                if (!lineBuffer.isEmpty()) {
                     countingWriter.write(lineBuffer, 0, lineBuffer.length());
                     lineBuffer.setLength(0);
                 }
@@ -291,7 +291,8 @@ public final class SourceFileWriter implements Closeable {
      */
     public void write(final Space rule) throws IOException {
         switch (format.getSpaceType(rule)) {
-            case NONE -> {}
+            case NONE -> {
+            }
             case SPACE -> ntsp();
             case NEWLINE -> nl();
         }
@@ -499,7 +500,7 @@ public final class SourceFileWriter implements Closeable {
      *
      * @param indent the expected indent element
      * @throws IllegalStateException if the stack is empty or the top element
-     *                               does not match the expected element
+     *         does not match the expected element
      */
     public void popIndent(final Indent indent) {
         if (indentStack.isEmpty()) {
@@ -517,7 +518,7 @@ public final class SourceFileWriter implements Closeable {
      *
      * @param indentation the indentation context
      * @throws IllegalStateException if the stack is empty or the top element
-     *                               does not match
+     *         does not match
      */
     public void popIndent(final Indentation indentation) {
         popIndent(indentMap.get(indentation));
@@ -545,7 +546,7 @@ public final class SourceFileWriter implements Closeable {
      * @throws IOException if an I/O error occurs
      */
     public void flush() throws IOException {
-        if (! lineBuffer.isEmpty()) {
+        if (!lineBuffer.isEmpty()) {
             countingWriter.write(lineBuffer, 0, lineBuffer.length());
             lineBuffer.setLength(0);
         }

@@ -17,8 +17,8 @@ public final class DoubleExpr extends AbstractExpr {
      * Constructs a new double literal expression.
      *
      * @param value the double value
-     * @param hex   {@code true} to render in hexadecimal float notation,
-     *              {@code false} for decimal notation
+     * @param hex {@code true} to render in hexadecimal float notation,
+     *        {@code false} for decimal notation
      */
     public DoubleExpr(final double value, final boolean hex) {
         this.value = value;

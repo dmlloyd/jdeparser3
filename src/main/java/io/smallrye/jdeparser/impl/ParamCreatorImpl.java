@@ -4,9 +4,8 @@ import java.io.IOException;
 import java.util.function.Consumer;
 
 import io.smallrye.common.constraint.Assert;
-
-import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.creator.AccessLevel;
 import io.smallrye.jdeparser.creator.AnnotationCreator;
 import io.smallrye.jdeparser.creator.DocCommentCreator;
@@ -18,7 +17,7 @@ import io.smallrye.jdeparser.creator.ParamCreator;
  * Implementation of {@link ParamCreator} that collects parameter configuration
  * (annotations, modifiers, documentation) and writes the parameter declaration.
  * <p>
- * Parameters support the {@code final} modifier and annotations.  Documentation
+ * Parameters support the {@code final} modifier and annotations. Documentation
  * set here is propagated to the enclosing method/constructor's Javadoc as a
  * {@code @param} tag.
  */
@@ -46,8 +45,8 @@ public final class ParamCreatorImpl extends AbstractCreator implements ParamCrea
      * Constructs a new parameter creator.
      *
      * @param version the source version
-     * @param name    the parameter name
-     * @param type    the parameter type
+     * @param name the parameter name
+     * @param type the parameter type
      * @param varargs whether this is a varargs parameter
      */
     public ParamCreatorImpl(final SourceVersion version, final String name, final Type type, final boolean varargs) {

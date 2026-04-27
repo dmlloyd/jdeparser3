@@ -1,15 +1,16 @@
 package io.smallrye.jdeparser.test;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.IOException;
 import java.io.StringWriter;
+
+import org.junit.jupiter.api.Test;
 
 import io.smallrye.jdeparser.SourceVersion;
 import io.smallrye.jdeparser.format.FormatPreferences;
 import io.smallrye.jdeparser.impl.SourceFileWriter;
 import io.smallrye.jdeparser.impl.Tokens;
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests for {@link SourceFileWriter} indentation and spacing.

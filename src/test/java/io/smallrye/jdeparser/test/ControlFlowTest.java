@@ -1,17 +1,18 @@
 package io.smallrye.jdeparser.test;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.IOException;
 import java.util.List;
 
-import io.smallrye.jdeparser.Expr;
-import io.smallrye.jdeparser.Sources;
-import io.smallrye.jdeparser.Type;
-import io.smallrye.jdeparser.SourceVersion;
-import io.smallrye.jdeparser.creator.BlockCreator;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import io.smallrye.jdeparser.Expr;
+import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Sources;
+import io.smallrye.jdeparser.Type;
+import io.smallrye.jdeparser.creator.BlockCreator;
 
 /**
  * Comprehensive tests for all control flow statement constructs generated
@@ -64,9 +65,8 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
                     mc.param("x", Type.INT);
                     mc.body(b -> {
                         b.doWhile(
-                            loop -> loop.emit(Expr.inc(Expr.$v("x"))),
-                            Expr.$v("x").gt(Expr.ZERO)
-                        );
+                                loop -> loop.emit(Expr.inc(Expr.$v("x"))),
+                                Expr.$v("x").gt(Expr.ZERO));
                     });
                 });
             });
@@ -106,7 +106,7 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
         sources.writeSources();
         final String source = getSource("com.example", "ForLoop");
         assertTrue(source.contains("for (int i = 0; i < n; i++)"),
-            "should contain for loop header with init, condition, and update");
+                "should contain for loop header with init, condition, and update");
         assertTrue(source.contains("println(i);"), "should contain loop body statement");
     }
 
@@ -134,7 +134,7 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
         sources.writeSources();
         final String source = getSource("com.example", "ForEachLoop");
         assertTrue(source.contains("for (int item : items)"),
-            "should contain for-each loop with type, variable, and iterable");
+                "should contain for-each loop with type, variable, and iterable");
         assertTrue(source.contains("println(item);"), "should contain loop body statement");
     }
 
@@ -232,10 +232,9 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
                     mc.body(b -> {
                         b.try_(tb -> {
                             tb.with(
-                                Type.named("java.io.InputStream"),
-                                "in",
-                                Expr.callPlain("openStream")
-                            );
+                                    Type.named("java.io.InputStream"),
+                                    "in",
+                                    Expr.callPlain("openStream"));
                             tb.body(tryBody -> {
                                 tryBody.emit(Expr.$v("in").call("read"));
                             });
@@ -352,7 +351,7 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
         sources.writeSources();
         final String source = getSource("com.example", "AssertMsg");
         assertTrue(source.contains("assert x > 0 : \"must be positive\";"),
-            "should contain assert with condition and message");
+                "should contain assert with condition and message");
     }
 
     /**
@@ -377,7 +376,7 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
         sources.writeSources();
         final String source = getSource("com.example", "ThrowStmt");
         assertTrue(source.contains("throw new Exception();"),
-            "should contain throw with new exception");
+                "should contain throw with new exception");
     }
 
     /**
@@ -505,9 +504,9 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
         sources.writeSources();
         final String source = getSource("com.example", "LocalVarAnnotated");
         assertTrue(source.contains("@SuppressWarnings(\"unchecked\")"),
-            "should contain annotation");
+                "should contain annotation");
         assertTrue(source.contains("int x = 0;"),
-            "should contain typed local variable declaration");
+                "should contain typed local variable declaration");
     }
 
     /**
@@ -534,9 +533,9 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
         sources.writeSources();
         final String source = getSource("com.example", "LocalVarMarker");
         assertTrue(source.contains("@Deprecated"),
-            "should contain marker annotation");
+                "should contain marker annotation");
         assertTrue(source.contains("int x = 0;"),
-            "should contain typed local variable declaration");
+                "should contain typed local variable declaration");
     }
 
     /**
@@ -562,7 +561,7 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
         sources.writeSources();
         final String source = getSource("com.example", "LocalVarFinal");
         assertTrue(source.contains("final int x = 0;"),
-            "should contain final typed local variable declaration");
+                "should contain final typed local variable declaration");
     }
 
     /**
@@ -592,9 +591,9 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
         sources.writeSources();
         final String source = getSource("com.example", "LocalVarAnnotatedFinal");
         assertTrue(source.contains("@SuppressWarnings(\"unchecked\")"),
-            "should contain annotation");
+                "should contain annotation");
         assertTrue(source.contains("final int x = 0;"),
-            "should contain final typed local variable declaration");
+                "should contain final typed local variable declaration");
     }
 
     /**
@@ -621,9 +620,9 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
         sources.writeSources();
         final String source = getSource("com.example", "LocalVarInferredAnnotated");
         assertTrue(source.contains("@Deprecated"),
-            "should contain annotation");
+                "should contain annotation");
         assertTrue(source.contains("var x = 42;"),
-            "should contain var-inferred local variable declaration");
+                "should contain var-inferred local variable declaration");
     }
 
     /**
@@ -649,7 +648,7 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
         sources.writeSources();
         final String source = getSource("com.example", "LocalVarInferredFinal");
         assertTrue(source.contains("final var x = 42;"),
-            "should contain final var-inferred local variable declaration");
+                "should contain final var-inferred local variable declaration");
     }
 
     /**
@@ -665,7 +664,8 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
             sf.class_("LocalVarBuilderNoOp", cc -> {
                 cc.method("init", mc -> {
                     mc.body(b -> {
-                        b.var(Type.INT, "x", Expr.ZERO, lv -> {});
+                        b.var(Type.INT, "x", Expr.ZERO, lv -> {
+                        });
                     });
                 });
             });
@@ -673,7 +673,7 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
         sources.writeSources();
         final String source = getSource("com.example", "LocalVarBuilderNoOp");
         assertTrue(source.contains("int x = 0;"),
-            "no-op builder should produce same output as non-builder overload");
+                "no-op builder should produce same output as non-builder overload");
     }
 
     /**
@@ -768,10 +768,12 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
         sources.createSourceFile("com.example", "IndentAfterCtor", sf -> {
             sf.class_("IndentAfterCtor", cc -> {
                 cc.constructor(ctor -> {
-                    ctor.body(b -> {});
+                    ctor.body(b -> {
+                    });
                 });
                 cc.method("foo", mc -> {
-                    mc.body(b -> {});
+                    mc.body(b -> {
+                    });
                 });
             });
         });
@@ -806,8 +808,8 @@ class ControlFlowTest extends AbstractGeneratingTestCase {
         sources.writeSources();
         final String source = getSource("com.example", "Comments");
         assertTrue(source.contains("// this is a line comment"),
-            "should contain line comment with correct text");
+                "should contain line comment with correct text");
         assertTrue(source.contains("/* this is a block comment */"),
-            "should contain block comment with correct text");
+                "should contain block comment with correct text");
     }
 }

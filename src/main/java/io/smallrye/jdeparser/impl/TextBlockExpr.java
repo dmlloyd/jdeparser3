@@ -8,7 +8,7 @@ import io.smallrye.jdeparser.LanguageFeature;
  * An expression representing a text block literal (Java 15+).
  * <p>
  * Text blocks are multi-line string literals delimited by triple double-quotes
- * ({@code """}).  The value is the raw string content; formatting and
+ * ({@code """}). The value is the raw string content; formatting and
  * indentation handling are applied during source generation.
  *
  * @see LanguageFeature#TEXT_BLOCKS

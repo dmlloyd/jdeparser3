@@ -8,7 +8,7 @@ import io.smallrye.jdeparser.format.FormatPreferences.Indentation;
  * context and the corresponding configuration in {@link FormatPreferences}.
  * <p>
  * When adding indentation, this element appends the configured number of
- * spaces (or tabs) for its indentation context.  If the indentation is
+ * spaces (or tabs) for its indentation context. If the indentation is
  * <em>relative</em> (the default), the parent indentation is applied first
  * by delegating to the next element in the chain; if <em>absolute</em>,
  * the parent indentation is skipped and only this element's indent is used.
@@ -46,7 +46,7 @@ public final class ConfigIndent implements Indent {
      * {@inheritDoc}
      * <p>
      * If this indentation is relative, delegates to the next element first
-     * to accumulate parent indentation.  Then appends this context's
+     * to accumulate parent indentation. Then appends this context's
      * configured indent (as spaces or tabs depending on preferences).
      */
     @Override

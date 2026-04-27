@@ -13,7 +13,7 @@ import io.smallrye.jdeparser.impl.BlockCreatorImpl;
 /**
  * A creator for building statements within a block (method body, if-body, loop body, etc.).
  * <p>
- * This is the core of the borrow-pattern API.  A {@code BlockCreator} is valid
+ * This is the core of the borrow-pattern API. A {@code BlockCreator} is valid
  * only during the callback in which it was provided; any attempt to use it after
  * the callback returns will throw {@link IllegalStateException}.
  */
@@ -43,7 +43,8 @@ public sealed interface BlockCreator permits BlockCreatorImpl {
      * @return the variable, for use in subsequent expressions
      */
     default Var var(Type type, String name, Expr init) {
-        return var(type, name, init, lvc -> {});
+        return var(type, name, init, lvc -> {
+        });
     }
 
     /**
@@ -54,7 +55,8 @@ public sealed interface BlockCreator permits BlockCreatorImpl {
      * @return the variable, for use in subsequent expressions
      */
     default Var var(String name, Expr init) {
-        return var(name, init, lvc -> {});
+        return var(name, init, lvc -> {
+        });
     }
 
     /**
@@ -62,9 +64,9 @@ public sealed interface BlockCreator permits BlockCreatorImpl {
      * <p>
      * The callback can add annotations and the {@code final} modifier.
      *
-     * @param type    the variable type
-     * @param name    the variable name
-     * @param init    the initializer expression
+     * @param type the variable type
+     * @param name the variable name
+     * @param init the initializer expression
      * @param builder the callback to configure the variable declaration
      * @return the variable, for use in subsequent expressions
      */
@@ -76,8 +78,8 @@ public sealed interface BlockCreator permits BlockCreatorImpl {
      * <p>
      * The callback can add annotations and the {@code final} modifier.
      *
-     * @param name    the variable name
-     * @param init    the initializer expression
+     * @param name the variable name
+     * @param init the initializer expression
      * @param builder the callback to configure the variable declaration
      * @return the variable, for use in subsequent expressions
      */
@@ -89,7 +91,7 @@ public sealed interface BlockCreator permits BlockCreatorImpl {
      * Adds an {@code if} statement.
      *
      * @param condition the condition expression
-     * @param body      the callback to define the if-body
+     * @param body the callback to define the if-body
      */
     void if_(Expr condition, Consumer<BlockCreator> body);
 
@@ -97,8 +99,8 @@ public sealed interface BlockCreator permits BlockCreatorImpl {
      * Adds an {@code if-else} statement.
      *
      * @param condition the condition expression
-     * @param ifBody    the callback for the if-body
-     * @param elseBody  the callback for the else-body
+     * @param ifBody the callback for the if-body
+     * @param elseBody the callback for the else-body
      */
     void ifElse(Expr condition, Consumer<BlockCreator> ifBody, Consumer<BlockCreator> elseBody);
 
@@ -106,14 +108,14 @@ public sealed interface BlockCreator permits BlockCreatorImpl {
      * Adds a {@code while} loop.
      *
      * @param condition the loop condition
-     * @param body      the callback for the loop body
+     * @param body the callback for the loop body
      */
     void while_(Expr condition, Consumer<BlockCreator> body);
 
     /**
      * Adds a {@code do-while} loop.
      *
-     * @param body      the callback for the loop body
+     * @param body the callback for the loop body
      * @param condition the loop condition
      */
     void doWhile(Consumer<BlockCreator> body, Expr condition);
@@ -128,10 +130,10 @@ public sealed interface BlockCreator permits BlockCreatorImpl {
     /**
      * Adds an enhanced {@code for-each} loop.
      *
-     * @param type       the loop variable type
-     * @param name       the loop variable name
-     * @param iterable   the iterable expression
-     * @param body       the callback for the loop body
+     * @param type the loop variable type
+     * @param name the loop variable name
+     * @param iterable the iterable expression
+     * @param body the callback for the loop body
      * @return the loop variable, for use within the body
      */
     Var forEach(Type type, String name, Expr iterable, Consumer<BlockCreator> body);
@@ -140,7 +142,7 @@ public sealed interface BlockCreator permits BlockCreatorImpl {
      * Adds a {@code switch} statement.
      *
      * @param selector the switch selector expression
-     * @param builder  the callback to configure the switch cases
+     * @param builder the callback to configure the switch cases
      */
     void switch_(Expr selector, Consumer<SwitchCreator> builder);
 
@@ -155,7 +157,7 @@ public sealed interface BlockCreator permits BlockCreatorImpl {
      * Adds a {@code synchronized} block.
      *
      * @param monitor the monitor expression
-     * @param body    the callback for the synchronized body
+     * @param body the callback for the synchronized body
      */
     void synchronized_(Expr monitor, Consumer<BlockCreator> body);
 
@@ -233,7 +235,7 @@ public sealed interface BlockCreator permits BlockCreatorImpl {
      * Adds an {@code assert} statement with a detail message.
      *
      * @param condition the assertion condition
-     * @param message   the detail message expression
+     * @param message the detail message expression
      */
     void assert_(Expr condition, Expr message);
 
@@ -288,7 +290,7 @@ public sealed interface BlockCreator permits BlockCreatorImpl {
     /**
      * Defines a local class within this block.
      *
-     * @param name    the class name
+     * @param name the class name
      * @param builder the callback to define the class
      */
     void localClass(String name, Consumer<ClassCreator> builder);
@@ -296,7 +298,7 @@ public sealed interface BlockCreator permits BlockCreatorImpl {
     /**
      * Defines a local interface within this block (Java 16+).
      *
-     * @param name    the interface name
+     * @param name the interface name
      * @param builder the callback to define the interface
      */
     void localInterface(String name, Consumer<InterfaceCreator> builder);

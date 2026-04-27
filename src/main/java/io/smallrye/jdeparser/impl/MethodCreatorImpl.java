@@ -6,9 +6,8 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import io.smallrye.common.constraint.Assert;
-
-import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.creator.AccessLevel;
 import io.smallrye.jdeparser.creator.AnnotationCreator;
 import io.smallrye.jdeparser.creator.BlockCreator;
@@ -62,10 +61,10 @@ public final class MethodCreatorImpl extends AbstractCreator implements MethodCr
     /**
      * Constructs a new method creator.
      *
-     * @param version  the source version
-     * @param name     the method name
+     * @param version the source version
+     * @param name the method name
      * @param location the modifier location (e.g., {@link ModifierLocation#METHOD} or
-     *                 {@link ModifierLocation#INTERFACE_METHOD})
+     *        {@link ModifierLocation#INTERFACE_METHOD})
      */
     public MethodCreatorImpl(final SourceVersion version, final String name, final ModifierLocation location) {
         super(version);
@@ -322,7 +321,7 @@ public final class MethodCreatorImpl extends AbstractCreator implements MethodCr
         } else {
             writer.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_DECLARATION);
             AbstractExpr.writeList(writer, params, FormatPreferences.Space.AFTER_COMMA,
-                FormatPreferences.Wrapping.PARAMETER_LIST);
+                    FormatPreferences.Wrapping.PARAMETER_LIST);
             writer.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_DECLARATION);
         }
         writer.write(Tokens.$PAREN.CLOSE);
@@ -340,6 +339,6 @@ public final class MethodCreatorImpl extends AbstractCreator implements MethodCr
         }
         writer.write(Tokens.$KW.THROWS);
         AbstractExpr.writeList(writer, throwsTypes, FormatPreferences.Space.AFTER_COMMA,
-            FormatPreferences.Wrapping.EXCEPTION_LIST);
+                FormatPreferences.Wrapping.EXCEPTION_LIST);
     }
 }

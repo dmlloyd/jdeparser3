@@ -6,10 +6,9 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import io.smallrye.common.constraint.Assert;
-
 import io.smallrye.jdeparser.Expr;
-import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.creator.AccessLevel;
 import io.smallrye.jdeparser.creator.AnnotationCreator;
 import io.smallrye.jdeparser.creator.AnnotationInterfaceCreator;
@@ -50,7 +49,7 @@ public final class AnnotationInterfaceCreatorImpl extends AbstractCreator implem
      * Constructs a new annotation interface creator.
      *
      * @param version the source version
-     * @param name    the annotation type name
+     * @param name the annotation type name
      */
     public AnnotationInterfaceCreatorImpl(final SourceVersion version, final String name) {
         super(version);
@@ -229,8 +228,8 @@ public final class AnnotationInterfaceCreatorImpl extends AbstractCreator implem
      * type, and optional default value, then writes the element as a method-like
      * declaration within the annotation body.
      *
-     * @param name         the element name
-     * @param type         the element return type
+     * @param name the element name
+     * @param type the element return type
      * @param defaultValue the default value expression, or {@code null} for no default
      */
     private record AnnotationElement(String name, Type type, Expr defaultValue) implements Writable {

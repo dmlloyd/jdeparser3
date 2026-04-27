@@ -10,7 +10,7 @@ import io.smallrye.jdeparser.format.FormatPreferences;
  * Accumulates annotations on a declaration and writes them in order.
  * <p>
  * Each annotation is stored as an {@link AnnotationCreatorImpl} that was
- * collected during the creator's callback.  When written, each annotation
+ * collected during the creator's callback. When written, each annotation
  * is emitted followed by a newline (for declarations) or a space (for
  * parameter-level annotations).
  */

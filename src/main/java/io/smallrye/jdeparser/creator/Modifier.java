@@ -5,10 +5,10 @@ package io.smallrye.jdeparser.creator;
  * <p>
  * This is a sealed interface with two permitted subtypes:
  * <ul>
- *     <li>{@link AccessLevel} &mdash; access modifiers ({@code public}, {@code protected},
- *         {@code private}, or package-private)</li>
- *     <li>{@link ModifierFlag} &mdash; non-access modifier flags ({@code static}, {@code final},
- *         {@code abstract}, etc.)</li>
+ * <li>{@link AccessLevel} &mdash; access modifiers ({@code public}, {@code protected},
+ * {@code private}, or package-private)</li>
+ * <li>{@link ModifierFlag} &mdash; non-access modifier flags ({@code static}, {@code final},
+ * {@code abstract}, etc.)</li>
  * </ul>
  *
  * @see ModifiableCreator

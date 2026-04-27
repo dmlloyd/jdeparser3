@@ -1,7 +1,7 @@
 package io.smallrye.jdeparser.impl;
 
-import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
 
 /**
  * Base class for all creator implementations, providing the borrow-pattern
@@ -9,13 +9,13 @@ import io.smallrye.jdeparser.SourceVersion;
  * <p>
  * Every creator transitions through three states:
  * <ol>
- *   <li><strong>ACTIVE</strong> — the creator is currently being configured
- *       by its callback.  All configuration methods (adding members, setting
- *       modifiers, etc.) are allowed.</li>
- *   <li><strong>NESTED</strong> — a child callback is active.  The creator
- *       cannot be modified until the child callback returns.</li>
- *   <li><strong>DONE</strong> — the creator's callback has returned and
- *       the creator is finalized.  No further modifications are allowed.</li>
+ * <li><strong>ACTIVE</strong> — the creator is currently being configured
+ * by its callback. All configuration methods (adding members, setting
+ * modifiers, etc.) are allowed.</li>
+ * <li><strong>NESTED</strong> — a child callback is active. The creator
+ * cannot be modified until the child callback returns.</li>
+ * <li><strong>DONE</strong> — the creator's callback has returned and
+ * the creator is finalized. No further modifications are allowed.</li>
  * </ol>
  * <p>
  * Subclasses call {@link #checkActive()} at the start of every mutating
@@ -67,10 +67,9 @@ public abstract class AbstractCreator {
     protected void checkActive() {
         if (state != ST_ACTIVE) {
             throw new IllegalStateException(
-                state == ST_NESTED
-                    ? "Cannot modify creator while a nested callback is active"
-                    : "Creator has already been completed"
-            );
+                    state == ST_NESTED
+                            ? "Cannot modify creator while a nested callback is active"
+                            : "Creator has already been completed");
         }
     }
 
@@ -79,7 +78,7 @@ public abstract class AbstractCreator {
      * creator to the NESTED state.
      * <p>
      * While nested, any attempt to call {@link #checkActive()} on this
-     * creator will fail, preventing concurrent modification.  After the
+     * creator will fail, preventing concurrent modification. After the
      * callback returns (normally or exceptionally), this creator returns
      * to the ACTIVE state.
      *

@@ -77,7 +77,7 @@ public final class ReferenceType extends AbstractType {
      * {@inheritDoc}
      * <p>
      * If this type represents a standard wrapper class (e.g., {@code java.lang.Integer}),
-     * returns the corresponding {@link PrimitiveType} constant.  Otherwise returns
+     * returns the corresponding {@link PrimitiveType} constant. Otherwise returns
      * {@code this}.
      */
     @Override

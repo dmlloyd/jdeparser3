@@ -11,7 +11,7 @@ import io.smallrye.jdeparser.format.FormatPreferences;
  * {@code switch (selector) &#123; case ... &#125;}.
  * <p>
  * Switch expressions produce a value and can be used anywhere an expression
- * is expected.  The cases typically use arrow syntax ({@code ->}) and/or
+ * is expected. The cases typically use arrow syntax ({@code ->}) and/or
  * {@code yield} to produce the value.
  *
  * @see LanguageFeature#SWITCH_EXPRESSIONS
@@ -25,7 +25,7 @@ public final class SwitchExpr extends AbstractExpr {
      * Constructs a new switch expression.
      *
      * @param selector the selector expression
-     * @param cases    the switch cases creator
+     * @param cases the switch cases creator
      */
     public SwitchExpr(final Expr selector, final SwitchCreatorImpl cases) {
         this.selector = selector;

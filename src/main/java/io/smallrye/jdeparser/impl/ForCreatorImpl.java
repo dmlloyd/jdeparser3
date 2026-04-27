@@ -4,11 +4,10 @@ import java.io.IOException;
 import java.util.function.Consumer;
 
 import io.smallrye.common.constraint.Assert;
-
 import io.smallrye.jdeparser.Expr;
+import io.smallrye.jdeparser.SourceVersion;
 import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.Var;
-import io.smallrye.jdeparser.SourceVersion;
 import io.smallrye.jdeparser.creator.BlockCreator;
 import io.smallrye.jdeparser.creator.ForCreator;
 import io.smallrye.jdeparser.format.FormatPreferences;
@@ -108,16 +107,16 @@ public final class ForCreatorImpl extends AbstractCreator implements ForCreator,
         }
         writer.write(Tokens.$PUNCT.SEMI);
         writer.write(condition != null
-            ? FormatPreferences.Space.AFTER_SEMICOLON
-            : FormatPreferences.Space.AFTER_SEMICOLON_EMPTY);
+                ? FormatPreferences.Space.AFTER_SEMICOLON
+                : FormatPreferences.Space.AFTER_SEMICOLON_EMPTY);
         // condition
         if (condition != null) {
             AbstractExpr.writeExpr(writer, condition);
         }
         writer.write(Tokens.$PUNCT.SEMI);
         writer.write(update != null
-            ? FormatPreferences.Space.AFTER_SEMICOLON
-            : FormatPreferences.Space.AFTER_SEMICOLON_EMPTY);
+                ? FormatPreferences.Space.AFTER_SEMICOLON
+                : FormatPreferences.Space.AFTER_SEMICOLON_EMPTY);
         // update
         if (update != null) {
             AbstractExpr.writeExpr(writer, update);

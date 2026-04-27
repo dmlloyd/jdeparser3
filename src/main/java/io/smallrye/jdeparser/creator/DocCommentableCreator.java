@@ -8,14 +8,14 @@ import java.util.function.Consumer;
  * The type parameter {@code D} determines which level of doc comment
  * content is available:
  * <ul>
- *   <li>{@link DocCommentCreator} — full Javadoc with block tags
- *       ({@code @return}, {@code @throws}, {@code @see}, etc.), used
- *       for declarations whose documentation is a standalone Javadoc
- *       comment.</li>
- *   <li>{@link DocInlineCreator} — inline content only (text,
- *       {@code {@code}}, {@code {@link}}, etc.), used for declarations
- *       whose documentation is contributed as inline content within a
- *       block tag of an enclosing element's Javadoc comment.</li>
+ * <li>{@link DocCommentCreator} — full Javadoc with block tags
+ * ({@code @return}, {@code @throws}, {@code @see}, etc.), used
+ * for declarations whose documentation is a standalone Javadoc
+ * comment.</li>
+ * <li>{@link DocInlineCreator} — inline content only (text,
+ * {@code {@code}}, {@code {@link}}, etc.), used for declarations
+ * whose documentation is contributed as inline content within a
+ * block tag of an enclosing element's Javadoc comment.</li>
  * </ul>
  *
  * @param <D> the doc comment creator type

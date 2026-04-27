@@ -6,9 +6,8 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import io.smallrye.common.constraint.Assert;
-
-import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.creator.AccessLevel;
 import io.smallrye.jdeparser.creator.AnnotationCreator;
 import io.smallrye.jdeparser.creator.ConstructorCreator;
@@ -55,7 +54,7 @@ public final class EnumCreatorImpl extends AbstractCreator implements EnumCreato
      * Constructs a new enum creator.
      *
      * @param version the source version
-     * @param name    the enum name
+     * @param name the enum name
      */
     public EnumCreatorImpl(final SourceVersion version, final String name) {
         super(version);
@@ -240,7 +239,7 @@ public final class EnumCreatorImpl extends AbstractCreator implements EnumCreato
             writer.pushIndent(FormatPreferences.Indentation.MEMBERS_TOP_LEVEL);
             // write constants separated by commas, with wrapping support
             FormatPreferences.WrappingMode enumWrapMode = writer.getFormat()
-                .getWrapMode(FormatPreferences.Wrapping.ENUM_CONSTANT_LIST);
+                    .getWrapMode(FormatPreferences.Wrapping.ENUM_CONSTANT_LIST);
             boolean enumAlwaysWrap = enumWrapMode == FormatPreferences.WrappingMode.ALWAYS_WRAP;
             boolean enumWrapIfLong = enumWrapMode == FormatPreferences.WrappingMode.WRAP_ONLY_IF_LONG;
             boolean firstConstant = true;
@@ -291,13 +290,13 @@ public final class EnumCreatorImpl extends AbstractCreator implements EnumCreato
     /**
      * Writes a comma-separated list of types with wrapping support.
      *
-     * @param writer   the writer
-     * @param types    the types
+     * @param writer the writer
+     * @param types the types
      * @param wrapping the wrapping context
      * @throws IOException if an I/O error occurs
      */
     private static void writeTypeList(final SourceFileWriter writer, final List<Type> types,
-                                      final FormatPreferences.Wrapping wrapping) throws IOException {
+            final FormatPreferences.Wrapping wrapping) throws IOException {
         AbstractExpr.writeList(writer, types, FormatPreferences.Space.AFTER_COMMA, wrapping);
     }
 }

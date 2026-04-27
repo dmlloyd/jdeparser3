@@ -4,7 +4,7 @@ package io.smallrye.jdeparser;
  * Java language features that are gated by source version.
  * <p>
  * Each constant identifies a language feature along with the minimum
- * {@link SourceVersion} required to use it.  The library checks these
+ * {@link SourceVersion} required to use it. The library checks these
  * at construction time to prevent generating source code that is invalid
  * for the configured target version.
  *

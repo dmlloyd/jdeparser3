@@ -6,9 +6,8 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import io.smallrye.common.constraint.Assert;
-
-import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.creator.DocInlineCreator;
 import io.smallrye.jdeparser.creator.TypeParamCreator;
 
@@ -17,7 +16,7 @@ import io.smallrye.jdeparser.creator.TypeParamCreator;
  * bounds and documentation.
  * <p>
  * Writes a type parameter in the form {@code T}, {@code T extends Bound},
- * or {@code T extends Bound1 & Bound2}.  Documentation set via
+ * or {@code T extends Bound1 & Bound2}. Documentation set via
  * {@link #docComment(Consumer)} is propagated to the enclosing type or
  * method's Javadoc as a {@code @param <T>} tag.
  */
@@ -36,7 +35,7 @@ public final class TypeParamCreatorImpl extends AbstractCreator implements TypeP
      * Constructs a new type parameter creator.
      *
      * @param version the source version
-     * @param name    the type parameter name (e.g., {@code "T"})
+     * @param name the type parameter name (e.g., {@code "T"})
      */
     public TypeParamCreatorImpl(final SourceVersion version, final String name) {
         super(version);
@@ -81,15 +80,13 @@ public final class TypeParamCreatorImpl extends AbstractCreator implements TypeP
             this.bounds = switch (bounds.size()) {
                 case 0 -> ourIntersection;
                 default -> new IntersectionType(
-                    Stream.concat(ourIntersection.types().stream(), bounds.stream()).toList()
-                );
+                        Stream.concat(ourIntersection.types().stream(), bounds.stream()).toList());
             };
         } else {
             this.bounds = switch (bounds.size()) {
                 case 0 -> ourBounds;
                 default -> new IntersectionType(
-                    Stream.concat(Stream.of(ourBounds), bounds.stream()).toList()
-                );
+                        Stream.concat(Stream.of(ourBounds), bounds.stream()).toList());
             };
         }
     }

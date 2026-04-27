@@ -33,8 +33,8 @@ public sealed interface TryCreator permits TryCreatorImpl {
      * Adds a catch block for a single exception type.
      *
      * @param exceptionType the exception type
-     * @param name          the exception variable name
-     * @param body          the callback for the catch body
+     * @param name the exception variable name
+     * @param body the callback for the catch body
      */
     void catch_(Type exceptionType, String name, Consumer<BlockCreator> body);
 
@@ -42,8 +42,8 @@ public sealed interface TryCreator permits TryCreatorImpl {
      * Adds a multi-catch block for multiple exception types.
      *
      * @param exceptionTypes the exception types
-     * @param name           the exception variable name
-     * @param body           the callback for the catch body
+     * @param name the exception variable name
+     * @param body the callback for the catch body
      */
     void catch_(List<Type> exceptionTypes, String name, Consumer<BlockCreator> body);
 

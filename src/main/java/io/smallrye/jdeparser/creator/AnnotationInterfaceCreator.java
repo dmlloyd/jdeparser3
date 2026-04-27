@@ -14,8 +14,8 @@ public sealed interface AnnotationInterfaceCreator extends ModifiableCreator per
     /**
      * Defines an annotation element (method-like member).
      *
-     * @param name         the element name
-     * @param type         the element type
+     * @param name the element name
+     * @param type the element type
      * @param defaultValue the default value expression, or {@code null} for no default
      */
     void element(String name, Type type, Expr defaultValue);
@@ -31,7 +31,7 @@ public sealed interface AnnotationInterfaceCreator extends ModifiableCreator per
     /**
      * Defines a constant in this annotation type.
      *
-     * @param name    the constant name
+     * @param name the constant name
      * @param builder the callback to configure the constant field
      */
     void constant(String name, Consumer<FieldCreator> builder);

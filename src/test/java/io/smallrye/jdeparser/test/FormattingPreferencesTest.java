@@ -1,12 +1,17 @@
 package io.smallrye.jdeparser.test;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.IOException;
 import java.util.List;
 
+import org.junit.jupiter.api.Test;
+
 import io.smallrye.jdeparser.Expr;
+import io.smallrye.jdeparser.SourceVersion;
 import io.smallrye.jdeparser.Sources;
 import io.smallrye.jdeparser.Type;
-import io.smallrye.jdeparser.SourceVersion;
 import io.smallrye.jdeparser.creator.BlockCreator;
 import io.smallrye.jdeparser.format.FormatPreferences;
 import io.smallrye.jdeparser.format.FormatPreferences.Indentation;
@@ -15,10 +20,6 @@ import io.smallrye.jdeparser.format.FormatPreferences.Space;
 import io.smallrye.jdeparser.format.FormatPreferences.SpaceType;
 import io.smallrye.jdeparser.format.FormatPreferences.Wrapping;
 import io.smallrye.jdeparser.format.FormatPreferences.WrappingMode;
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests that verify changing {@link FormatPreferences} actually changes the
@@ -57,8 +58,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         // Generate with BEFORE_PAREN_IF set to NONE: "if(x > 0)"
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_PAREN_IF, SpaceType.NONE)
-            .build();
+                .space(Space.BEFORE_PAREN_IF, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -100,8 +101,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         // Generate with BEFORE_BRACE_METHOD set to NONE: no space before "{"
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_BRACE_METHOD, SpaceType.NONE)
-            .build();
+                .space(Space.BEFORE_BRACE_METHOD, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -142,8 +143,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         // Generate with AROUND_ASSIGN set to NONE: "x=0"
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.AROUND_ASSIGN, SpaceType.NONE)
-            .build();
+                .space(Space.AROUND_ASSIGN, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -185,8 +186,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         // Generate with WITHIN_BRACES_ARRAY_INIT set to NONE: "{1, 2}"
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.WITHIN_BRACES_ARRAY_INIT, SpaceType.NONE)
-            .build();
+                .space(Space.WITHIN_BRACES_ARRAY_INIT, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -228,8 +229,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         // Generate with AFTER_COMMA set to NONE: "method(a,b)"
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.AFTER_COMMA, SpaceType.NONE)
-            .build();
+                .space(Space.AFTER_COMMA, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -271,8 +272,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         // Generate with AROUND_ARROW set to NONE: "x->x"
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.AROUND_ARROW, SpaceType.NONE)
-            .build();
+                .space(Space.AROUND_ARROW, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -320,8 +321,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         // Generate with BEFORE_PAREN_FOR set to NONE: "for(...)"
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_PAREN_FOR, SpaceType.NONE)
-            .build();
+                .space(Space.BEFORE_PAREN_FOR, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -370,8 +371,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         // Generate with BEFORE_PAREN_WHILE set to NONE: "while(...)"
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_PAREN_WHILE, SpaceType.NONE)
-            .build();
+                .space(Space.BEFORE_PAREN_WHILE, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -420,8 +421,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         // Generate with AFTER_SEMICOLON set to NONE: semicolons not followed by space
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.AFTER_SEMICOLON, SpaceType.NONE)
-            .build();
+                .space(Space.AFTER_SEMICOLON, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -469,8 +470,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         // Generate with AROUND_RELATIONAL set to NONE: "x>0"
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.AROUND_RELATIONAL, SpaceType.NONE)
-            .build();
+                .space(Space.AROUND_RELATIONAL, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -511,8 +512,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.AROUND_LOGICAL, SpaceType.NONE)
-            .build();
+                .space(Space.AROUND_LOGICAL, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -551,8 +552,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.AROUND_EQUALITY, SpaceType.NONE)
-            .build();
+                .space(Space.AROUND_EQUALITY, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -591,8 +592,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.AROUND_BITWISE, SpaceType.NONE)
-            .build();
+                .space(Space.AROUND_BITWISE, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -631,8 +632,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.AROUND_ADDITIVE, SpaceType.NONE)
-            .build();
+                .space(Space.AROUND_ADDITIVE, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -671,8 +672,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.AROUND_MULTIPLICATIVE, SpaceType.NONE)
-            .build();
+                .space(Space.AROUND_MULTIPLICATIVE, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -711,8 +712,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.AROUND_SHIFT, SpaceType.NONE)
-            .build();
+                .space(Space.AROUND_SHIFT, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -753,8 +754,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.AROUND_METHOD_REF, SpaceType.SPACE)
-            .build();
+                .space(Space.AROUND_METHOD_REF, SpaceType.SPACE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -795,8 +796,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_TERNARY_Q, SpaceType.NONE)
-            .build();
+                .space(Space.BEFORE_TERNARY_Q, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -835,8 +836,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.AFTER_TERNARY_Q, SpaceType.NONE)
-            .build();
+                .space(Space.AFTER_TERNARY_Q, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -875,8 +876,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_TERNARY_COLON, SpaceType.NONE)
-            .build();
+                .space(Space.BEFORE_TERNARY_COLON, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -915,8 +916,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.AFTER_TERNARY_COLON, SpaceType.NONE)
-            .build();
+                .space(Space.AFTER_TERNARY_COLON, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -955,8 +956,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.AFTER_CAST, SpaceType.NONE)
-            .build();
+                .space(Space.AFTER_CAST, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -995,12 +996,13 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         });
         defaultSources.writeSources();
         final String defaultOutput = getSource("com.example", "Cls1");
-        assertTrue(defaultOutput.contains("Serializable & Comparable"), "default should contain 'Serializable & Comparable' (space on both sides)");
+        assertTrue(defaultOutput.contains("Serializable & Comparable"),
+                "default should contain 'Serializable & Comparable' (space on both sides)");
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.AROUND_TYPE_BOUND_AND, SpaceType.NONE)
-            .build();
+                .space(Space.AROUND_TYPE_BOUND_AND, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -1015,7 +1017,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         modifiedSources.writeSources();
         final String modifiedOutput = getSource("com.example", "Cls2");
         assertTrue(modifiedOutput.contains("Serializable&Comparable"), "modified should contain 'Serializable&Comparable'");
-        assertFalse(modifiedOutput.contains("Serializable & Comparable"), "modified should not contain 'Serializable & Comparable'");
+        assertFalse(modifiedOutput.contains("Serializable & Comparable"),
+                "modified should not contain 'Serializable & Comparable'");
     }
 
     /**
@@ -1034,9 +1037,9 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
                         b.try_(tc -> {
                             tc.body(BlockCreator::empty);
                             tc.catch_(List.of(
-                                Type.named("java.io.IOException"),
-                                Type.named("java.sql.SQLException")),
-                                "e", BlockCreator::empty);
+                                    Type.named("java.io.IOException"),
+                                    Type.named("java.sql.SQLException")),
+                                    "e", BlockCreator::empty);
                         });
                     });
                 });
@@ -1048,8 +1051,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.AROUND_MULTI_CATCH_OR, SpaceType.NONE)
-            .build();
+                .space(Space.AROUND_MULTI_CATCH_OR, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -1058,9 +1061,9 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
                         b.try_(tc -> {
                             tc.body(BlockCreator::empty);
                             tc.catch_(List.of(
-                                Type.named("java.io.IOException"),
-                                Type.named("java.sql.SQLException")),
-                                "e", BlockCreator::empty);
+                                    Type.named("java.io.IOException"),
+                                    Type.named("java.sql.SQLException")),
+                                    "e", BlockCreator::empty);
                         });
                     });
                 });
@@ -1096,8 +1099,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_BRACE_CLASS, SpaceType.NONE)
-            .build();
+                .space(Space.BEFORE_BRACE_CLASS, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -1123,7 +1126,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         final Sources defaultSources = createSources(SourceVersion.JAVA_17);
         defaultSources.createSourceFile("com.example", "Color", sf -> {
             sf.enum_("Color", ec -> {
-                ec.constant("RED", c -> {});
+                ec.constant("RED", c -> {
+                });
             });
         });
         defaultSources.writeSources();
@@ -1132,12 +1136,13 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_BRACE_ENUM, SpaceType.NONE)
-            .build();
+                .space(Space.BEFORE_BRACE_ENUM, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Color2", sf -> {
             sf.enum_("Color2", ec -> {
-                ec.constant("RED", c -> {});
+                ec.constant("RED", c -> {
+                });
             });
         });
         modifiedSources.writeSources();
@@ -1166,8 +1171,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_BRACE_RECORD, SpaceType.NONE)
-            .build();
+                .space(Space.BEFORE_BRACE_RECORD, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Point2", sf -> {
             sf.record_("Point2", rc -> {
@@ -1199,8 +1204,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_BRACE_ANNOTATION_TYPE, SpaceType.NONE)
-            .build();
+                .space(Space.BEFORE_BRACE_ANNOTATION_TYPE, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "MyAnno2", sf -> {
             sf.annotationInterface_("MyAnno2", ac -> {
@@ -1239,8 +1244,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_BRACE_IF, SpaceType.NONE)
-            .build();
+                .space(Space.BEFORE_BRACE_IF, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -1280,8 +1285,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_BRACE_ELSE, SpaceType.NONE)
-            .build();
+                .space(Space.BEFORE_BRACE_ELSE, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -1327,8 +1332,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_BRACE_FOR, SpaceType.NONE)
-            .build();
+                .space(Space.BEFORE_BRACE_FOR, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -1373,8 +1378,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_BRACE_WHILE, SpaceType.NONE)
-            .build();
+                .space(Space.BEFORE_BRACE_WHILE, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -1414,8 +1419,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_BRACE_DO, SpaceType.NONE)
-            .build();
+                .space(Space.BEFORE_BRACE_DO, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -1458,8 +1463,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_BRACE_SWITCH, SpaceType.NONE)
-            .build();
+                .space(Space.BEFORE_BRACE_SWITCH, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -1504,8 +1509,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_BRACE_TRY, SpaceType.NONE)
-            .build();
+                .space(Space.BEFORE_BRACE_TRY, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -1552,8 +1557,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_BRACE_CATCH, SpaceType.NONE)
-            .build();
+                .space(Space.BEFORE_BRACE_CATCH, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -1599,8 +1604,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_BRACE_FINALLY, SpaceType.NONE)
-            .build();
+                .space(Space.BEFORE_BRACE_FINALLY, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -1644,8 +1649,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_BRACE_SYNCHRONIZED, SpaceType.NONE)
-            .build();
+                .space(Space.BEFORE_BRACE_SYNCHRONIZED, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -1685,9 +1690,9 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.AROUND_ARROW, SpaceType.NONE)
-            .space(Space.BEFORE_BRACE_LAMBDA, SpaceType.NONE)
-            .build();
+                .space(Space.AROUND_ARROW, SpaceType.NONE)
+                .space(Space.BEFORE_BRACE_LAMBDA, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -1728,8 +1733,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_BRACE_ARRAY_INIT, SpaceType.NONE)
-            .build();
+                .space(Space.BEFORE_BRACE_ARRAY_INIT, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -1771,8 +1776,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_PAREN_SWITCH, SpaceType.NONE)
-            .build();
+                .space(Space.BEFORE_PAREN_SWITCH, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -1816,8 +1821,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_PAREN_TRY, SpaceType.NONE)
-            .build();
+                .space(Space.BEFORE_PAREN_TRY, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -1864,8 +1869,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_PAREN_CATCH, SpaceType.NONE)
-            .build();
+                .space(Space.BEFORE_PAREN_CATCH, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -1909,8 +1914,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_PAREN_SYNCHRONIZED, SpaceType.NONE)
-            .build();
+                .space(Space.BEFORE_PAREN_SYNCHRONIZED, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -1947,8 +1952,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_PAREN_RECORD, SpaceType.SPACE)
-            .build();
+                .space(Space.BEFORE_PAREN_RECORD, SpaceType.SPACE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Point2", sf -> {
             sf.record_("Point2", rc -> {
@@ -1989,8 +1994,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_KEYWORD_ELSE, SpaceType.NEWLINE)
-            .build();
+                .space(Space.BEFORE_KEYWORD_ELSE, SpaceType.NEWLINE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -2030,8 +2035,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_KEYWORD_WHILE, SpaceType.NEWLINE)
-            .build();
+                .space(Space.BEFORE_KEYWORD_WHILE, SpaceType.NEWLINE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -2074,8 +2079,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_KEYWORD_CATCH, SpaceType.NEWLINE)
-            .build();
+                .space(Space.BEFORE_KEYWORD_CATCH, SpaceType.NEWLINE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -2121,8 +2126,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_KEYWORD_FINALLY, SpaceType.NEWLINE)
-            .build();
+                .space(Space.BEFORE_KEYWORD_FINALLY, SpaceType.NEWLINE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -2167,8 +2172,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_COLON, SpaceType.NONE)
-            .build();
+                .space(Space.BEFORE_COLON, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -2209,8 +2214,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.AFTER_COLON, SpaceType.NONE)
-            .build();
+                .space(Space.AFTER_COLON, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -2249,12 +2254,13 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         });
         defaultSources.writeSources();
         final String defaultOutput = getSource("com.example", "Cls1");
-        assertFalse(defaultOutput.contains("outer: {"), "default should not contain 'outer: {' on one line (NEWLINE is default)");
+        assertFalse(defaultOutput.contains("outer: {"),
+                "default should not contain 'outer: {' on one line (NEWLINE is default)");
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.AFTER_LABEL, SpaceType.SPACE)
-            .build();
+                .space(Space.AFTER_LABEL, SpaceType.SPACE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -2285,8 +2291,10 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         final Sources defaultSources = createSources(SourceVersion.JAVA_17);
         defaultSources.createSourceFile("com.example", "Cls1", sf -> {
             sf.class_("Cls1", cc -> {
-                cc.typeParam("K", tp -> {});
-                cc.typeParam("V", tp -> {});
+                cc.typeParam("K", tp -> {
+                });
+                cc.typeParam("V", tp -> {
+                });
                 cc.method("run", mc -> {
                     mc.body(BlockCreator::return_);
                 });
@@ -2298,13 +2306,15 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.AFTER_COMMA_TYPE_ARGUMENT, SpaceType.NONE)
-            .build();
+                .space(Space.AFTER_COMMA_TYPE_ARGUMENT, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
-                cc.typeParam("K", tp -> {});
-                cc.typeParam("V", tp -> {});
+                cc.typeParam("K", tp -> {
+                });
+                cc.typeParam("V", tp -> {
+                });
                 cc.method("run", mc -> {
                     mc.body(BlockCreator::return_);
                 });
@@ -2327,8 +2337,10 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         final Sources defaultSources = createSources(SourceVersion.JAVA_17);
         defaultSources.createSourceFile("com.example", "Dir", sf -> {
             sf.enum_("Dir", ec -> {
-                ec.constant("N", c -> {});
-                ec.constant("S", c -> {});
+                ec.constant("N", c -> {
+                });
+                ec.constant("S", c -> {
+                });
             });
         });
         defaultSources.writeSources();
@@ -2337,14 +2349,16 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.COMMA_ENUM_CONSTANT, SpaceType.SPACE)
-            .wrapMode(Wrapping.ENUM_CONSTANT_LIST, WrappingMode.NEVER)
-            .build();
+                .space(Space.COMMA_ENUM_CONSTANT, SpaceType.SPACE)
+                .wrapMode(Wrapping.ENUM_CONSTANT_LIST, WrappingMode.NEVER)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Dir2", sf -> {
             sf.enum_("Dir2", ec -> {
-                ec.constant("N", c -> {});
-                ec.constant("S", c -> {});
+                ec.constant("N", c -> {
+                });
+                ec.constant("S", c -> {
+                });
             });
         });
         modifiedSources.writeSources();
@@ -2373,8 +2387,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.AFTER_COMMA_RECORD_COMPONENT, SpaceType.NONE)
-            .build();
+                .space(Space.AFTER_COMMA_RECORD_COMPONENT, SpaceType.NONE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Point2", sf -> {
             sf.record_("Point2", rc -> {
@@ -2417,8 +2431,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.AFTER_PARAM_ANNOTATION, SpaceType.NEWLINE)
-            .build();
+                .space(Space.AFTER_PARAM_ANNOTATION, SpaceType.NEWLINE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -2460,8 +2474,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .indent(Indentation.MEMBERS_TOP_LEVEL, 8)
-            .build();
+                .indent(Indentation.MEMBERS_TOP_LEVEL, 8)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -2501,8 +2515,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .indent(Indentation.LINE, 2)
-            .build();
+                .indent(Indentation.LINE, 2)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -2544,8 +2558,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .indent(Indentation.CASE_LABELS, 4)
-            .build();
+                .indent(Indentation.CASE_LABELS, 4)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -2588,8 +2602,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_BRACE_METHOD, SpaceType.NEWLINE)
-            .build();
+                .space(Space.BEFORE_BRACE_METHOD, SpaceType.NEWLINE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -2627,8 +2641,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_BRACE_IF, SpaceType.NEWLINE)
-            .build();
+                .space(Space.BEFORE_BRACE_IF, SpaceType.NEWLINE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -2668,8 +2682,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_KEYWORD_ELSE, SpaceType.NEWLINE)
-            .build();
+                .space(Space.BEFORE_KEYWORD_ELSE, SpaceType.NEWLINE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -2709,8 +2723,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.AFTER_COMMA, SpaceType.NEWLINE)
-            .build();
+                .space(Space.AFTER_COMMA, SpaceType.NEWLINE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -2750,8 +2764,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.AROUND_ASSIGN, SpaceType.NEWLINE)
-            .build();
+                .space(Space.AROUND_ASSIGN, SpaceType.NEWLINE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -2793,8 +2807,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.WITHIN_BRACES_EMPTY, SpaceType.SPACE)
-            .build();
+                .space(Space.WITHIN_BRACES_EMPTY, SpaceType.SPACE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -2826,7 +2840,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
             sf.class_("Cls1", cc -> {
                 cc.method("run", mc -> {
                     mc.body(b -> {
-                        b.if_(Expr.$v("x").gt(Expr.ZERO), ifBody -> {});
+                        b.if_(Expr.$v("x").gt(Expr.ZERO), ifBody -> {
+                        });
                     });
                 });
             });
@@ -2837,14 +2852,15 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.WITHIN_BRACES_EMPTY, SpaceType.SPACE)
-            .build();
+                .space(Space.WITHIN_BRACES_EMPTY, SpaceType.SPACE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
                 cc.method("run", mc -> {
                     mc.body(b -> {
-                        b.if_(Expr.$v("x").gt(Expr.ZERO), ifBody -> {});
+                        b.if_(Expr.$v("x").gt(Expr.ZERO), ifBody -> {
+                        });
                     });
                 });
             });
@@ -2870,24 +2886,27 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
             sf.class_("Cls1", cc -> {
                 cc.field("obj", fc -> {
                     fc.type(Type.OBJECT);
-                    fc.init(Type.OBJECT.new_(SourceVersion.JAVA_17, List.of(), body -> {}));
+                    fc.init(Type.OBJECT.new_(SourceVersion.JAVA_17, List.of(), body -> {
+                    }));
                 });
             });
         });
         defaultSources.writeSources();
         final String defaultOutput = getSource("com.example", "Cls1");
-        assertTrue(defaultOutput.contains(") {}"), "default (NONE) should produce empty anonymous class braces with no content");
+        assertTrue(defaultOutput.contains(") {}"),
+                "default (NONE) should produce empty anonymous class braces with no content");
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.WITHIN_BRACES_EMPTY, SpaceType.SPACE)
-            .build();
+                .space(Space.WITHIN_BRACES_EMPTY, SpaceType.SPACE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
                 cc.field("obj", fc -> {
                     fc.type(Type.OBJECT);
-                    fc.init(Type.OBJECT.new_(SourceVersion.JAVA_17, List.of(), body -> {}));
+                    fc.init(Type.OBJECT.new_(SourceVersion.JAVA_17, List.of(), body -> {
+                    }));
                 });
             });
         });
@@ -2912,7 +2931,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
             sf.class_("Cls1", cc -> {
                 cc.field("fn", fc -> {
                     fc.type(Type.OBJECT);
-                    fc.init(Expr.lambda(SourceVersion.JAVA_17, "x", body -> {}));
+                    fc.init(Expr.lambda(SourceVersion.JAVA_17, "x", body -> {
+                    }));
                 });
             });
         });
@@ -2922,14 +2942,15 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.WITHIN_BRACES_EMPTY, SpaceType.SPACE)
-            .build();
+                .space(Space.WITHIN_BRACES_EMPTY, SpaceType.SPACE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
                 cc.field("fn", fc -> {
                     fc.type(Type.OBJECT);
-                    fc.init(Expr.lambda(SourceVersion.JAVA_17, "x", body -> {}));
+                    fc.init(Expr.lambda(SourceVersion.JAVA_17, "x", body -> {
+                    }));
                 });
             });
         });
@@ -2951,7 +2972,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
     void withinBracesEmptyClassBody() throws IOException {
         final Sources defaultSources = createSources(SourceVersion.JAVA_17);
         defaultSources.createSourceFile("com.example", "Empty", sf -> {
-            sf.class_("Empty", cc -> {});
+            sf.class_("Empty", cc -> {
+            });
         });
         defaultSources.writeSources();
         final String defaultOutput = getSource("com.example", "Empty");
@@ -2959,11 +2981,12 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.WITHIN_BRACES_EMPTY, SpaceType.SPACE)
-            .build();
+                .space(Space.WITHIN_BRACES_EMPTY, SpaceType.SPACE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Empty2", sf -> {
-            sf.class_("Empty2", cc -> {});
+            sf.class_("Empty2", cc -> {
+            });
         });
         modifiedSources.writeSources();
         final String modifiedOutput = getSource("com.example", "Empty2");
@@ -2983,8 +3006,10 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         final Sources defaultSources = createSources(SourceVersion.JAVA_17);
         defaultSources.createSourceFile("com.example", "Color", sf -> {
             sf.enum_("Color", ec -> {
-                ec.constant("RED", c -> {});
-                ec.constant("GREEN", c -> {});
+                ec.constant("RED", c -> {
+                });
+                ec.constant("GREEN", c -> {
+                });
             });
         });
         defaultSources.writeSources();
@@ -2994,13 +3019,15 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .addOption(Opt.ENUM_TRAILING_COMMA)
-            .build();
+                .addOption(Opt.ENUM_TRAILING_COMMA)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Color2", sf -> {
             sf.enum_("Color2", ec -> {
-                ec.constant("RED", c -> {});
-                ec.constant("GREEN", c -> {});
+                ec.constant("RED", c -> {
+                });
+                ec.constant("GREEN", c -> {
+                });
             });
         });
         modifiedSources.writeSources();
@@ -3019,7 +3046,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         final Sources defaultSources = createSources(SourceVersion.JAVA_17);
         defaultSources.createSourceFile("com.example", "Color", sf -> {
             sf.enum_("Color", ec -> {
-                ec.constant("RED", c -> {});
+                ec.constant("RED", c -> {
+                });
             });
         });
         defaultSources.writeSources();
@@ -3028,12 +3056,13 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .addOption(Opt.ENUM_EMPTY_PARENS)
-            .build();
+                .addOption(Opt.ENUM_EMPTY_PARENS)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Color2", sf -> {
             sf.enum_("Color2", ec -> {
-                ec.constant("RED", c -> {});
+                ec.constant("RED", c -> {
+                });
             });
         });
         modifiedSources.writeSources();
@@ -3070,8 +3099,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .removeOption(Opt.COMPACT_INIT_ONLY_CLASS)
-            .build();
+                .removeOption(Opt.COMPACT_INIT_ONLY_CLASS)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -3116,8 +3145,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.WITHIN_PAREN_METHOD_CALL, SpaceType.SPACE)
-            .build();
+                .space(Space.WITHIN_PAREN_METHOD_CALL, SpaceType.SPACE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Color2", sf -> {
             sf.enum_("Color2", ec -> {
@@ -3142,12 +3171,13 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
     @Test
     void spaceWithinParenEnumConstantEmpty() throws IOException {
         final FormatPreferences defaultPrefs = FormatPreferences.builder()
-            .addOption(Opt.ENUM_EMPTY_PARENS)
-            .build();
+                .addOption(Opt.ENUM_EMPTY_PARENS)
+                .build();
         final Sources defaultSources = createSources(defaultPrefs, SourceVersion.JAVA_17);
         defaultSources.createSourceFile("com.example", "Color", sf -> {
             sf.enum_("Color", ec -> {
-                ec.constant("RED", c -> {});
+                ec.constant("RED", c -> {
+                });
             });
         });
         defaultSources.writeSources();
@@ -3156,13 +3186,14 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .addOption(Opt.ENUM_EMPTY_PARENS)
-            .space(Space.WITHIN_PAREN_METHOD_CALL_EMPTY, SpaceType.SPACE)
-            .build();
+                .addOption(Opt.ENUM_EMPTY_PARENS)
+                .space(Space.WITHIN_PAREN_METHOD_CALL_EMPTY, SpaceType.SPACE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Color2", sf -> {
             sf.enum_("Color2", ec -> {
-                ec.constant("RED", c -> {});
+                ec.constant("RED", c -> {
+                });
             });
         });
         modifiedSources.writeSources();
@@ -3175,7 +3206,7 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
     /**
      * Verifies that {@link Space#AFTER_SEMICOLON_EMPTY} (default {@link SpaceType#NONE})
      * controls the space after semicolons in {@code for(;;)} loops when the following
-     * part is absent.  With the default, {@code for(;;)} has no spaces between
+     * part is absent. With the default, {@code for(;;)} has no spaces between
      * semicolons; setting it to {@link SpaceType#SPACE} produces {@code for(; ; )}.
      *
      * @throws IOException if source generation fails
@@ -3199,12 +3230,12 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         defaultSources.writeSources();
         final String defaultOutput = getSource("com.example", "Cls1");
         assertTrue(defaultOutput.contains("for (;;)"),
-            "default (NONE) should produce for (;;) with no spaces between semicolons");
+                "default (NONE) should produce for (;;) with no spaces between semicolons");
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.AFTER_SEMICOLON_EMPTY, SpaceType.SPACE)
-            .build();
+                .space(Space.AFTER_SEMICOLON_EMPTY, SpaceType.SPACE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -3222,7 +3253,7 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         modifiedSources.writeSources();
         final String modifiedOutput = getSource("com.example", "Cls2");
         assertTrue(modifiedOutput.contains("for (; ; )"),
-            "SPACE should produce for (; ; ) with spaces between semicolons");
+                "SPACE should produce for (; ; ) with spaces between semicolons");
     }
 
     /**
@@ -3255,7 +3286,7 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         // first semicolon: condition present → AFTER_SEMICOLON (SPACE)
         // second semicolon: update absent → AFTER_SEMICOLON_EMPTY (NONE)
         assertTrue(defaultOutput.contains("; x > 0;)"),
-            "default should have space after first ; (AFTER_SEMICOLON) but not after second ; (AFTER_SEMICOLON_EMPTY)");
+                "default should have space after first ; (AFTER_SEMICOLON) but not after second ; (AFTER_SEMICOLON_EMPTY)");
     }
 
     // ── Batch 19: Wrapping ─────────────────────────────────────────────
@@ -3284,8 +3315,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .wrapMode(Wrapping.ARGUMENT_LIST, WrappingMode.ALWAYS_WRAP)
-            .build();
+                .wrapMode(Wrapping.ARGUMENT_LIST, WrappingMode.ALWAYS_WRAP)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -3299,9 +3330,9 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         modifiedSources.writeSources();
         final String modifiedOutput = getSource("com.example", "Cls2");
         assertFalse(modifiedOutput.contains("method(a, b)"),
-            "ALWAYS_WRAP should not have both args on same line");
+                "ALWAYS_WRAP should not have both args on same line");
         assertFalse(modifiedOutput.contains(", b"),
-            "ALWAYS_WRAP should wrap after comma instead of adding space");
+                "ALWAYS_WRAP should wrap after comma instead of adding space");
     }
 
     /**
@@ -3318,33 +3349,35 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
                 cc.method("run", mc -> {
                     mc.param("a", Type.INT);
                     mc.param("b", Type.INT);
-                    mc.body(b -> {});
+                    mc.body(b -> {
+                    });
                 });
             });
         });
         defaultSources.writeSources();
         final String defaultOutput = getSource("com.example", "Cls1");
         assertTrue(defaultOutput.contains("int a, int b"),
-            "default should have params on same line");
+                "default should have params on same line");
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .wrapMode(Wrapping.PARAMETER_LIST, WrappingMode.ALWAYS_WRAP)
-            .build();
+                .wrapMode(Wrapping.PARAMETER_LIST, WrappingMode.ALWAYS_WRAP)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
                 cc.method("run", mc -> {
                     mc.param("a", Type.INT);
                     mc.param("b", Type.INT);
-                    mc.body(b -> {});
+                    mc.body(b -> {
+                    });
                 });
             });
         });
         modifiedSources.writeSources();
         final String modifiedOutput = getSource("com.example", "Cls2");
         assertFalse(modifiedOutput.contains("int a, int b"),
-            "ALWAYS_WRAP should not have params on same line");
+                "ALWAYS_WRAP should not have params on same line");
     }
 
     /**
@@ -3372,12 +3405,12 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         defaultSources.writeSources();
         final String defaultOutput = getSource("com.example", "Cls1");
         assertTrue(defaultOutput.contains("Serializable, Comparable"),
-            "default should have interfaces on same line");
+                "default should have interfaces on same line");
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .wrapMode(Wrapping.IMPLEMENTS_LIST, WrappingMode.ALWAYS_WRAP)
-            .build();
+                .wrapMode(Wrapping.IMPLEMENTS_LIST, WrappingMode.ALWAYS_WRAP)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -3395,7 +3428,7 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         modifiedSources.writeSources();
         final String modifiedOutput = getSource("com.example", "Cls2");
         assertFalse(modifiedOutput.contains("Serializable, Comparable"),
-            "ALWAYS_WRAP should not have interfaces on same line");
+                "ALWAYS_WRAP should not have interfaces on same line");
     }
 
     /**
@@ -3412,33 +3445,35 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
                 cc.method("run", mc -> {
                     mc.throws_(Type.named("java.io.IOException"));
                     mc.throws_(Type.named("java.sql.SQLException"));
-                    mc.body(b -> {});
+                    mc.body(b -> {
+                    });
                 });
             });
         });
         defaultSources.writeSources();
         final String defaultOutput = getSource("com.example", "Cls1");
         assertTrue(defaultOutput.contains("IOException, "),
-            "default should have exceptions on same line");
+                "default should have exceptions on same line");
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .wrapMode(Wrapping.EXCEPTION_LIST, WrappingMode.ALWAYS_WRAP)
-            .build();
+                .wrapMode(Wrapping.EXCEPTION_LIST, WrappingMode.ALWAYS_WRAP)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
                 cc.method("run", mc -> {
                     mc.throws_(Type.named("java.io.IOException"));
                     mc.throws_(Type.named("java.sql.SQLException"));
-                    mc.body(b -> {});
+                    mc.body(b -> {
+                    });
                 });
             });
         });
         modifiedSources.writeSources();
         final String modifiedOutput = getSource("com.example", "Cls2");
         assertFalse(modifiedOutput.contains("IOException, "),
-            "ALWAYS_WRAP should not have exceptions on same line");
+                "ALWAYS_WRAP should not have exceptions on same line");
     }
 
     /**
@@ -3455,33 +3490,39 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         final Sources defaultSources = createSources(SourceVersion.JAVA_17);
         defaultSources.createSourceFile("com.example", "Dir", sf -> {
             sf.enum_("Dir", ec -> {
-                ec.constant("N", c -> {});
-                ec.constant("S", c -> {});
-                ec.constant("E", c -> {});
+                ec.constant("N", c -> {
+                });
+                ec.constant("S", c -> {
+                });
+                ec.constant("E", c -> {
+                });
             });
         });
         defaultSources.writeSources();
         final String defaultOutput = getSource("com.example", "Dir");
         assertFalse(defaultOutput.contains("N, S"),
-            "default (ALWAYS_WRAP) should not have constants on same line");
+                "default (ALWAYS_WRAP) should not have constants on same line");
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .wrapMode(Wrapping.ENUM_CONSTANT_LIST, WrappingMode.NEVER)
-            .space(Space.COMMA_ENUM_CONSTANT, SpaceType.SPACE)
-            .build();
+                .wrapMode(Wrapping.ENUM_CONSTANT_LIST, WrappingMode.NEVER)
+                .space(Space.COMMA_ENUM_CONSTANT, SpaceType.SPACE)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Dir2", sf -> {
             sf.enum_("Dir2", ec -> {
-                ec.constant("N", c -> {});
-                ec.constant("S", c -> {});
-                ec.constant("E", c -> {});
+                ec.constant("N", c -> {
+                });
+                ec.constant("S", c -> {
+                });
+                ec.constant("E", c -> {
+                });
             });
         });
         modifiedSources.writeSources();
         final String modifiedOutput = getSource("com.example", "Dir2");
         assertTrue(modifiedOutput.contains("N, S, E"),
-            "NEVER wrap should have all constants on same line");
+                "NEVER wrap should have all constants on same line");
     }
 
     // ── Batch 20: SINGLE_STATEMENT_BRACES ────────────────────────────────
@@ -3513,8 +3554,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .removeOption(Opt.SINGLE_STATEMENT_BRACES)
-            .build();
+                .removeOption(Opt.SINGLE_STATEMENT_BRACES)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -3530,7 +3571,7 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         modifiedSources.writeSources();
         final String modifiedOutput = getSource("com.example", "Cls2");
         assertFalse(modifiedOutput.contains(") {" + System.lineSeparator() + "            return;"),
-            "modified (OFF) should not have braces around single statement if body");
+                "modified (OFF) should not have braces around single statement if body");
         assertTrue(modifiedOutput.contains("return;"), "modified should still contain return");
         assertFalse(modifiedOutput.contains("} "), "modified should not have closing brace for if body");
     }
@@ -3544,16 +3585,16 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
     @Test
     void singleStatementBracesIfElse() throws IOException {
         final FormatPreferences prefs = FormatPreferences.builder()
-            .removeOption(Opt.SINGLE_STATEMENT_BRACES)
-            .build();
+                .removeOption(Opt.SINGLE_STATEMENT_BRACES)
+                .build();
         final Sources sources = createSources(prefs, SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "Cls1", sf -> {
             sf.class_("Cls1", cc -> {
                 cc.method("run", mc -> {
                     mc.body(b -> {
                         b.ifElse(Expr.$v("x").gt(Expr.ZERO),
-                            ifBody -> ifBody.return_(Expr.$v("x")),
-                            elseBody -> elseBody.return_(Expr.ZERO));
+                                ifBody -> ifBody.return_(Expr.$v("x")),
+                                elseBody -> elseBody.return_(Expr.ZERO));
                     });
                 });
             });
@@ -3575,8 +3616,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
     @Test
     void singleStatementBracesWhile() throws IOException {
         final FormatPreferences prefs = FormatPreferences.builder()
-            .removeOption(Opt.SINGLE_STATEMENT_BRACES)
-            .build();
+                .removeOption(Opt.SINGLE_STATEMENT_BRACES)
+                .build();
         final Sources sources = createSources(prefs, SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "Cls1", sf -> {
             sf.class_("Cls1", cc -> {
@@ -3593,7 +3634,7 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         final String output = getSource("com.example", "Cls1");
         assertTrue(output.contains("x--"), "should contain decrement");
         assertTrue(output.lines().noneMatch(l -> l.contains("while") && l.contains("{")),
-            "should not have braces on while line");
+                "should not have braces on while line");
     }
 
     /**
@@ -3605,8 +3646,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
     @Test
     void singleStatementBracesFor() throws IOException {
         final FormatPreferences prefs = FormatPreferences.builder()
-            .removeOption(Opt.SINGLE_STATEMENT_BRACES)
-            .build();
+                .removeOption(Opt.SINGLE_STATEMENT_BRACES)
+                .build();
         final Sources sources = createSources(prefs, SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "Cls1", sf -> {
             sf.class_("Cls1", cc -> {
@@ -3628,7 +3669,7 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         final String output = getSource("com.example", "Cls1");
         assertTrue(output.contains("process(i)"), "should contain process call");
         assertTrue(output.lines().noneMatch(l -> l.contains("for") && l.contains("{")),
-            "should not have braces on for line");
+                "should not have braces on for line");
     }
 
     /**
@@ -3640,8 +3681,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
     @Test
     void singleStatementBracesMultiStatement() throws IOException {
         final FormatPreferences prefs = FormatPreferences.builder()
-            .removeOption(Opt.SINGLE_STATEMENT_BRACES)
-            .build();
+                .removeOption(Opt.SINGLE_STATEMENT_BRACES)
+                .build();
         final Sources sources = createSources(prefs, SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "Cls1", sf -> {
             sf.class_("Cls1", cc -> {
@@ -3680,12 +3721,12 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         defaultSources.writeSources();
         final String defaultOutput = getSource("com.example", "Point");
         assertTrue(defaultOutput.contains("int x, int y"),
-            "default should have components on same line");
+                "default should have components on same line");
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .wrapMode(Wrapping.RECORD_COMPONENT_LIST, WrappingMode.ALWAYS_WRAP)
-            .build();
+                .wrapMode(Wrapping.RECORD_COMPONENT_LIST, WrappingMode.ALWAYS_WRAP)
+                .build();
         final Sources modifiedSources = createSources(prefs, SourceVersion.JAVA_17);
         modifiedSources.createSourceFile("com.example", "Point2", sf -> {
             sf.record_("Point2", rc -> {
@@ -3696,7 +3737,7 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         modifiedSources.writeSources();
         final String modifiedOutput = getSource("com.example", "Point2");
         assertFalse(modifiedOutput.contains("int x, int y"),
-            "ALWAYS_WRAP should not have components on same line");
+                "ALWAYS_WRAP should not have components on same line");
     }
 
     // ── Batch 21: BEFORE_PAREN_METHOD_CALL ──────────────────────────────
@@ -3725,8 +3766,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_PAREN_METHOD_CALL, SpaceType.SPACE)
-            .build();
+                .space(Space.BEFORE_PAREN_METHOD_CALL, SpaceType.SPACE)
+                .build();
         final Sources modified = createSources(prefs, SourceVersion.JAVA_17);
         modified.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -3766,8 +3807,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_PAREN_METHOD_DECLARATION, SpaceType.SPACE)
-            .build();
+                .space(Space.BEFORE_PAREN_METHOD_DECLARATION, SpaceType.SPACE)
+                .build();
         final Sources modified = createSources(prefs, SourceVersion.JAVA_17);
         modified.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
@@ -3792,8 +3833,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
     @Test
     void spaceBeforeParenCast() throws IOException {
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_PAREN_CAST, SpaceType.SPACE)
-            .build();
+                .space(Space.BEFORE_PAREN_CAST, SpaceType.SPACE)
+                .build();
         final Sources sources = createSources(prefs, SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "Cls1", sf -> {
             sf.class_("Cls1", cc -> {
@@ -3820,8 +3861,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
     @Test
     void spaceBeforeParenAnnotationParam() throws IOException {
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_PAREN_ANNOTATION_PARAM, SpaceType.SPACE)
-            .build();
+                .space(Space.BEFORE_PAREN_ANNOTATION_PARAM, SpaceType.SPACE)
+                .build();
         final Sources sources = createSources(prefs, SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "Cls1", sf -> {
             sf.class_("Cls1", cc -> {
@@ -3846,8 +3887,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
     @Test
     void spaceWithinParenExpr() throws IOException {
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.WITHIN_PAREN_EXPR, SpaceType.SPACE)
-            .build();
+                .space(Space.WITHIN_PAREN_EXPR, SpaceType.SPACE)
+                .build();
         final Sources sources = createSources(prefs, SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "Cls1", sf -> {
             sf.class_("Cls1", cc -> {
@@ -3874,8 +3915,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
     @Test
     void spaceWithinParenMethodCall() throws IOException {
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.WITHIN_PAREN_METHOD_CALL, SpaceType.SPACE)
-            .build();
+                .space(Space.WITHIN_PAREN_METHOD_CALL, SpaceType.SPACE)
+                .build();
         final Sources sources = createSources(prefs, SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "Cls1", sf -> {
             sf.class_("Cls1", cc -> {
@@ -3902,8 +3943,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
     @Test
     void spaceWithinParenMethodCallEmpty() throws IOException {
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.WITHIN_PAREN_METHOD_CALL_EMPTY, SpaceType.SPACE)
-            .build();
+                .space(Space.WITHIN_PAREN_METHOD_CALL_EMPTY, SpaceType.SPACE)
+                .build();
         final Sources sources = createSources(prefs, SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "Cls1", sf -> {
             sf.class_("Cls1", cc -> {
@@ -3930,8 +3971,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
     @Test
     void spaceWithinParenMethodDeclaration() throws IOException {
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.WITHIN_PAREN_METHOD_DECLARATION, SpaceType.SPACE)
-            .build();
+                .space(Space.WITHIN_PAREN_METHOD_DECLARATION, SpaceType.SPACE)
+                .build();
         final Sources sources = createSources(prefs, SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "Cls1", sf -> {
             sf.class_("Cls1", cc -> {
@@ -3957,8 +3998,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
     @Test
     void spaceWithinParenMethodDeclarationEmpty() throws IOException {
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.WITHIN_PAREN_METHOD_DECLARATION_EMPTY, SpaceType.SPACE)
-            .build();
+                .space(Space.WITHIN_PAREN_METHOD_DECLARATION_EMPTY, SpaceType.SPACE)
+                .build();
         final Sources sources = createSources(prefs, SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "Cls1", sf -> {
             sf.class_("Cls1", cc -> {
@@ -3983,8 +4024,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
     @Test
     void spaceWithinParenIf() throws IOException {
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.WITHIN_PAREN_IF, SpaceType.SPACE)
-            .build();
+                .space(Space.WITHIN_PAREN_IF, SpaceType.SPACE)
+                .build();
         final Sources sources = createSources(prefs, SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "Cls1", sf -> {
             sf.class_("Cls1", cc -> {
@@ -4013,8 +4054,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
     @Test
     void spaceWithinParenFor() throws IOException {
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.WITHIN_PAREN_FOR, SpaceType.SPACE)
-            .build();
+                .space(Space.WITHIN_PAREN_FOR, SpaceType.SPACE)
+                .build();
         final Sources sources = createSources(prefs, SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "Cls1", sf -> {
             sf.class_("Cls1", cc -> {
@@ -4047,8 +4088,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
     @Test
     void spaceWithinParenWhile() throws IOException {
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.WITHIN_PAREN_WHILE, SpaceType.SPACE)
-            .build();
+                .space(Space.WITHIN_PAREN_WHILE, SpaceType.SPACE)
+                .build();
         final Sources sources = createSources(prefs, SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "Cls1", sf -> {
             sf.class_("Cls1", cc -> {
@@ -4075,8 +4116,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
     @Test
     void spaceWithinParenSwitch() throws IOException {
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.WITHIN_PAREN_SWITCH, SpaceType.SPACE)
-            .build();
+                .space(Space.WITHIN_PAREN_SWITCH, SpaceType.SPACE)
+                .build();
         final Sources sources = createSources(prefs, SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "Cls1", sf -> {
             sf.class_("Cls1", cc -> {
@@ -4105,8 +4146,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
     @Test
     void spaceWithinParenTry() throws IOException {
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.WITHIN_PAREN_TRY, SpaceType.SPACE)
-            .build();
+                .space(Space.WITHIN_PAREN_TRY, SpaceType.SPACE)
+                .build();
         final Sources sources = createSources(prefs, SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "Cls1", sf -> {
             sf.class_("Cls1", cc -> {
@@ -4114,7 +4155,7 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
                     mc.body(b -> {
                         b.try_(tc -> {
                             tc.with(Type.named("java.io.InputStream"), "in",
-                                Expr.callPlain("open"));
+                                    Expr.callPlain("open"));
                             tc.body(body -> body.empty());
                         });
                     });
@@ -4124,7 +4165,7 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         sources.writeSources();
         final String output = getSource("com.example", "Cls1");
         assertTrue(output.contains("( java.io.InputStream") || output.contains("( InputStream"),
-            "modified: space after opening paren of try");
+                "modified: space after opening paren of try");
     }
 
     // ── Batch 35: WITHIN_PAREN_CATCH ────────────────────────────────────
@@ -4138,8 +4179,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
     @Test
     void spaceWithinParenCatch() throws IOException {
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.WITHIN_PAREN_CATCH, SpaceType.SPACE)
-            .build();
+                .space(Space.WITHIN_PAREN_CATCH, SpaceType.SPACE)
+                .build();
         final Sources sources = createSources(prefs, SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "Cls1", sf -> {
             sf.class_("Cls1", cc -> {
@@ -4148,7 +4189,7 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
                         b.try_(tc -> {
                             tc.body(body -> body.empty());
                             tc.catch_(Type.named("java.lang.Exception"), "e",
-                                body -> body.empty());
+                                    body -> body.empty());
                         });
                     });
                 });
@@ -4171,8 +4212,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
     @Test
     void spaceWithinParenSynchronized() throws IOException {
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.WITHIN_PAREN_SYNCHRONIZED, SpaceType.SPACE)
-            .build();
+                .space(Space.WITHIN_PAREN_SYNCHRONIZED, SpaceType.SPACE)
+                .build();
         final Sources sources = createSources(prefs, SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "Cls1", sf -> {
             sf.class_("Cls1", cc -> {
@@ -4199,8 +4240,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
     @Test
     void spaceWithinParenCast() throws IOException {
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.WITHIN_PAREN_CAST, SpaceType.SPACE)
-            .build();
+                .space(Space.WITHIN_PAREN_CAST, SpaceType.SPACE)
+                .build();
         final Sources sources = createSources(prefs, SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "Cls1", sf -> {
             sf.class_("Cls1", cc -> {
@@ -4227,8 +4268,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
     @Test
     void spaceWithinParenAnnotation() throws IOException {
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.WITHIN_PAREN_ANNOTATION, SpaceType.SPACE)
-            .build();
+                .space(Space.WITHIN_PAREN_ANNOTATION, SpaceType.SPACE)
+                .build();
         final Sources sources = createSources(prefs, SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "Cls1", sf -> {
             sf.class_("Cls1", cc -> {
@@ -4253,8 +4294,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
     @Test
     void spaceWithinParenRecord() throws IOException {
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.WITHIN_PAREN_RECORD, SpaceType.SPACE)
-            .build();
+                .space(Space.WITHIN_PAREN_RECORD, SpaceType.SPACE)
+                .build();
         final Sources sources = createSources(prefs, SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "Point", sf -> {
             sf.record_("Point", rc -> {
@@ -4279,12 +4320,13 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
     @Test
     void noSpaceBeforeBraceInterface() throws IOException {
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_BRACE_INTERFACE, SpaceType.NONE)
-            .build();
+                .space(Space.BEFORE_BRACE_INTERFACE, SpaceType.NONE)
+                .build();
         final Sources sources = createSources(prefs, SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "MyIface", sf -> {
             sf.interface_("MyIface", ic -> {
-                ic.method("run", mc -> {});
+                ic.method("run", mc -> {
+                });
             });
         });
         sources.writeSources();
@@ -4303,8 +4345,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
     @Test
     void spaceBeforeBraceAnnotationArrayInit() throws IOException {
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_BRACE_ANNOTATION_ARRAY_INIT, SpaceType.SPACE)
-            .build();
+                .space(Space.BEFORE_BRACE_ANNOTATION_ARRAY_INIT, SpaceType.SPACE)
+                .build();
         final Sources sources = createSources(prefs, SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "Cls1", sf -> {
             sf.class_("Cls1", cc -> {
@@ -4329,8 +4371,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
     @Test
     void spaceWithinBracesCode() throws IOException {
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.WITHIN_BRACES_CODE, SpaceType.SPACE)
-            .build();
+                .space(Space.WITHIN_BRACES_CODE, SpaceType.SPACE)
+                .build();
         final Sources sources = createSources(prefs, SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "Cls1", sf -> {
             sf.class_("Cls1", cc -> {
@@ -4357,8 +4399,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
     @Test
     void spaceAfterAnnotation() throws IOException {
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.AFTER_ANNOTATION, SpaceType.SPACE)
-            .build();
+                .space(Space.AFTER_ANNOTATION, SpaceType.SPACE)
+                .build();
         final Sources sources = createSources(prefs, SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "Cls1", sf -> {
             sf.class_("Cls1", cc -> {
@@ -4386,7 +4428,10 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         final Sources defaultSources = createSources(SourceVersion.JAVA_17);
         defaultSources.createSourceFile("com.example", "Cls1", sf -> {
             sf.class_("Cls1", cc -> {
-                cc.field("x", fc -> { fc.type(Type.INT); fc.init(Expr.ZERO); });
+                cc.field("x", fc -> {
+                    fc.type(Type.INT);
+                    fc.init(Expr.ZERO);
+                });
                 cc.method("run", mc -> {
                     mc.body(b -> b.empty());
                 });
@@ -4396,17 +4441,20 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         final String defaultOutput = getSource("com.example", "Cls1");
         // With default NEWLINE, there should be a blank line before the method
         long defaultBlankLines = defaultOutput.lines()
-            .filter(String::isBlank)
-            .count();
+                .filter(String::isBlank)
+                .count();
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_METHOD, SpaceType.NONE)
-            .build();
+                .space(Space.BEFORE_METHOD, SpaceType.NONE)
+                .build();
         final Sources modified = createSources(prefs, SourceVersion.JAVA_17);
         modified.createSourceFile("com.example", "Cls2", sf -> {
             sf.class_("Cls2", cc -> {
-                cc.field("x", fc -> { fc.type(Type.INT); fc.init(Expr.ZERO); });
+                cc.field("x", fc -> {
+                    fc.type(Type.INT);
+                    fc.init(Expr.ZERO);
+                });
                 cc.method("run", mc -> {
                     mc.body(b -> b.empty());
                 });
@@ -4415,10 +4463,10 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         modified.writeSources();
         final String modifiedOutput = getSource("com.example", "Cls2");
         long modifiedBlankLines = modifiedOutput.lines()
-            .filter(String::isBlank)
-            .count();
+                .filter(String::isBlank)
+                .count();
         assertTrue(modifiedBlankLines < defaultBlankLines,
-            "modified: fewer blank lines with BEFORE_METHOD=NONE");
+                "modified: fewer blank lines with BEFORE_METHOD=NONE");
     }
 
     // ── Batch 45: BEFORE_CLASS ──────────────────────────────────────────
@@ -4434,38 +4482,50 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         final Sources defaultSources = createSources(SourceVersion.JAVA_17);
         defaultSources.createSourceFile("com.example", "Outer", sf -> {
             sf.class_("Outer", cc -> {
-                cc.field("x", fc -> { fc.type(Type.INT); fc.init(Expr.ZERO); });
+                cc.field("x", fc -> {
+                    fc.type(Type.INT);
+                    fc.init(Expr.ZERO);
+                });
                 cc.class_("Inner", nc -> {
-                    nc.field("y", fc -> { fc.type(Type.INT); fc.init(Expr.ONE); });
+                    nc.field("y", fc -> {
+                        fc.type(Type.INT);
+                        fc.init(Expr.ONE);
+                    });
                 });
             });
         });
         defaultSources.writeSources();
         final String defaultOutput = getSource("com.example", "Outer");
         long defaultBlankLines = defaultOutput.lines()
-            .filter(String::isBlank)
-            .count();
+                .filter(String::isBlank)
+                .count();
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
-            .space(Space.BEFORE_CLASS, SpaceType.NONE)
-            .build();
+                .space(Space.BEFORE_CLASS, SpaceType.NONE)
+                .build();
         final Sources modified = createSources(prefs, SourceVersion.JAVA_17);
         modified.createSourceFile("com.example", "Outer2", sf -> {
             sf.class_("Outer2", cc -> {
-                cc.field("x", fc -> { fc.type(Type.INT); fc.init(Expr.ZERO); });
+                cc.field("x", fc -> {
+                    fc.type(Type.INT);
+                    fc.init(Expr.ZERO);
+                });
                 cc.class_("Inner", nc -> {
-                    nc.field("y", fc -> { fc.type(Type.INT); fc.init(Expr.ONE); });
+                    nc.field("y", fc -> {
+                        fc.type(Type.INT);
+                        fc.init(Expr.ONE);
+                    });
                 });
             });
         });
         modified.writeSources();
         final String modifiedOutput = getSource("com.example", "Outer2");
         long modifiedBlankLines = modifiedOutput.lines()
-            .filter(String::isBlank)
-            .count();
+                .filter(String::isBlank)
+                .count();
         assertTrue(modifiedBlankLines < defaultBlankLines,
-            "modified: fewer blank lines with BEFORE_CLASS=NONE");
+                "modified: fewer blank lines with BEFORE_CLASS=NONE");
     }
 
     // ── Batch 46: LABELS indentation ────────────────────────────────────
@@ -4479,8 +4539,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
     @Test
     void customLabelsIndent() throws IOException {
         final FormatPreferences prefs = FormatPreferences.builder()
-            .indent(Indentation.LABELS, 4)
-            .build();
+                .indent(Indentation.LABELS, 4)
+                .build();
         final Sources sources = createSources(prefs, SourceVersion.JAVA_17);
         sources.createSourceFile("com.example", "Cls1", sf -> {
             sf.class_("Cls1", cc -> {
@@ -4501,8 +4561,8 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
         // With LABELS indent of 4, the label should be indented further
         // than the default (0)
         String labelLine = output.lines()
-            .filter(l -> l.contains("outer:"))
-            .findFirst().orElseThrow();
+                .filter(l -> l.contains("outer:"))
+                .findFirst().orElseThrow();
         int labelIndent = labelLine.indexOf("outer:");
         assertTrue(labelIndent > 8, "label should be further indented with LABELS=4");
     }

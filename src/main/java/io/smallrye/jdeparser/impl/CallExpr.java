@@ -21,8 +21,8 @@ public final class CallExpr extends AbstractExpr {
      * Constructs a new method call expression.
      *
      * @param receiver the receiver expression, or {@code null} for unqualified calls
-     * @param method   the method name
-     * @param args     the argument expressions
+     * @param method the method name
+     * @param args the argument expressions
      */
     public CallExpr(final Expr receiver, final String method, final List<Expr> args) {
         this.receiver = receiver;
@@ -85,7 +85,7 @@ public final class CallExpr extends AbstractExpr {
         } else {
             writer.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_CALL);
             writeList(writer, args, FormatPreferences.Space.AFTER_COMMA,
-                FormatPreferences.Wrapping.ARGUMENT_LIST);
+                    FormatPreferences.Wrapping.ARGUMENT_LIST);
             writer.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_CALL);
         }
         writer.write(Tokens.$PAREN.CLOSE);

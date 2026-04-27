@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.List;
 
 import io.smallrye.common.constraint.Assert;
-
 import io.smallrye.jdeparser.Expr;
 import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.Var;
@@ -15,7 +14,7 @@ import io.smallrye.jdeparser.format.FormatPreferences;
  * and type parameter bounds.
  * <p>
  * Intersection types have restricted usage in Java: they may only appear
- * in cast expressions and as upper bounds of type parameters.  Consequently,
+ * in cast expressions and as upper bounds of type parameters. Consequently,
  * most type operations are overridden to throw {@link IllegalStateException}.
  * <p>
  * The constructor validates that at least two types are provided and that
@@ -31,7 +30,7 @@ public final class IntersectionType extends AbstractType {
      *
      * @param types the constituent types (defensively copied to an unmodifiable list)
      * @throws IllegalArgumentException if fewer than two types are provided,
-     *                                  or if any of the types is itself an {@link IntersectionType}
+     *         or if any of the types is itself an {@link IntersectionType}
      */
     public IntersectionType(final List<Type> types) {
         Assert.checkNotNullParam("types", types);
@@ -168,6 +167,7 @@ public final class IntersectionType extends AbstractType {
     /** {@inheritDoc} */
     @Override
     public void write(SourceFileWriter writer) throws IOException {
-        AbstractExpr.writeList(writer, types, FormatPreferences.Space.AROUND_TYPE_BOUND_AND, Tokens.$PUNCT.AMP, FormatPreferences.Space.AROUND_TYPE_BOUND_AND);
+        AbstractExpr.writeList(writer, types, FormatPreferences.Space.AROUND_TYPE_BOUND_AND, Tokens.$PUNCT.AMP,
+                FormatPreferences.Space.AROUND_TYPE_BOUND_AND);
     }
 }

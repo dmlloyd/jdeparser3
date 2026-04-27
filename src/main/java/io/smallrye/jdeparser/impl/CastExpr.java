@@ -23,7 +23,7 @@ public final class CastExpr extends AbstractExpr {
     /**
      * Constructs a new cast expression.
      *
-     * @param type    the target type (never {@code null})
+     * @param type the target type (never {@code null})
      * @param operand the expression to cast (never {@code null})
      */
     public CastExpr(final Type type, final Expr operand) {

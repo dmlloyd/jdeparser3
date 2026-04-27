@@ -1,17 +1,18 @@
 package io.smallrye.jdeparser.test;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.IOException;
 import java.util.List;
 
-import io.smallrye.jdeparser.Expr;
-import io.smallrye.jdeparser.Sources;
-import io.smallrye.jdeparser.Type;
-import io.smallrye.jdeparser.SourceVersion;
-import io.smallrye.jdeparser.creator.BlockCreator;
-import io.smallrye.jdeparser.creator.ModifierFlag;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import io.smallrye.jdeparser.Expr;
+import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Sources;
+import io.smallrye.jdeparser.Type;
+import io.smallrye.jdeparser.creator.BlockCreator;
+import io.smallrye.jdeparser.creator.ModifierFlag;
 
 /**
  * Comprehensive integration test exercising the full API for a realistic class
@@ -96,9 +97,8 @@ class ComprehensiveExampleTest extends AbstractGeneratingTestCase {
 
                         // do { ... } while (total < 0)
                         b.doWhile(
-                            loop -> loop.emit(Expr.inc(Expr.$v("total"))),
-                            Expr.$v("total").lt(Expr.ZERO)
-                        );
+                                loop -> loop.emit(Expr.inc(Expr.$v("total"))),
+                                Expr.$v("total").lt(Expr.ZERO));
 
                         b.return_(Expr.$v("total"));
                     });

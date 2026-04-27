@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.List;
 
 import io.smallrye.common.constraint.Assert;
-
 import io.smallrye.jdeparser.DocReference;
 import io.smallrye.jdeparser.Expr;
 import io.smallrye.jdeparser.Type;

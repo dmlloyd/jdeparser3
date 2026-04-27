@@ -10,9 +10,9 @@ package io.smallrye.jdeparser.creator;
  * @see ModifierFlag
  * @see ModifierLocation
  */
-public sealed interface ModifiableCreator extends AnnotatableCreator, DocCommentableCreator<DocCommentCreator> permits AnnotationInterfaceCreator, ClassCreator, ConstructorCreator,
-                                                                                                                       EnumCreator, FieldCreator, InterfaceCreator, MethodCreator,
-                                                                                                                       ParamCreator, RecordCreator {
+public sealed interface ModifiableCreator extends AnnotatableCreator,
+        DocCommentableCreator<DocCommentCreator> permits AnnotationInterfaceCreator, ClassCreator, ConstructorCreator,
+        EnumCreator, FieldCreator, InterfaceCreator, MethodCreator, ParamCreator, RecordCreator {
 
     /**
      * Returns the modifier location that determines which modifiers are valid.
@@ -34,7 +34,7 @@ public sealed interface ModifiableCreator extends AnnotatableCreator, DocComment
      *
      * @param flag the flag to add
      * @throws IllegalArgumentException if the flag is not valid for this location,
-     *                                  or if it conflicts with an existing flag
+     *         or if it conflicts with an existing flag
      */
     void addFlag(ModifierFlag flag);
 

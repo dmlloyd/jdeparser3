@@ -5,10 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.smallrye.common.constraint.Assert;
-
 import io.smallrye.jdeparser.Expr;
-import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.creator.AnnotationCreator;
 import io.smallrye.jdeparser.format.FormatPreferences;
 
@@ -18,9 +17,9 @@ import io.smallrye.jdeparser.format.FormatPreferences;
  * <p>
  * Supports three forms:
  * <ul>
- *   <li>Marker annotation: {@code @Type}</li>
- *   <li>Single-value annotation: {@code @Type(value)}</li>
- *   <li>Multi-member annotation: {@code @Type(name1 = value1, name2 = value2)}</li>
+ * <li>Marker annotation: {@code @Type}</li>
+ * <li>Single-value annotation: {@code @Type(value)}</li>
+ * <li>Multi-member annotation: {@code @Type(name1 = value1, name2 = value2)}</li>
  * </ul>
  */
 public final class AnnotationCreatorImpl extends AbstractCreator implements AnnotationCreator, Writable {
@@ -34,7 +33,7 @@ public final class AnnotationCreatorImpl extends AbstractCreator implements Anno
     /**
      * Constructs a new annotation creator.
      *
-     * @param version        the source version
+     * @param version the source version
      * @param annotationType the annotation type
      */
     public AnnotationCreatorImpl(final SourceVersion version, final Type annotationType) {

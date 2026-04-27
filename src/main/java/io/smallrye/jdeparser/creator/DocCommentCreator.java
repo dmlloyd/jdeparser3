@@ -2,8 +2,8 @@ package io.smallrye.jdeparser.creator;
 
 import java.util.function.Consumer;
 
-import io.smallrye.jdeparser.SourceVersion;
 import io.smallrye.jdeparser.DocReference;
+import io.smallrye.jdeparser.SourceVersion;
 import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.impl.DocCommentCreatorImpl;
 
@@ -13,7 +13,7 @@ import io.smallrye.jdeparser.impl.DocCommentCreatorImpl;
  * Extends {@link DocInlineCreator} with block tag methods
  * ({@code @return}, {@code @throws}, {@code @see}, {@code @since},
  * {@code @deprecated}, etc.) that are only valid at the top level of a
- * doc comment.  Block tag body content may itself contain inline tags;
+ * doc comment. Block tag body content may itself contain inline tags;
  * methods that accept a {@link Consumer Consumer&lt;DocInlineCreator&gt;}
  * enable this.
  * <p>
@@ -96,7 +96,7 @@ public sealed interface DocCommentCreator extends DocInlineCreator permits DocCo
      * {@link DocInlineCreator#text(String) text} call.
      *
      * @param exceptionType the exception type
-     * @param description   the description of when this exception is thrown
+     * @param description the description of when this exception is thrown
      */
     default void throws_(final Type exceptionType, final String description) {
         throws_(exceptionType, c -> c.text(description));
@@ -108,7 +108,7 @@ public sealed interface DocCommentCreator extends DocInlineCreator permits DocCo
      * Only valid in method and constructor documentation comments.
      *
      * @param exceptionType the exception type
-     * @param builder       the builder for the block tag body content
+     * @param builder the builder for the block tag body content
      */
     void throws_(Type exceptionType, Consumer<DocInlineCreator> builder);
 
@@ -195,7 +195,7 @@ public sealed interface DocCommentCreator extends DocInlineCreator permits DocCo
      * or later.
      *
      * @param serviceType the service type
-     * @param builder     the builder for the block tag body content
+     * @param builder the builder for the block tag body content
      */
     void provides(Type serviceType, Consumer<DocInlineCreator> builder);
 
@@ -278,8 +278,8 @@ public sealed interface DocCommentCreator extends DocInlineCreator permits DocCo
      * This is a convenience overload that delegates to
      * {@link #serialField(String, Type, Consumer)}.
      *
-     * @param fieldName   the field name
-     * @param fieldType   the field type
+     * @param fieldName the field name
+     * @param fieldType the field type
      * @param description the field description
      */
     default void serialField(final String fieldName, final Type fieldType, final String description) {
@@ -294,7 +294,7 @@ public sealed interface DocCommentCreator extends DocInlineCreator permits DocCo
      *
      * @param fieldName the field name
      * @param fieldType the field type
-     * @param builder   the builder for the block tag body content
+     * @param builder the builder for the block tag body content
      */
     void serialField(String fieldName, Type fieldType, Consumer<DocInlineCreator> builder);
 
@@ -322,7 +322,7 @@ public sealed interface DocCommentCreator extends DocInlineCreator permits DocCo
      * or later.
      *
      * @param serviceType the service type
-     * @param builder     the builder for the block tag body content
+     * @param builder the builder for the block tag body content
      */
     void uses(Type serviceType, Consumer<DocInlineCreator> builder);
 

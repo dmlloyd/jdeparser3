@@ -10,7 +10,7 @@ import io.smallrye.jdeparser.Type;
 /**
  * Represents a Java array type, wrapping an element type.
  * <p>
- * Array types cannot be parameterized with type arguments.  Both
+ * Array types cannot be parameterized with type arguments. Both
  * {@link #box()} and {@link #unbox()} return {@code this}, since
  * array types are reference types that have no primitive/boxed duality.
  */

@@ -296,7 +296,7 @@ public enum Tokens implements Token {
         /**
          * Constructs a binary operator token.
          *
-         * @param text        the operator text
+         * @param text the operator text
          * @param spacingRule the spacing rule for around-operator spacing
          */
         $BINOP(final String text, final Space spacingRule) {
@@ -467,7 +467,7 @@ public enum Tokens implements Token {
      * Java keyword and reserved-word tokens.
      * <p>
      * Each keyword has optional {@link Space} rules for spacing before
-     * and/or after the keyword.  The {@link #write(SourceFileWriter)}
+     * and/or after the keyword. The {@link #write(SourceFileWriter)}
      * method ensures a space is inserted between adjacent keywords,
      * identifiers, and numeric literals.
      */
@@ -651,7 +651,7 @@ public enum Tokens implements Token {
          * (lowercased) as the keyword text, with optional spacing rules.
          *
          * @param before optional spacing rule before the keyword (may be {@code null})
-         * @param after  optional spacing rule after the keyword (may be {@code null})
+         * @param after optional spacing rule after the keyword (may be {@code null})
          */
         $KW(final Space before, final Space after) {
             this.keyword = name().toLowerCase(Locale.ROOT);
@@ -664,8 +664,8 @@ public enum Tokens implements Token {
          * and optional spacing rules.
          *
          * @param keyword the keyword text as it appears in source code
-         * @param before  optional spacing rule before the keyword (may be {@code null})
-         * @param after   optional spacing rule after the keyword (may be {@code null})
+         * @param before optional spacing rule before the keyword (may be {@code null})
+         * @param after optional spacing rule after the keyword (may be {@code null})
          */
         $KW(final String keyword, final Space before, final Space after) {
             this.keyword = keyword;
