@@ -4,8 +4,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.jboss.jdeparser</groupId>
-    <artifactId>jdeparser3</artifactId>
+    <groupId>io.smallrye.jdeparser</groupId>
+    <artifactId>jdeparser</artifactId>
     <version>3.0-SNAPSHOT</version>
 
     <parent>
@@ -14,9 +14,9 @@
         <version>51</version>
     </parent>
 
-    <name>JDeparser 3</name>
+    <name>JDeparser</name>
 
-    <url>https://github.com/jdeparser/jdeparser3</url>
+    <url>https://github.com/smallrye/jdeparser</url>
 
     <description>A Java source code generation library</description>
 
@@ -30,13 +30,13 @@
 
     <issueManagement>
         <system>GitHub</system>
-        <url>https://github.com/jdeparser/jdeparser3/issues</url>
+        <url>https://github.com/smallrye/jdeparser/issues</url>
     </issueManagement>
 
     <scm>
-        <connection>scm:git:git@github.com:jdeparser/jdeparser3.git</connection>
-        <developerConnection>scm:git:git@github.com:jdeparser/jdeparser3.git</developerConnection>
-        <url>https://github.com/jdeparser/jdeparser3</url>
+        <connection>scm:git:git@github.com:smallrye/jdeparser.git</connection>
+        <developerConnection>scm:git:git@github.com:smallrye/jdeparser.git</developerConnection>
+        <url>https://github.com/smallrye/jdeparser</url>
         <tag>HEAD</tag>
     </scm>
 

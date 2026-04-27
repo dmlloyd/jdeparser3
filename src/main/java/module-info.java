@@ -5,12 +5,12 @@
  * Java source files, supporting all Java language constructs
  * with configurable source version validation.
  */
-module org.jboss.jdeparser {
+module io.smallrye.jdeparser {
     requires java.compiler;
     requires io.smallrye.common.constraint;
 
-    exports org.jboss.jdeparser;
-    exports org.jboss.jdeparser.creator;
-    exports org.jboss.jdeparser.format;
-    exports org.jboss.jdeparser.impl to org.jboss.jdeparser.test;
+    exports io.smallrye.jdeparser;
+    exports io.smallrye.jdeparser.creator;
+    exports io.smallrye.jdeparser.format;
+    exports io.smallrye.jdeparser.impl to io.smallrye.jdeparser.test;
 }

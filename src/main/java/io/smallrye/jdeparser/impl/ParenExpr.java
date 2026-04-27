@@ -1,0 +1,59 @@
+package io.smallrye.jdeparser.impl;
+
+import java.io.IOException;
+
+import io.smallrye.jdeparser.Expr;
+import io.smallrye.jdeparser.format.FormatPreferences;
+
+/**
+ * A parenthesized expression of the form {@code (inner)}.
+ * <p>
+ * Wrapping an expression in parentheses elevates it to
+ * {@link Prec#PRIMARY} precedence, preventing any surrounding
+ * operator from breaking into the grouping.
+ */
+public final class ParenExpr extends AbstractExpr {
+
+    /** The inner expression wrapped by the parentheses. */
+    private final Expr inner;
+
+    /**
+     * Constructs a new parenthesized expression.
+     *
+     * @param inner the expression to wrap (never {@code null})
+     */
+    public ParenExpr(final Expr inner) {
+        this.inner = inner;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Prec precedence() {
+        return Prec.PRIMARY;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Assoc associativity() {
+        return Assoc.NONE;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void write(final SourceFileWriter writer) throws IOException {
+        writer.write(Tokens.$PAREN.OPEN);
+        writer.write(FormatPreferences.Space.WITHIN_PAREN_EXPR);
+        writeExpr(writer, inner);
+        writer.write(FormatPreferences.Space.WITHIN_PAREN_EXPR);
+        writer.write(Tokens.$PAREN.CLOSE);
+    }
+
+    /**
+     * Returns the inner expression.
+     *
+     * @return the wrapped expression (never {@code null})
+     */
+    public Expr inner() {
+        return inner;
+    }
+}

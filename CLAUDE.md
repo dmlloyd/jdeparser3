@@ -12,10 +12,10 @@ Requires JDK 25+, compiles with `--release 17`.
 
 ## Architecture
 
-- `org.jboss.jdeparser` — public API: entry point (`JDeparser`), core types (`JType`, `JExpr`, `JVar`, `JExprs`, `JTypes`), source management (`JSources`), version control (`SourceVersion`, `LanguageFeature`)
-- `org.jboss.jdeparser.creator` — borrow-pattern API interfaces (`BlockCreator`, `ClassCreator`, `MethodCreator`, etc.)
-- `org.jboss.jdeparser.format` — public formatting configuration (`FormatPreferences`, `JFiler`)
-- `org.jboss.jdeparser.impl` — internal implementations (not exported from module)
+- `io.smallrye.jdeparser` — public API: entry point (`JDeparser`), core types (`Type`, `Expr`, `Var`, `Exprs`, `Types`), source management (`Sources`), version control (`SourceVersion`, `LanguageFeature`)
+- `io.smallrye.jdeparser.creator` — borrow-pattern API interfaces (`BlockCreator`, `ClassCreator`, `MethodCreator`, etc.)
+- `io.smallrye.jdeparser.format` — public formatting configuration (`FormatPreferences`, `Filer`)
+- `io.smallrye.jdeparser.impl` — internal implementations (not exported from module)
 
 ## Design Principles
 
