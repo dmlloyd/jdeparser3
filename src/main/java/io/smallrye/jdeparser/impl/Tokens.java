@@ -403,9 +403,9 @@ public enum Tokens implements Token {
      * Curly brace tokens.
      */
     public enum $BRACE implements Token {
-        /** Opening brace ({@code {}). */
+        /** Opening brace (<code>{</code>). */
         OPEN("{"),
-        /** Closing brace ({@code }}). */
+        /** Closing brace (<code>}</code>). */
         CLOSE("}"),
         ;
 

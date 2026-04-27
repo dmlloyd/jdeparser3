@@ -24,7 +24,7 @@ import io.smallrye.jdeparser.creator.DocInlineCreator;
  * <p>
  * {@code @param} tags for method parameters, type parameters, and record
  * components are aggregated from sub-creators and added via
- * {@link #addParamTag(String, String)} and {@link #addTypeParamTag(String, String)}.
+ * {@link #addParamTag(String, DocInlineCreatorImpl)} and {@link #addTypeParamTag(String, DocInlineCreatorImpl)}.
  * <p>
  * Type names in {@code {@link}}, {@code {@linkplain}}, {@code @throws},
  * and {@code @see} tags are resolved at write time via the
