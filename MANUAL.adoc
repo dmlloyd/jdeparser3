@@ -1,0 +1,4112 @@
+= JDeparser 3 User Manual
+:toc: left
+:toclevels: 3
+:sectnums:
+:source-highlighter: rouge
+:icons: font
+
+[[introduction]]
+== Introduction
+
+JDeparser 3 is a Java source code generation library.
+Rather than concatenating strings or manipulating template files, JDeparser provides a type-safe API for constructing syntactically correct Java source code.
+The library is designed for two primary use cases:
+
+* *Annotation processors* that generate source files during compilation
+* *Build-time code generators* that produce Java source as part of a build pipeline
+
+=== Architecture Overview
+
+The API is organized into three area:
+
+Setup:: Configure the output destination (`Filer`), code formatting (`FormatPreferences`), and target Java version (`SourceVersion`), then create a `Sources` collection.
+
+Creators:: Define the shape of your code -- classes, methods, fields, constructors -- using _creator_ callbacks.
+Each structural construct is built through a `Consumer<XxxCreator>` callback where the creator object is valid only during the callback (the _borrow pattern_).
+
+Values (Types and Expressions):: `Type` and `Expr` are composable value objects that represent Java types and expressions.
+Unlike creators, they can be freely stored and reused.
+
+=== Maven Coordinates
+
+[source,xml]
+----
+<dependency>
+    <groupId>io.smallrye.jdeparser</groupId>
+    <artifactId>jdeparser</artifactId>
+    <version>3.0-SNAPSHOT</version>
+</dependency>
+----
+
+=== Java Module
+
+The Java module for this library is named `io.smallrye.jdeparser`.
+
+=== Requirements
+
+JDeparser 3 requires JDK 17 or later at compile time.
+The generated source code can target any Java version from 8 to 26, controlled by the `SourceVersion` parameter.
+
+[[quick-start]]
+== Quick Start
+
+This chapter walks through a complete, minimal example that generates a Java source file.
+The program creates a `Person` class with a `name` field, a constructor, and a getter method.
+
+[source,java]
+----
+import java.io.IOException;
+import java.nio.file.Path;
+
+import io.smallrye.jdeparser.Expr;
+import io.smallrye.jdeparser.JDeparser;
+import io.smallrye.jdeparser.Sources;
+import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
+import io.smallrye.jdeparser.format.Filer;
+import io.smallrye.jdeparser.format.FormatPreferences;
+
+public class QuickStart {
+    public static void main(String[] args) throws IOException {
+        // 1. Configure output: write to the "generated-sources" directory
+        Filer filer = Filer.newInstance(Path.of("generated-sources"));
+
+        // 2. Use default formatting and target Java 17
+        FormatPreferences format = FormatPreferences.defaults();
+        SourceVersion version = SourceVersion.JAVA_17;
+
+        // 3. Create the source file collection
+        Sources sources = JDeparser.createSources(filer, format, version);
+
+        // 4. Define a source file
+        sources.createSourceFile("com.example", "Person", sf -> { // <1>
+            sf.class_("Person", cc -> { // <2>
+                cc.public_();
+                cc.final_();
+
+                // Field: private final String name;
+                cc.field("name", fc -> { // <3>
+                    fc.private_();
+                    fc.final_();
+                    fc.type(Type.STRING);
+                });
+
+                // Constructor: public Person(String name) { this.name = name; }
+                cc.constructor(con -> { // <4>
+                    con.public_();
+                    con.param("name", Type.STRING);
+                    con.body(body -> {
+                        body.emit(
+                            Expr.THIS.field("name").assign(Expr.$v("name"))
+                        );
+                    });
+                });
+
+                // Getter: public String getName() { return name; }
+                cc.method("getName", mc -> { // <5>
+                    mc.public_();
+                    mc.returning(Type.STRING);
+                    mc.body(body -> {
+                        body.return_(Expr.$v("name"));
+                    });
+                });
+            });
+        });
+
+        // 5. Write all source files to disk
+        sources.writeSources(); // <6>
+    }
+}
+----
+<1> Create a source file in package `com.example` named `Person.java`.
+<2> Define a `public final class Person` inside the file.
+<3> Define the `name` field with type, access, and modifier.
+<4> Define the constructor with a parameter and body.
+<5> Define the `getName()` getter method.
+<6> Flush all defined source files to the `Filer`.
+
+Running this program produces `generated-sources/com/example/Person.java`:
+
+[source,java]
+----
+package com.example;
+
+public final class Person {
+
+    private final String name;
+
+    public Person(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+}
+----
+
+
+[[borrow-pattern]]
+== The Borrow Pattern
+
+The borrow pattern is the central design principle of JDeparser 3.
+Every structural construct -- classes, methods, blocks, switch cases, try statements -- is built through a `Consumer` callback that receives a _creator_ object.
+The creator is valid *only* during the callback; it is "borrowed" for the duration of the lambda.
+
+=== Why Callbacks?
+
+Consider the alternative: a builder API that returns the builder from each method.
+With that approach, nothing prevents you from interleaving calls to unrelated builders, or storing a builder and using it after the structure it represents has already been finalized.
+The borrow pattern makes such misuse impossible at the API level.
+
+=== Creator Lifecycle
+
+When you call a method like `cc.method("foo", mc -> { ... })`:
+
+1. A `MethodCreator` is created and becomes _active_.
+2. The parent `ClassCreator` becomes _inactive_ for the duration of the callback.
+3. Your lambda runs with the active `MethodCreator`.
+4. When the lambda returns, the `MethodCreator` is _finalized_ and becomes permanently inactive.
+5. The parent `ClassCreator` becomes active again.
+
+Any attempt to use a creator after its callback has returned will throw `IllegalStateException`.
+
+=== Example: Safety in Action
+
+[source,java]
+----
+import java.io.IOException;
+import java.io.StringWriter;
+import java.nio.file.Path;
+
+import io.smallrye.jdeparser.JDeparser;
+import io.smallrye.jdeparser.Sources;
+import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
+import io.smallrye.jdeparser.creator.MethodCreator;
+import io.smallrye.jdeparser.format.Filer;
+import io.smallrye.jdeparser.format.FormatPreferences;
+
+public class BorrowPatternDemo {
+    public static void main(String[] args) throws IOException {
+        Filer filer = Filer.newInstance(Path.of("generated-sources"));
+        Sources sources = JDeparser.createSources(
+            filer, FormatPreferences.defaults(), SourceVersion.JAVA_17
+        );
+
+        // Capturing a creator reference outside its callback
+        MethodCreator[] captured = new MethodCreator[1];
+
+        sources.createSourceFile("com.example", "Demo", sf -> {
+            sf.class_("Demo", cc -> {
+                cc.public_();
+                cc.method("greet", mc -> {
+                    mc.public_();
+                    mc.returning(Type.VOID);
+                    captured[0] = mc; // capture the creator reference
+                });
+            });
+        });
+
+        // The callback is over -- the creator is finalized
+        try {
+            captured[0].returning(Type.STRING); // throws IllegalStateException!
+        } catch (IllegalStateException e) {
+            System.out.println("Caught: " + e.getMessage());
+        }
+    }
+}
+----
+
+TIP: Think of the callback as a scope: everything you need to configure must happen inside it.
+If you find yourself wanting to store a creator for later use, restructure your code so all configuration happens within the callback.
+
+
+[[setup]]
+== Setup: Filer, Format, and Source Version
+
+Every code generation session begins with three configuration objects passed to `JDeparser.createSources()`:
+
+[source,java]
+----
+Sources sources = JDeparser.createSources(filer, preferences, sourceVersion);
+----
+
+=== Filer
+
+The `Filer` interface abstracts the output destination.
+It has a single method:
+
+[source,java]
+----
+Writer openWriter(String packageName, String fileName) throws IOException;
+----
+
+Three factory methods cover the common cases:
+
+[cols="1,2"]
+|===
+| Factory Method | Use Case
+
+| `Filer.newInstance(Path outputDir)`
+| Write to a directory on the filesystem (NIO).
+
+| `Filer.newInstance(File outputDir)`
+| Write to a directory on the filesystem (legacy IO).
+
+| `Filer.newInstance(javax.annotation.processing.Filer filer)`
+| Write via the annotation processing API.
+|===
+
+You can also implement the `Filer` interface directly for custom output targets.
+For example, writing to an in-memory `StringWriter` for testing:
+
+[source,java]
+----
+import java.io.StringWriter;
+
+StringWriter sw = new StringWriter();
+Filer testFiler = (packageName, fileName) -> sw;
+// ... generate code ...
+sources.writeSources();
+String generatedCode = sw.toString();
+----
+
+=== FormatPreferences
+
+`FormatPreferences` controls how the generated source code is formatted: indentation, spacing around operators, line wrapping, and more.
+
+For most use cases, the defaults are sufficient:
+
+[source,java]
+----
+FormatPreferences format = FormatPreferences.defaults();
+----
+
+To customize, use the builder:
+
+[source,java]
+----
+import io.smallrye.jdeparser.format.FormatPreferences;
+import io.smallrye.jdeparser.format.FormatPreferences.*;
+
+FormatPreferences format = FormatPreferences.builder()
+    .lineLength(80)
+    .indent(Indentation.MEMBERS_TOP_LEVEL, 2)
+    .indent(Indentation.LINE, 2)
+    .space(Space.BEFORE_BRACE_CLASS, SpaceType.NEWLINE)  // Allman brace style
+    .space(Space.BEFORE_BRACE_METHOD, SpaceType.NEWLINE)
+    .wrapMode(Wrapping.PARAMETER_LIST, WrappingMode.ALWAYS_WRAP)
+    .addOption(Opt.ENUM_TRAILING_COMMA)
+    .build();
+----
+
+The builder also supports loading configuration from a `Properties` object:
+
+[source,java]
+----
+Properties props = new Properties();
+props.setProperty("line-length", "100");
+props.setProperty("indent.members-top-level", "2");
+props.setProperty("space.before-brace-class", "NEWLINE");
+
+FormatPreferences format = FormatPreferences.builder()
+    .fromProperties(props)
+    .build();
+----
+
+See <<formatting>> for a complete reference of all formatting options.
+
+=== SourceVersion
+
+`SourceVersion` determines which language features are permitted.
+If you attempt to use a feature that requires a higher Java version than your target, the library throws `IllegalStateException` at construction time.
+
+[source,java]
+----
+SourceVersion version = SourceVersion.JAVA_17;
+
+// Check feature support
+boolean hasRecords = version.supports(LanguageFeature.RECORDS); // true (Java 16+)
+boolean hasPatternSwitch = version.supports(LanguageFeature.PATTERN_MATCHING_SWITCH); // false (Java 21+)
+----
+
+Available versions range from `JAVA_8` through `JAVA_26`.
+See <<source-version-features>> for the complete feature compatibility table.
+
+=== Complete Setup Example
+
+[source,java]
+----
+import java.io.IOException;
+import java.nio.file.Path;
+
+import io.smallrye.jdeparser.JDeparser;
+import io.smallrye.jdeparser.Sources;
+import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
+import io.smallrye.jdeparser.format.Filer;
+import io.smallrye.jdeparser.format.FormatPreferences;
+import io.smallrye.jdeparser.format.FormatPreferences.*;
+
+public class SetupExample {
+    public static void main(String[] args) throws IOException {
+        // Custom formatting: 2-space indent, 100-column lines
+        FormatPreferences format = FormatPreferences.builder()
+            .lineLength(100)
+            .indent(Indentation.MEMBERS_TOP_LEVEL, 2)
+            .indent(Indentation.LINE, 2)
+            .indent(Indentation.LINE_CONTINUATION, 2)
+            .build();
+
+        Filer filer = Filer.newInstance(Path.of("generated-sources"));
+        Sources sources = JDeparser.createSources(filer, format, SourceVersion.JAVA_17);
+
+        sources.createSourceFile("com.example", "Config", sf -> {
+            sf.class_("Config", cc -> {
+                cc.public_();
+                cc.field("DEBUG", fc -> {
+                    fc.public_();
+                    fc.static_();
+                    fc.final_();
+                    fc.type(Type.BOOLEAN);
+                    fc.init(io.smallrye.jdeparser.Expr.FALSE);
+                });
+            });
+        });
+
+        sources.writeSources();
+    }
+}
+----
+
+
+[[types]]
+== Types
+
+The `Type` interface represents Java types in generated source code.
+Types are immutable, composable values: methods such as `array()` and `typeArg()` return new `Type` instances rather than modifying the original.
+
+=== Primitive Types
+
+Predefined constants are available for all nine primitive types (including `void`):
+
+[source,java]
+----
+Type.VOID     // void
+Type.BOOLEAN  // boolean
+Type.BYTE     // byte
+Type.SHORT    // short
+Type.INT      // int
+Type.LONG     // long
+Type.FLOAT    // float
+Type.DOUBLE   // double
+Type.CHAR     // char
+----
+
+=== Reference Types
+
+Reference types can be created from `Class` objects, fully qualified names, or annotation processing `TypeMirror` objects:
+
+[source,java]
+----
+// From a Class object
+Type listType = Type.of(List.class);          // java.util.List
+
+// From a fully qualified name
+Type myType = Type.named("com.example.MyClass");
+
+// From a TypeMirror (in annotation processors)
+Type mirrorType = Type.of(typeMirror);
+----
+
+Two commonly used reference types have predefined constants:
+
+[source,java]
+----
+Type.STRING   // java.lang.String
+Type.OBJECT   // java.lang.Object
+----
+
+=== Array Types
+
+Call `array()` to create an array type.
+Chain multiple calls for multidimensional arrays:
+
+[source,java]
+----
+Type intArray = Type.INT.array();                // int[]
+Type stringMatrix = Type.STRING.array().array();  // String[][]
+----
+
+=== Parameterized Types
+
+Use `typeArg()` to apply type arguments:
+
+[source,java]
+----
+Type listOfString = Type.of(List.class).typeArg(Type.STRING);
+// List<String>
+
+Type mapType = Type.named("java.util.Map").typeArg(Type.STRING, Type.INT.box());
+// Map<String, Integer>
+----
+
+=== Wildcard Types
+
+The unbounded wildcard is a predefined constant.
+Bounded wildcards are created from the bound type:
+
+[source,java]
+----
+Type wildcard = Type.WILDCARD;                          // ?
+Type extendsNumber = Type.named("java.lang.Number").wildcardExtends();  // ? extends Number
+Type superString = Type.STRING.wildcardSuper();          // ? super String
+----
+
+=== Nested Types
+
+Use `nestedType()` for inner or nested types:
+
+[source,java]
+----
+Type mapEntry = Type.named("java.util.Map").nestedType("Entry");
+// Map.Entry
+
+Type mapEntryGeneric = Type.named("java.util.Map").nestedType("Entry")
+    .typeArg(Type.STRING, Type.OBJECT);
+// Map.Entry<String, Object>
+----
+
+=== Intersection Types
+
+Use `Type.allOf()` to create intersection types (used in type bounds and casts):
+
+[source,java]
+----
+Type serializableComparable = Type.allOf(
+    Type.named("java.io.Serializable"),
+    Type.named("java.lang.Comparable")
+);
+// Serializable & Comparable
+----
+
+=== Type Conversions
+
+[source,java]
+----
+Type boxedInt = Type.INT.box();           // java.lang.Integer
+Type unboxedInt = boxedInt.unbox();       // int
+Type erased = listOfString.erasure();     // java.util.List (strips type args)
+----
+
+=== Types as Expression Roots
+
+Types serve as entry points for static member access, constructor calls, class literals, and method references:
+
+[source,java]
+----
+// Static field access
+Var out = Type.named("java.lang.System").field("out");  // System.out
+
+// Static method call
+Expr parsed = Type.INT.box().call("parseInt", Expr.str("42"));  // Integer.parseInt("42")
+
+// Class literal
+Expr classLit = Type.STRING.class_();  // String.class
+
+// Constructor call
+Expr newList = Type.named("java.util.ArrayList").new_();  // new ArrayList()
+
+// Array creation with initializer
+Expr array = Type.INT.array().newArrayInit(Expr.decimal(1), Expr.decimal(2));
+// new int[] { 1, 2 }
+
+// Method reference
+Expr ref = Type.STRING.methodRef("valueOf");  // String::valueOf
+
+// Qualified this/super
+Expr qualThis = Type.named("com.example.Outer").this_();   // Outer.this
+Expr qualSuper = Type.named("com.example.Outer").super_(); // Outer.super
+----
+
+=== Complete Types Example
+
+[source,java]
+----
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.List;
+
+import io.smallrye.jdeparser.Expr;
+import io.smallrye.jdeparser.JDeparser;
+import io.smallrye.jdeparser.Sources;
+import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
+import io.smallrye.jdeparser.format.Filer;
+import io.smallrye.jdeparser.format.FormatPreferences;
+
+public class TypesExample {
+    public static void main(String[] args) throws IOException {
+        Filer filer = Filer.newInstance(Path.of("generated-sources"));
+        Sources sources = JDeparser.createSources(
+            filer, FormatPreferences.defaults(), SourceVersion.JAVA_17
+        );
+
+        Type listType = Type.of(List.class);
+        Type mapType = Type.named("java.util.Map");
+        Type numberType = Type.named("java.lang.Number");
+
+        sources.createSourceFile("com.example", "TypeShowcase", sf -> {
+            sf.import_(List.class);
+            sf.import_(Type.named("java.util.Map"));
+            sf.import_(Type.named("java.util.ArrayList"));
+
+            sf.class_("TypeShowcase", cc -> {
+                cc.public_();
+
+                // List<Map<String, ? extends Number>> complexField;
+                cc.field("complexField", fc -> {
+                    fc.type(listType.typeArg(
+                        mapType.typeArg(Type.STRING, numberType.wildcardExtends())
+                    ));
+                });
+
+                // int[][] matrix;
+                cc.field("matrix", fc -> {
+                    fc.type(Type.INT.array().array());
+                });
+
+                // Map.Entry<String, Object> entry;
+                cc.field("entry", fc -> {
+                    fc.type(mapType.nestedType("Entry")
+                        .typeArg(Type.STRING, Type.OBJECT));
+                });
+
+                // static method demonstrating type expressions
+                cc.method("demo", mc -> {
+                    mc.public_();
+                    mc.static_();
+                    mc.returning(Type.VOID);
+                    mc.body(body -> {
+                        // List<String> names = new ArrayList<>();
+                        body.var(listType.typeArg(Type.STRING), "names",
+                            Type.named("java.util.ArrayList").new_());
+
+                        // System.out.println(String.class);
+                        body.emit(
+                            Type.named("java.lang.System").field("out")
+                                .call("println", Type.STRING.class_())
+                        );
+
+                        // Integer.parseInt("42")
+                        body.var(Type.INT, "value",
+                            Type.INT.box().call("parseInt", Expr.str("42")));
+                    });
+                });
+            });
+        });
+
+        sources.writeSources();
+    }
+}
+----
+
+
+[[expressions]]
+== Expressions
+
+The `Expr` interface represents Java expressions.
+Like types, expressions are immutable, composable values.
+The `Var` interface extends `Expr` to represent assignable targets (variables, fields, array elements).
+
+=== Literals
+
+==== Numeric Literals
+
+[source,java]
+----
+Expr.decimal(42)       // 42
+Expr.decimal(42L)      // 42L
+Expr.decimal(3.14f)    // 3.14f
+Expr.decimal(3.14)     // 3.14
+
+Expr.hex(0xFF)         // 0xff
+Expr.hex(0xFFL)        // 0xffL
+
+Expr.octal(077)        // 077
+Expr.octal(077L)       // 077L
+
+Expr.binary(0b1010)    // 0b1010
+Expr.binary(0b1010L)   // 0b1010L
+----
+
+==== String and Character Literals
+
+[source,java]
+----
+Expr.str("hello")         // "hello"
+Expr.textBlock("line1\nline2\n")  // """
+                                   //     line1
+                                   //     line2
+                                   //     """
+Expr.ch('A')              // 'A'
+Expr.ch('\n')             // '\n'
+----
+
+NOTE: `textBlock()` requires `SourceVersion.JAVA_15` or later.
+
+==== Predefined Constants
+
+[source,java]
+----
+Expr.TRUE    // true
+Expr.FALSE   // false
+Expr.NULL    // null
+Expr.THIS    // this
+Expr.SUPER   // super
+Expr.ZERO    // 0
+Expr.ONE     // 1
+----
+
+=== Variables
+
+Use `Expr.$v()` to reference a local variable or parameter by name:
+
+[source,java]
+----
+Var x = Expr.$v("x");   // x
+Var args = Expr.$v("args"); // args
+----
+
+The returned `Var` supports all `Expr` operations plus assignment.
+
+=== Arithmetic Operations
+
+[source,java]
+----
+Expr a = Expr.$v("a");
+Expr b = Expr.$v("b");
+
+a.add(b)    // a + b
+a.sub(b)    // a - b
+a.mul(b)    // a * b
+a.div(b)    // a / b
+a.mod(b)    // a % b
+a.neg()     // -a
+a.pos()     // +a
+----
+
+Expressions compose naturally and the library handles operator precedence and parenthesization:
+
+[source,java]
+----
+// (a + b) * c  -- parentheses inserted automatically where needed
+Expr result = a.add(b).mul(Expr.$v("c"));
+----
+
+=== Bitwise and Shift Operations
+
+[source,java]
+----
+a.bitAnd(b)   // a & b
+a.bitOr(b)    // a | b
+a.bitXor(b)   // a ^ b
+a.comp()      // ~a
+
+a.shl(b)      // a << b
+a.shr(b)      // a >> b
+a.ushr(b)     // a >>> b
+----
+
+=== Relational and Equality Operations
+
+[source,java]
+----
+a.eq(b)    // a == b
+a.ne(b)    // a != b
+a.lt(b)    // a < b
+a.gt(b)    // a > b
+a.le(b)    // a <= b
+a.ge(b)    // a >= b
+----
+
+=== Logical Operations
+
+[source,java]
+----
+a.and(b)   // a && b
+a.or(b)    // a || b
+a.not()    // !a
+----
+
+=== Type Operations
+
+[source,java]
+----
+// Cast
+Expr castExpr = a.cast(Type.STRING);  // (String) a
+
+// instanceof
+Expr test = a.instanceof_(Type.STRING);  // a instanceof String
+
+// Pattern matching instanceof (Java 16+)
+Expr pattern = a.instanceof_(Type.STRING, "s");  // a instanceof String s
+----
+
+=== Conditional (Ternary)
+
+[source,java]
+----
+// condition ? trueExpr : falseExpr
+Expr ternary = a.gt(b).cond(a, b);  // a > b ? a : b
+----
+
+=== Grouping
+
+Use `paren()` to explicitly parenthesize an expression:
+
+[source,java]
+----
+Expr grouped = a.add(b).paren();  // (a + b)
+----
+
+NOTE: The library automatically inserts parentheses based on operator precedence.
+Use `paren()` only when you want explicit grouping beyond what precedence requires.
+
+=== Member Access
+
+[source,java]
+----
+Expr obj = Expr.$v("obj");
+
+// Field access
+Var field = obj.field("name");          // obj.name
+
+// Method call
+Expr call = obj.call("toString");       // obj.toString()
+Expr callArgs = obj.call("equals", b);  // obj.equals(b)
+
+// Array element access
+Var element = obj.idx(Expr.ZERO);       // obj[0]
+----
+
+=== Increment and Decrement
+
+[source,java]
+----
+Var i = Expr.$v("i");
+
+i.inc()          // i++ (postfix)
+i.dec()          // i-- (postfix)
+Expr.inc(i)      // ++i (prefix)
+Expr.dec(i)      // --i (prefix)
+----
+
+=== Assignments
+
+The `Var` interface provides simple and compound assignment operators:
+
+[source,java]
+----
+Var x = Expr.$v("x");
+
+x.assign(Expr.ZERO)        // x = 0
+x.addAssign(Expr.ONE)       // x += 1
+x.subAssign(Expr.ONE)       // x -= 1
+x.mulAssign(Expr.decimal(2))   // x *= 2
+x.divAssign(Expr.decimal(2))   // x /= 2
+x.modAssign(Expr.decimal(3))   // x %= 3
+x.bitAndAssign(Expr.hex(0xFF)) // x &= 0xff
+x.bitOrAssign(Expr.hex(0x01))  // x |= 0x1
+x.bitXorAssign(Expr.hex(0xFF)) // x ^= 0xff
+x.shlAssign(Expr.decimal(2))   // x <<= 2
+x.shrAssign(Expr.decimal(2))   // x >>= 2
+x.ushrAssign(Expr.decimal(2))  // x >>>= 2
+----
+
+=== Method References
+
+[source,java]
+----
+// Instance method reference: obj::method
+Expr ref1 = Expr.$v("obj").methodRef("toString");  // obj::toString
+
+// Type method reference: Type::method
+Expr ref2 = Type.STRING.methodRef("valueOf");       // String::valueOf
+
+// Constructor reference: Type::new
+Expr ref3 = Type.named("java.util.ArrayList").methodRef("new"); // ArrayList::new
+----
+
+=== Lambda Expressions
+
+==== Expression-Body Lambdas
+
+[source,java]
+----
+// Single parameter: x -> x * 2
+Expr lambda1 = Expr.lambda("x", Expr.$v("x").mul(Expr.decimal(2)));
+
+// Multiple parameters: (a, b) -> a + b
+Expr lambda2 = Expr.lambda(List.of("a", "b"),
+    Expr.$v("a").add(Expr.$v("b")));
+----
+
+==== Block-Body Lambdas
+
+Block-body lambdas require a `SourceVersion` parameter:
+
+[source,java]
+----
+// x -> { return x * 2; }
+Expr lambda3 = Expr.lambda(SourceVersion.JAVA_17, "x", body -> {
+    body.return_(Expr.$v("x").mul(Expr.decimal(2)));
+});
+
+// (a, b) -> { ... }
+Expr lambda4 = Expr.lambda(SourceVersion.JAVA_17, List.of("a", "b"), body -> {
+    body.var(Type.INT, "sum", Expr.$v("a").add(Expr.$v("b")));
+    body.return_(Expr.$v("sum"));
+});
+----
+
+==== Typed Lambdas
+
+For lambdas with explicitly typed parameters, use `lambdaTyped()`:
+
+[source,java]
+----
+import io.smallrye.jdeparser.impl.LambdaExpr.LambdaParam;
+
+// (String s, int i) -> s.length() + i
+Expr typed = Expr.lambdaTyped(
+    List.of(
+        new LambdaParam("s", Type.STRING),
+        new LambdaParam("i", Type.INT)
+    ),
+    Expr.$v("s").call("length").add(Expr.$v("i"))
+);
+----
+
+=== Switch Expressions
+
+Switch expressions (Java 14+) are created from an expression:
+
+[source,java]
+----
+Expr switchExpr = Expr.$v("status").switch_(SourceVersion.JAVA_17, sw -> {
+    sw.case_(Expr.str("OK"), b -> {
+        b.yield_(Expr.decimal(200));
+    });
+    sw.case_(Expr.str("NOT_FOUND"), b -> {
+        b.yield_(Expr.decimal(404));
+    });
+    sw.default_(b -> {
+        b.yield_(Expr.decimal(500));
+    });
+});
+----
+
+=== Array Literals
+
+[source,java]
+----
+Expr arrayLit = Expr.arrayLiteral(
+    Expr.decimal(1), Expr.decimal(2), Expr.decimal(3)
+);  // { 1, 2, 3 }
+----
+
+=== Unqualified Method Calls
+
+For calls without a receiver (e.g., inherited or imported static methods):
+
+[source,java]
+----
+Expr call = Expr.callPlain("println", Expr.str("hello"));  // println("hello")
+----
+
+=== Complete Expressions Example
+
+[source,java]
+----
+import java.io.IOException;
+import java.nio.file.Path;
+
+import io.smallrye.jdeparser.Expr;
+import io.smallrye.jdeparser.JDeparser;
+import io.smallrye.jdeparser.Sources;
+import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
+import io.smallrye.jdeparser.Var;
+import io.smallrye.jdeparser.format.Filer;
+import io.smallrye.jdeparser.format.FormatPreferences;
+
+public class ExpressionsExample {
+    public static void main(String[] args) throws IOException {
+        Filer filer = Filer.newInstance(Path.of("generated-sources"));
+        Sources sources = JDeparser.createSources(
+            filer, FormatPreferences.defaults(), SourceVersion.JAVA_17
+        );
+
+        sources.createSourceFile("com.example", "MathUtils", sf -> {
+            sf.class_("MathUtils", cc -> {
+                cc.public_();
+                cc.final_();
+
+                // public static int clamp(int value, int min, int max)
+                cc.method("clamp", mc -> {
+                    mc.public_();
+                    mc.static_();
+                    mc.returning(Type.INT);
+                    mc.param("value", Type.INT);
+                    mc.param("min", Type.INT);
+                    mc.param("max", Type.INT);
+                    mc.body(body -> {
+                        // return value < min ? min : value > max ? max : value;
+                        Var value = Expr.$v("value");
+                        Var min = Expr.$v("min");
+                        Var max = Expr.$v("max");
+                        body.return_(
+                            value.lt(min).cond(min,
+                                value.gt(max).cond(max, value))
+                        );
+                    });
+                });
+
+                // public static boolean isPowerOfTwo(int n)
+                cc.method("isPowerOfTwo", mc -> {
+                    mc.public_();
+                    mc.static_();
+                    mc.returning(Type.BOOLEAN);
+                    mc.param("n", Type.INT);
+                    mc.body(body -> {
+                        // return n > 0 && (n & (n - 1)) == 0;
+                        Var n = Expr.$v("n");
+                        body.return_(
+                            n.gt(Expr.ZERO).and(
+                                n.bitAnd(n.sub(Expr.ONE).paren())
+                                    .eq(Expr.ZERO)
+                            )
+                        );
+                    });
+                });
+            });
+        });
+
+        sources.writeSources();
+    }
+}
+----
+
+
+[[source-files-imports]]
+== Source Files and Imports
+
+The `SourceFileCreator` defines the contents of a `.java` file: imports and top-level type declarations.
+
+=== Import Declarations
+
+[source,java]
+----
+sources.createSourceFile("com.example", "MyClass", sf -> {
+    // Type imports
+    sf.import_(Type.of(java.util.List.class));        // import java.util.List;
+    sf.import_(Type.named("java.util.Map"));          // import java.util.Map;
+    sf.import_(java.io.IOException.class);            // import java.io.IOException;
+
+    // Static imports
+    sf.importStatic(Type.named("java.lang.Math"), "max");    // import static java.lang.Math.max;
+    sf.importStatic(Type.named("java.lang.Math"), "*");      // import static java.lang.Math.*;
+
+    // Module imports (Java 25+)
+    sf.importModule("java.base");                     // import module java.base;
+
+    sf.class_("MyClass", cc -> {
+        cc.public_();
+        // ... class body ...
+    });
+});
+----
+
+=== File-Level Comments
+
+Comments and blank lines can be inserted between declarations:
+
+[source,java]
+----
+sources.createSourceFile("com.example", "Commented", sf -> {
+    sf.lineComment(" Auto-generated -- do not edit");
+    sf.blankLine();
+    sf.class_("Commented", cc -> {
+        cc.public_();
+    });
+});
+----
+
+This produces:
+
+[source,java]
+----
+package com.example;
+
+// Auto-generated -- do not edit
+
+public class Commented {
+}
+----
+
+=== Multiple Top-Level Types
+
+A single source file can contain multiple top-level types (only one may be `public`):
+
+[source,java]
+----
+sources.createSourceFile("com.example", "Primary", sf -> {
+    sf.import_(Type.of(java.util.List.class));
+
+    sf.class_("Primary", cc -> {
+        cc.public_();
+        // ...
+    });
+
+    sf.class_("Helper", cc -> {
+        cc.packagePrivate();
+        // ...
+    });
+});
+----
+
+=== Complete Source File Example
+
+[source,java]
+----
+import java.io.IOException;
+import java.nio.file.Path;
+
+import io.smallrye.jdeparser.Expr;
+import io.smallrye.jdeparser.JDeparser;
+import io.smallrye.jdeparser.Sources;
+import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
+import io.smallrye.jdeparser.format.Filer;
+import io.smallrye.jdeparser.format.FormatPreferences;
+
+public class SourceFileExample {
+    public static void main(String[] args) throws IOException {
+        Filer filer = Filer.newInstance(Path.of("generated-sources"));
+        Sources sources = JDeparser.createSources(
+            filer, FormatPreferences.defaults(), SourceVersion.JAVA_17
+        );
+
+        sources.createSourceFile("com.example.util", "StringUtils", sf -> {
+            sf.lineComment(" Generated by JDeparser 3");
+            sf.blankLine();
+            sf.import_(Type.named("java.util.Objects"));
+
+            sf.class_("StringUtils", cc -> {
+                cc.public_();
+                cc.final_();
+
+                // private constructor to prevent instantiation
+                cc.constructor(con -> {
+                    con.private_();
+                    con.body(body -> {});
+                });
+
+                // public static boolean isBlank(String s)
+                cc.method("isBlank", mc -> {
+                    mc.public_();
+                    mc.static_();
+                    mc.returning(Type.BOOLEAN);
+                    mc.param("s", Type.STRING);
+                    mc.body(body -> {
+                        body.return_(
+                            Expr.$v("s").eq(Expr.NULL).or(
+                                Expr.$v("s").call("isBlank"))
+                        );
+                    });
+                });
+            });
+
+            // Package-private helper
+            sf.class_("StringUtilsInternal", cc -> {
+                cc.packagePrivate();
+                cc.final_();
+            });
+        });
+
+        sources.writeSources();
+    }
+}
+----
+
+
+[[classes]]
+== Classes
+
+The `ClassCreator` interface provides methods for defining all aspects of a class declaration.
+
+=== Basic Class
+
+[source,java]
+----
+sf.class_("Greeter", cc -> {
+    cc.public_();
+    cc.final_();
+    // ... members ...
+});
+----
+
+=== Inheritance
+
+[source,java]
+----
+sf.class_("Dog", cc -> {
+    cc.public_();
+    cc.extends_(Type.named("com.example.Animal"));
+    cc.implements_(Type.named("java.io.Serializable"));
+    cc.implements_(Type.named("java.lang.Comparable").typeArg(
+        Type.named("com.example.Dog")));
+    // ...
+});
+----
+
+=== Sealed Classes (Java 17+)
+
+[source,java]
+----
+sf.class_("Shape", cc -> {
+    cc.public_();
+    cc.abstract_();
+    cc.sealed_();
+    cc.permits(Type.named("com.example.Circle"));
+    cc.permits(Type.named("com.example.Rectangle"));
+    // ...
+});
+----
+
+=== Generic Classes
+
+[source,java]
+----
+sf.class_("Container", cc -> {
+    cc.public_();
+    cc.typeParam("T", tp -> {});  // unbounded: <T>
+    cc.typeParam("U", tp -> {     // bounded: <U extends Comparable<U>>
+        tp.extends_(Type.named("java.lang.Comparable").typeArg(
+            Type.named("U")));
+    });
+    // ...
+});
+----
+
+=== Fields, Methods, and Constructors
+
+These are covered in detail in <<methods-constructors>> and <<fields>>.
+Here is a quick overview:
+
+[source,java]
+----
+sf.class_("Account", cc -> {
+    cc.public_();
+
+    cc.field("balance", fc -> {
+        fc.private_();
+        fc.type(Type.DOUBLE);
+        fc.init(Expr.decimal(0.0));
+    });
+
+    cc.constructor(con -> {
+        con.public_();
+        con.param("initialBalance", Type.DOUBLE);
+        con.body(body -> {
+            body.emit(Expr.THIS.field("balance")
+                .assign(Expr.$v("initialBalance")));
+        });
+    });
+
+    cc.method("getBalance", mc -> {
+        mc.public_();
+        mc.returning(Type.DOUBLE);
+        mc.body(body -> {
+            body.return_(Expr.$v("balance"));
+        });
+    });
+});
+----
+
+=== Initializer Blocks
+
+[source,java]
+----
+sf.class_("Registry", cc -> {
+    cc.public_();
+
+    cc.field("entries", fc -> {
+        fc.private_();
+        fc.static_();
+        fc.final_();
+        fc.type(Type.named("java.util.Map").typeArg(Type.STRING, Type.OBJECT));
+    });
+
+    // static { entries = new HashMap<>(); }
+    cc.staticInit(body -> {
+        body.emit(Expr.$v("entries").assign(
+            Type.named("java.util.HashMap").new_()));
+    });
+
+    // { /* instance initializer */ }
+    cc.instanceInit(body -> {
+        body.emit(Type.named("java.lang.System").field("out")
+            .call("println", Expr.str("Instance created")));
+    });
+});
+----
+
+=== Nested Types
+
+Classes can contain nested classes, interfaces, enums, records, and annotation types:
+
+[source,java]
+----
+sf.class_("Outer", cc -> {
+    cc.public_();
+
+    cc.class_("Inner", inner -> {
+        inner.private_();
+        inner.static_();
+    });
+
+    cc.interface_("Callback", ifc -> {
+        ifc.public_();
+        ifc.method("onComplete", mc -> {
+            mc.returning(Type.VOID);
+        });
+    });
+
+    cc.enum_("Status", ec -> {
+        ec.public_();
+        ec.constant("ACTIVE", ecc -> {});
+        ec.constant("INACTIVE", ecc -> {});
+    });
+});
+----
+
+=== Complete Class Example
+
+[source,java]
+----
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.List;
+
+import io.smallrye.jdeparser.Expr;
+import io.smallrye.jdeparser.JDeparser;
+import io.smallrye.jdeparser.Sources;
+import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
+import io.smallrye.jdeparser.Var;
+import io.smallrye.jdeparser.format.Filer;
+import io.smallrye.jdeparser.format.FormatPreferences;
+
+public class ClassExample {
+    public static void main(String[] args) throws IOException {
+        Filer filer = Filer.newInstance(Path.of("generated-sources"));
+        Sources sources = JDeparser.createSources(
+            filer, FormatPreferences.defaults(), SourceVersion.JAVA_17
+        );
+
+        Type listType = Type.of(List.class);
+        Type stringListType = listType.typeArg(Type.STRING);
+
+        sources.createSourceFile("com.example", "MessageStore", sf -> {
+            sf.import_(List.class);
+            sf.import_(Type.named("java.util.ArrayList"));
+            sf.import_(Type.named("java.util.Collections"));
+
+            sf.class_("MessageStore", cc -> {
+                cc.public_();
+                cc.typeParam("T", tp -> {});
+
+                // private final List<String> messages = new ArrayList<>();
+                cc.field("messages", fc -> {
+                    fc.private_();
+                    fc.final_();
+                    fc.type(stringListType);
+                    fc.init(Type.named("java.util.ArrayList").new_());
+                });
+
+                // public void add(String message)
+                cc.method("add", mc -> {
+                    mc.public_();
+                    mc.returning(Type.VOID);
+                    mc.param("message", Type.STRING);
+                    mc.body(body -> {
+                        body.emit(Expr.$v("messages").call("add",
+                            Expr.$v("message")));
+                    });
+                });
+
+                // public List<String> getAll()
+                cc.method("getAll", mc -> {
+                    mc.public_();
+                    mc.returning(stringListType);
+                    mc.body(body -> {
+                        body.return_(
+                            Type.named("java.util.Collections")
+                                .call("unmodifiableList", Expr.$v("messages"))
+                        );
+                    });
+                });
+
+                // Nested enum
+                cc.enum_("Priority", ec -> {
+                    ec.public_();
+                    ec.constant("LOW", ecc -> {});
+                    ec.constant("MEDIUM", ecc -> {});
+                    ec.constant("HIGH", ecc -> {});
+                });
+            });
+        });
+
+        sources.writeSources();
+    }
+}
+----
+
+
+[[interfaces]]
+== Interfaces
+
+The `InterfaceCreator` supports abstract methods, default methods, static methods, private methods, constant fields, and nested types.
+
+=== Basic Interface
+
+[source,java]
+----
+sf.interface_("Identifiable", ifc -> {
+    ifc.public_();
+    ifc.typeParam("ID", tp -> {});
+
+    // ID getId();
+    ifc.method("getId", mc -> {
+        mc.returning(Type.named("ID"));
+    });
+});
+----
+
+=== Default Methods
+
+Add the `DEFAULT` modifier flag or call `addFlag(ModifierFlag.DEFAULT)`:
+
+[source,java]
+----
+sf.interface_("Greetable", ifc -> {
+    ifc.public_();
+
+    // String name();
+    ifc.method("name", mc -> {
+        mc.returning(Type.STRING);
+    });
+
+    // default String greet() { return "Hello, " + name(); }
+    ifc.method("greet", mc -> {
+        mc.addFlag(io.smallrye.jdeparser.creator.ModifierFlag.DEFAULT);
+        mc.returning(Type.STRING);
+        mc.body(body -> {
+            body.return_(Expr.str("Hello, ").add(
+                Expr.callPlain("name")));
+        });
+    });
+});
+----
+
+=== Static and Private Methods
+
+[source,java]
+----
+sf.interface_("Validatable", ifc -> {
+    ifc.public_();
+
+    // static <T extends Validatable> void validate(T obj)
+    ifc.method("validate", mc -> {
+        mc.static_();
+        mc.returning(Type.VOID);
+        mc.typeParam("T", tp -> {
+            tp.extends_(Type.named("com.example.Validatable"));
+        });
+        mc.param("obj", Type.named("T"));
+        mc.body(body -> {
+            // ...
+        });
+    });
+
+    // private boolean checkInternal() { ... }
+    ifc.method("checkInternal", mc -> {
+        mc.private_();
+        mc.returning(Type.BOOLEAN);
+        mc.body(body -> {
+            body.return_(Expr.TRUE);
+        });
+    });
+});
+----
+
+=== Sealed Interfaces (Java 17+)
+
+[source,java]
+----
+sf.interface_("Shape", ifc -> {
+    ifc.public_();
+    ifc.sealed_();
+    ifc.permits(Type.named("com.example.Circle"));
+    ifc.permits(Type.named("com.example.Rectangle"));
+
+    ifc.method("area", mc -> {
+        mc.returning(Type.DOUBLE);
+    });
+});
+----
+
+=== Constant Fields
+
+[source,java]
+----
+sf.interface_("Constants", ifc -> {
+    ifc.public_();
+
+    // int MAX_SIZE = 1024;
+    ifc.field("MAX_SIZE", fc -> {
+        fc.type(Type.INT);
+        fc.init(Expr.decimal(1024));
+    });
+});
+----
+
+=== Complete Interface Example
+
+[source,java]
+----
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.List;
+
+import io.smallrye.jdeparser.Expr;
+import io.smallrye.jdeparser.JDeparser;
+import io.smallrye.jdeparser.Sources;
+import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
+import io.smallrye.jdeparser.creator.ModifierFlag;
+import io.smallrye.jdeparser.format.Filer;
+import io.smallrye.jdeparser.format.FormatPreferences;
+
+public class InterfaceExample {
+    public static void main(String[] args) throws IOException {
+        Filer filer = Filer.newInstance(Path.of("generated-sources"));
+        Sources sources = JDeparser.createSources(
+            filer, FormatPreferences.defaults(), SourceVersion.JAVA_17
+        );
+
+        Type listType = Type.of(List.class);
+
+        sources.createSourceFile("com.example", "Repository", sf -> {
+            sf.import_(List.class);
+            sf.import_(Type.named("java.util.Optional"));
+
+            sf.interface_("Repository", ifc -> {
+                ifc.public_();
+                ifc.sealed_();
+                ifc.typeParam("T", tp -> {});
+                ifc.typeParam("ID", tp -> {});
+                ifc.permits(Type.named("com.example.AbstractRepository"));
+
+                // Optional<T> findById(ID id);
+                ifc.method("findById", mc -> {
+                    mc.returning(Type.named("java.util.Optional")
+                        .typeArg(Type.named("T")));
+                    mc.param("id", Type.named("ID"));
+                });
+
+                // List<T> findAll();
+                ifc.method("findAll", mc -> {
+                    mc.returning(listType.typeArg(Type.named("T")));
+                });
+
+                // T save(T entity);
+                ifc.method("save", mc -> {
+                    mc.returning(Type.named("T"));
+                    mc.param("entity", Type.named("T"));
+                });
+
+                // default void deleteById(ID id) { ... }
+                ifc.method("deleteById", mc -> {
+                    mc.addFlag(ModifierFlag.DEFAULT);
+                    mc.returning(Type.VOID);
+                    mc.param("id", Type.named("ID"));
+                    mc.body(body -> {
+                        body.emit(Expr.callPlain("findById", Expr.$v("id"))
+                            .call("ifPresent",
+                                Expr.lambda("e",
+                                    Expr.callPlain("delete", Expr.$v("e")))));
+                    });
+                });
+
+                // void delete(T entity);
+                ifc.method("delete", mc -> {
+                    mc.returning(Type.VOID);
+                    mc.param("entity", Type.named("T"));
+                });
+
+                // Nested listener interface
+                ifc.interface_("ChangeListener", inner -> {
+                    inner.typeParam("E", tp -> {});
+
+                    inner.method("onSave", mc -> {
+                        mc.returning(Type.VOID);
+                        mc.param("entity", Type.named("E"));
+                    });
+
+                    inner.method("onDelete", mc -> {
+                        mc.returning(Type.VOID);
+                        mc.param("entity", Type.named("E"));
+                    });
+                });
+            });
+        });
+
+        sources.writeSources();
+    }
+}
+----
+
+
+[[enums]]
+== Enums
+
+The `EnumCreator` defines enum types with constants, fields, constructors, and methods.
+The `EnumConstantCreator` configures individual constants.
+
+=== Basic Enum
+
+[source,java]
+----
+sf.enum_("Direction", ec -> {
+    ec.public_();
+    ec.constant("NORTH", ecc -> {});
+    ec.constant("SOUTH", ecc -> {});
+    ec.constant("EAST", ecc -> {});
+    ec.constant("WEST", ecc -> {});
+});
+----
+
+=== Enum Constants with Arguments
+
+[source,java]
+----
+sf.enum_("Planet", ec -> {
+    ec.public_();
+
+    ec.constant("MERCURY", ecc -> {
+        ecc.arg(Expr.decimal(3.303e+23));
+        ecc.arg(Expr.decimal(2.4397e6));
+    });
+    ec.constant("VENUS", ecc -> {
+        ecc.arg(Expr.decimal(4.869e+24));
+        ecc.arg(Expr.decimal(6.0518e6));
+    });
+
+    ec.field("mass", fc -> {
+        fc.private_();
+        fc.final_();
+        fc.type(Type.DOUBLE);
+    });
+    ec.field("radius", fc -> {
+        fc.private_();
+        fc.final_();
+        fc.type(Type.DOUBLE);
+    });
+
+    ec.constructor(con -> {
+        con.param("mass", Type.DOUBLE);
+        con.param("radius", Type.DOUBLE);
+        con.body(body -> {
+            body.emit(Expr.THIS.field("mass").assign(Expr.$v("mass")));
+            body.emit(Expr.THIS.field("radius").assign(Expr.$v("radius")));
+        });
+    });
+});
+----
+
+=== Enum Constants with Bodies
+
+Constants can have anonymous class bodies that override methods:
+
+[source,java]
+----
+sf.enum_("Operator", ec -> {
+    ec.public_();
+
+    ec.constant("ADD", ecc -> {
+        ecc.arg(Expr.str("+"));
+        ecc.body(classBc -> {
+            classBc.method("apply", mc -> {
+                mc.public_();
+                mc.returning(Type.DOUBLE);
+                mc.param("a", Type.DOUBLE);
+                mc.param("b", Type.DOUBLE);
+                mc.body(body -> {
+                    body.return_(Expr.$v("a").add(Expr.$v("b")));
+                });
+            });
+        });
+    });
+
+    ec.constant("SUBTRACT", ecc -> {
+        ecc.arg(Expr.str("-"));
+        ecc.body(classBc -> {
+            classBc.method("apply", mc -> {
+                mc.public_();
+                mc.returning(Type.DOUBLE);
+                mc.param("a", Type.DOUBLE);
+                mc.param("b", Type.DOUBLE);
+                mc.body(body -> {
+                    body.return_(Expr.$v("a").sub(Expr.$v("b")));
+                });
+            });
+        });
+    });
+
+    ec.field("symbol", fc -> {
+        fc.private_();
+        fc.final_();
+        fc.type(Type.STRING);
+    });
+
+    ec.constructor(con -> {
+        con.param("symbol", Type.STRING);
+        con.body(body -> {
+            body.emit(Expr.THIS.field("symbol").assign(Expr.$v("symbol")));
+        });
+    });
+
+    ec.method("apply", mc -> {
+        mc.public_();
+        mc.abstract_();
+        mc.returning(Type.DOUBLE);
+        mc.param("a", Type.DOUBLE);
+        mc.param("b", Type.DOUBLE);
+    });
+
+    ec.method("getSymbol", mc -> {
+        mc.public_();
+        mc.returning(Type.STRING);
+        mc.body(body -> {
+            body.return_(Expr.$v("symbol"));
+        });
+    });
+});
+----
+
+TIP: Use `FormatPreferences.Opt.ENUM_TRAILING_COMMA` to add a trailing comma after the last constant.
+Use `FormatPreferences.Opt.ENUM_EMPTY_PARENS` to add empty parentheses to constants with no arguments.
+
+
+[[records]]
+== Records
+
+The `RecordCreator` defines record declarations (Java 16+).
+Records have components (which become the constructor parameters and accessor methods), and can include compact constructors, additional methods, and static fields.
+
+=== Basic Record
+
+[source,java]
+----
+sf.record_("Point", rc -> {
+    rc.public_();
+    rc.component("x", Type.DOUBLE);
+    rc.component("y", Type.DOUBLE);
+});
+----
+
+This generates:
+
+[source,java]
+----
+public record Point(double x, double y) {
+}
+----
+
+=== Record with Compact Constructor
+
+[source,java]
+----
+sf.record_("Range", rc -> {
+    rc.public_();
+    rc.component("min", Type.INT);
+    rc.component("max", Type.INT);
+
+    rc.compactConstructor(body -> {
+        body.if_(Expr.$v("min").gt(Expr.$v("max")), then -> {
+            then.throw_(Type.named("java.lang.IllegalArgumentException")
+                .new_(Expr.str("min must be <= max")));
+        });
+    });
+});
+----
+
+=== Generic Record
+
+[source,java]
+----
+sf.record_("Pair", rc -> {
+    rc.public_();
+    rc.typeParam("A", tp -> {});
+    rc.typeParam("B", tp -> {});
+    rc.component("first", Type.named("A"));
+    rc.component("second", Type.named("B"));
+});
+----
+
+=== Records with Additional Methods
+
+[source,java]
+----
+sf.record_("Interval", rc -> {
+    rc.public_();
+    rc.typeParam("T", tp -> {
+        tp.extends_(Type.named("java.lang.Comparable").typeArg(Type.named("T")));
+    });
+    rc.implements_(Type.named("java.lang.Comparable").typeArg(
+        Type.named("com.example.Interval").typeArg(Type.named("T"))));
+
+    rc.component("start", Type.named("T"));
+    rc.component("end", Type.named("T"));
+
+    rc.compactConstructor(body -> {
+        body.if_(Expr.$v("start").call("compareTo", Expr.$v("end")).gt(Expr.ZERO), then -> {
+            then.throw_(Type.named("java.lang.IllegalArgumentException")
+                .new_(Expr.str("start must be <= end")));
+        });
+    });
+
+    rc.method("contains", mc -> {
+        mc.public_();
+        mc.returning(Type.BOOLEAN);
+        mc.param("value", Type.named("T"));
+        mc.body(body -> {
+            body.return_(
+                Expr.$v("start").call("compareTo", Expr.$v("value")).le(Expr.ZERO)
+                    .and(Expr.$v("end").call("compareTo", Expr.$v("value")).ge(Expr.ZERO))
+            );
+        });
+    });
+
+    rc.method("compareTo", mc -> {
+        mc.public_();
+        mc.returning(Type.INT);
+        mc.param("other", Type.named("com.example.Interval").typeArg(Type.named("T")));
+        mc.body(body -> {
+            body.return_(
+                Expr.$v("start").call("compareTo",
+                    Expr.$v("other").call("start"))
+            );
+        });
+    });
+});
+----
+
+=== Annotated Record Components
+
+[source,java]
+----
+sf.record_("Entity", rc -> {
+    rc.public_();
+
+    rc.component("id", Type.LONG, comp -> {
+        comp.annotate(Type.named("jakarta.persistence.Id"));
+    });
+
+    rc.component("name", Type.STRING, comp -> {
+        comp.annotate(Type.named("jakarta.validation.constraints.NotNull"));
+    });
+});
+----
+
+
+[[annotation-types]]
+== Annotation Types
+
+The `AnnotationInterfaceCreator` defines annotation type declarations.
+
+=== Basic Annotation
+
+[source,java]
+----
+sf.annotationInterface_("Marker", ai -> {
+    ai.public_();
+});
+----
+
+=== Annotation with Elements
+
+[source,java]
+----
+sf.annotationInterface_("RestEndpoint", ai -> {
+    ai.public_();
+
+    // Add meta-annotations
+    ai.annotate(Type.named("java.lang.annotation.Retention"), ann -> {
+        ann.value(Type.named("java.lang.annotation.RetentionPolicy")
+            .field("RUNTIME"));
+    });
+    ai.annotate(Type.named("java.lang.annotation.Target"), ann -> {
+        ann.value(Type.named("java.lang.annotation.ElementType")
+            .field("METHOD"));
+    });
+
+    // String path();
+    ai.element("path", Type.STRING);
+
+    // String method() default "GET";
+    ai.element("method", Type.STRING, Expr.str("GET"));
+
+    // String[] produces() default {};
+    ai.element("produces", Type.STRING.array(),
+        Expr.arrayLiteral());
+
+    // int timeout() default 30;
+    ai.element("timeout", Type.INT, Expr.decimal(30));
+
+    // boolean async() default false;
+    ai.element("async", Type.BOOLEAN, Expr.FALSE);
+});
+----
+
+=== Annotation with Constants
+
+[source,java]
+----
+sf.annotationInterface_("Severity", ai -> {
+    ai.public_();
+
+    ai.constant("CRITICAL", fc -> {
+        fc.type(Type.INT);
+        fc.init(Expr.decimal(0));
+    });
+
+    ai.constant("WARNING", fc -> {
+        fc.type(Type.INT);
+        fc.init(Expr.decimal(1));
+    });
+
+    // int level() default WARNING;
+    ai.element("level", Type.INT, Expr.$v("WARNING"));
+});
+----
+
+=== Complete Annotation Type Example
+
+[source,java]
+----
+import java.io.IOException;
+import java.nio.file.Path;
+
+import io.smallrye.jdeparser.Expr;
+import io.smallrye.jdeparser.JDeparser;
+import io.smallrye.jdeparser.Sources;
+import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
+import io.smallrye.jdeparser.format.Filer;
+import io.smallrye.jdeparser.format.FormatPreferences;
+
+public class AnnotationTypeExample {
+    public static void main(String[] args) throws IOException {
+        Filer filer = Filer.newInstance(Path.of("generated-sources"));
+        Sources sources = JDeparser.createSources(
+            filer, FormatPreferences.defaults(), SourceVersion.JAVA_17
+        );
+
+        Type retentionType = Type.named("java.lang.annotation.Retention");
+        Type retentionPolicy = Type.named("java.lang.annotation.RetentionPolicy");
+        Type targetType = Type.named("java.lang.annotation.Target");
+        Type elementType = Type.named("java.lang.annotation.ElementType");
+
+        sources.createSourceFile("com.example", "Cacheable", sf -> {
+            sf.import_(retentionType);
+            sf.import_(retentionPolicy);
+            sf.import_(targetType);
+            sf.import_(elementType);
+
+            sf.annotationInterface_("Cacheable", ai -> {
+                ai.public_();
+
+                ai.annotate(retentionType, ann -> {
+                    ann.value(retentionPolicy.field("RUNTIME"));
+                });
+                ai.annotate(targetType, ann -> {
+                    ann.value(Expr.arrayLiteral(
+                        elementType.field("METHOD"),
+                        elementType.field("TYPE")
+                    ));
+                });
+
+                ai.element("key", Type.STRING, Expr.str(""));
+                ai.element("ttlSeconds", Type.LONG, Expr.decimal(300L));
+                ai.element("maxEntries", Type.INT, Expr.decimal(1000));
+                ai.element("eviction", Type.STRING, Expr.str("LRU"));
+            });
+        });
+
+        sources.writeSources();
+    }
+}
+----
+
+
+[[methods-constructors]]
+== Methods and Constructors
+
+The `MethodCreator` and `ConstructorCreator` interfaces configure method and constructor declarations.
+Both support parameters, thrown exceptions, type parameters, and a body.
+Methods additionally have a return type.
+
+=== Method Signatures
+
+[source,java]
+----
+cc.method("process", mc -> {
+    mc.public_();
+    mc.returning(Type.VOID);
+    mc.param("input", Type.STRING);
+    mc.param("count", Type.INT);
+    mc.body(body -> {
+        // ...
+    });
+});
+----
+
+=== Return Types
+
+Every method needs a return type.
+Use `Type.VOID` for void methods:
+
+[source,java]
+----
+// void shutdown()
+cc.method("shutdown", mc -> {
+    mc.public_();
+    mc.returning(Type.VOID);
+    mc.body(body -> {});
+});
+
+// String getName()
+cc.method("getName", mc -> {
+    mc.public_();
+    mc.returning(Type.STRING);
+    mc.body(body -> {
+        body.return_(Expr.$v("name"));
+    });
+});
+----
+
+=== Parameterized Methods
+
+Parameters can be configured with annotations and documentation via the callback form:
+
+[source,java]
+----
+cc.method("find", mc -> {
+    mc.public_();
+    mc.returning(Type.STRING);
+
+    // Simple parameter
+    mc.param("id", Type.LONG);
+
+    // Configured parameter with annotation and Javadoc
+    mc.param("name", Type.STRING, pc -> {
+        pc.annotate(Type.named("jakarta.validation.constraints.NotNull"));
+        pc.final_();
+        pc.docComment(doc -> doc.text("the name to search for"));
+    });
+
+    mc.body(body -> {
+        body.return_(Expr.NULL);
+    });
+});
+----
+
+=== Varargs Parameters
+
+Use `varargParam` for variable-arity parameters.
+The type argument is the _element_ type, not the array type:
+
+[source,java]
+----
+cc.method("format", mc -> {
+    mc.public_();
+    mc.static_();
+    mc.returning(Type.STRING);
+    mc.param("pattern", Type.STRING);
+    mc.varargParam("args", Type.OBJECT, pc -> {});
+    mc.body(body -> {
+        body.return_(Type.STRING.call("format",
+            Expr.$v("pattern"), Expr.$v("args")));
+    });
+});
+----
+
+=== Thrown Exceptions
+
+[source,java]
+----
+cc.method("readFile", mc -> {
+    mc.public_();
+    mc.returning(Type.STRING);
+    mc.param("path", Type.STRING);
+    mc.throws_(Type.named("java.io.IOException"));
+    mc.throws_(Type.named("java.lang.SecurityException"));
+    mc.body(body -> {
+        body.return_(Expr.str(""));
+    });
+});
+----
+
+=== Generic Methods
+
+[source,java]
+----
+cc.method("convert", mc -> {
+    mc.public_();
+    mc.typeParam("T", tp -> {});
+    mc.typeParam("R", tp -> {
+        tp.extends_(Type.named("java.io.Serializable"));
+    });
+    mc.returning(Type.named("R"));
+    mc.param("input", Type.named("T"));
+    mc.param("converter",
+        Type.named("java.util.function.Function")
+            .typeArg(Type.named("T"), Type.named("R")));
+    mc.body(body -> {
+        body.return_(Expr.$v("converter").call("apply",
+            Expr.$v("input")));
+    });
+});
+----
+
+=== Abstract and Native Methods
+
+Abstract and native methods have no body:
+
+[source,java]
+----
+// abstract int compute(int x);
+cc.method("compute", mc -> {
+    mc.abstract_();
+    mc.returning(Type.INT);
+    mc.param("x", Type.INT);
+});
+
+// native void init();
+cc.method("init", mc -> {
+    mc.native_();
+    mc.returning(Type.VOID);
+});
+----
+
+=== Constructors
+
+Constructors are similar to methods but without a return type:
+
+[source,java]
+----
+cc.constructor(con -> {
+    con.public_();
+    con.param("name", Type.STRING);
+    con.param("age", Type.INT);
+    con.body(body -> {
+        body.emit(Expr.THIS.field("name").assign(Expr.$v("name")));
+        body.emit(Expr.THIS.field("age").assign(Expr.$v("age")));
+    });
+});
+----
+
+=== Constructor Delegation
+
+Use `callThis` or `callSuper` in the body to delegate to another constructor:
+
+[source,java]
+----
+// Default constructor delegates to parameterized constructor
+cc.constructor(con -> {
+    con.public_();
+    con.body(body -> {
+        body.callThis(Expr.str("unnamed"), Expr.ZERO);
+    });
+});
+
+// Parameterized constructor delegates to super
+cc.constructor(con -> {
+    con.public_();
+    con.param("name", Type.STRING);
+    con.param("id", Type.INT);
+    con.body(body -> {
+        body.callSuper(Expr.$v("name"));
+        body.emit(Expr.THIS.field("id").assign(Expr.$v("id")));
+    });
+});
+----
+
+=== Complete Methods and Constructors Example
+
+[source,java]
+----
+import java.io.IOException;
+import java.nio.file.Path;
+
+import io.smallrye.jdeparser.Expr;
+import io.smallrye.jdeparser.JDeparser;
+import io.smallrye.jdeparser.Sources;
+import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
+import io.smallrye.jdeparser.format.Filer;
+import io.smallrye.jdeparser.format.FormatPreferences;
+
+public class MethodsExample {
+    public static void main(String[] args) throws IOException {
+        Filer filer = Filer.newInstance(Path.of("generated-sources"));
+        Sources sources = JDeparser.createSources(
+            filer, FormatPreferences.defaults(), SourceVersion.JAVA_17
+        );
+
+        sources.createSourceFile("com.example", "HttpClient", sf -> {
+            sf.import_(Type.named("java.util.Map"));
+            sf.import_(Type.named("java.util.List"));
+            sf.import_(Type.named("java.io.IOException"));
+
+            sf.class_("HttpClient", cc -> {
+                cc.public_();
+
+                cc.field("baseUrl", fc -> {
+                    fc.private_();
+                    fc.final_();
+                    fc.type(Type.STRING);
+                });
+
+                cc.field("timeout", fc -> {
+                    fc.private_();
+                    fc.type(Type.INT);
+                });
+
+                // Primary constructor
+                cc.constructor(con -> {
+                    con.public_();
+                    con.param("baseUrl", Type.STRING);
+                    con.param("timeout", Type.INT);
+                    con.body(body -> {
+                        body.emit(Expr.THIS.field("baseUrl")
+                            .assign(Expr.$v("baseUrl")));
+                        body.emit(Expr.THIS.field("timeout")
+                            .assign(Expr.$v("timeout")));
+                    });
+                });
+
+                // Delegating constructor
+                cc.constructor(con -> {
+                    con.public_();
+                    con.param("baseUrl", Type.STRING);
+                    con.body(body -> {
+                        body.callThis(Expr.$v("baseUrl"), Expr.decimal(30000));
+                    });
+                });
+
+                // Generic method with exception
+                cc.method("get", mc -> {
+                    mc.public_();
+                    mc.typeParam("T", tp -> {});
+                    mc.returning(Type.named("T"));
+                    mc.param("path", Type.STRING);
+                    mc.param("responseType", Type.named("java.lang.Class")
+                        .typeArg(Type.named("T")));
+                    mc.throws_(Type.named("java.io.IOException"));
+                    mc.body(body -> {
+                        body.throw_(Type.named("java.lang.UnsupportedOperationException")
+                            .new_(Expr.str("not implemented")));
+                    });
+                });
+
+                // Varargs method
+                cc.method("buildUrl", mc -> {
+                    mc.private_();
+                    mc.returning(Type.STRING);
+                    mc.param("base", Type.STRING);
+                    mc.varargParam("segments", Type.STRING, pc -> {});
+                    mc.body(body -> {
+                        body.return_(Expr.$v("base"));
+                    });
+                });
+            });
+        });
+
+        sources.writeSources();
+    }
+}
+----
+
+
+[[fields]]
+== Fields
+
+The `FieldCreator` interface configures field declarations.
+Fields have a type, an optional initializer, and optional modifiers.
+
+=== Basic Fields
+
+[source,java]
+----
+cc.field("name", fc -> {
+    fc.private_();
+    fc.type(Type.STRING);
+});
+
+cc.field("count", fc -> {
+    fc.private_();
+    fc.type(Type.INT);
+    fc.init(Expr.ZERO);
+});
+----
+
+=== Static and Final Fields
+
+[source,java]
+----
+// private static final String DEFAULT_NAME = "unknown";
+cc.field("DEFAULT_NAME", fc -> {
+    fc.private_();
+    fc.static_();
+    fc.final_();
+    fc.type(Type.STRING);
+    fc.init(Expr.str("unknown"));
+});
+
+// public static final int MAX_SIZE = 1024;
+cc.field("MAX_SIZE", fc -> {
+    fc.public_();
+    fc.static_();
+    fc.final_();
+    fc.type(Type.INT);
+    fc.init(Expr.decimal(1024));
+});
+----
+
+=== Volatile and Transient Fields
+
+[source,java]
+----
+cc.field("running", fc -> {
+    fc.private_();
+    fc.volatile_();
+    fc.type(Type.BOOLEAN);
+    fc.init(Expr.FALSE);
+});
+
+cc.field("cachedResult", fc -> {
+    fc.private_();
+    fc.transient_();
+    fc.type(Type.STRING);
+});
+----
+
+=== Annotated Fields
+
+[source,java]
+----
+cc.field("id", fc -> {
+    fc.private_();
+    fc.type(Type.LONG);
+    fc.annotate(Type.named("jakarta.persistence.Id"));
+    fc.annotate(Type.named("jakarta.persistence.GeneratedValue"), ann -> {
+        ann.member("strategy",
+            Type.named("jakarta.persistence.GenerationType")
+                .field("IDENTITY"));
+    });
+});
+----
+
+=== Documented Fields
+
+[source,java]
+----
+cc.field("timeout", fc -> {
+    fc.private_();
+    fc.type(Type.LONG);
+    fc.init(Expr.decimal(30_000L));
+    fc.docComment(doc -> {
+        doc.text("The timeout value in milliseconds.");
+        doc.text(" Defaults to 30 seconds.");
+    });
+});
+----
+
+=== Interface and Annotation Type Fields
+
+Fields in interfaces and annotation types are implicitly `public static final`:
+
+[source,java]
+----
+// In an interface: int MAX_RETRIES = 3;
+ifc.field("MAX_RETRIES", fc -> {
+    fc.type(Type.INT);
+    fc.init(Expr.decimal(3));
+});
+----
+
+
+[[modifiers-annotations]]
+== Modifiers and Annotations
+
+=== The Modifier System
+
+Modifiers are controlled through `ModifiableCreator`, which provides:
+
+* **`setAccess(AccessLevel)`** — sets the access level
+* **`addFlag(ModifierFlag)`** — adds a non-access modifier
+* **`removeFlag(ModifierFlag)`** — removes a non-access modifier
+
+==== Access Levels
+
+The `AccessLevel` enum has four constants:
+
+[cols="1,2",options="header"]
+|===
+|Constant |Keyword
+
+|`PUBLIC` |`public`
+|`PROTECTED` |`protected`
+|`PACKAGE_PRIVATE` |_(no keyword)_
+|`PRIVATE` |`private`
+|===
+
+Convenience methods on `ModifiableCreator` map directly:
+
+[source,java]
+----
+mc.public_();         // mc.setAccess(AccessLevel.PUBLIC)
+mc.protected_();      // mc.setAccess(AccessLevel.PROTECTED)
+mc.packagePrivate();  // mc.setAccess(AccessLevel.PACKAGE_PRIVATE)
+mc.private_();        // mc.setAccess(AccessLevel.PRIVATE)
+----
+
+==== Modifier Flags
+
+The `ModifierFlag` enum provides non-access modifiers:
+
+[cols="1,2",options="header"]
+|===
+|Constant |Keyword
+
+|`ABSTRACT` |`abstract`
+|`FINAL` |`final`
+|`STATIC` |`static`
+|`SYNCHRONIZED` |`synchronized`
+|`NATIVE` |`native`
+|`STRICTFP` |`strictfp`
+|`TRANSIENT` |`transient`
+|`VOLATILE` |`volatile`
+|`DEFAULT` |`default`
+|`SEALED` |`sealed`
+|`NON_SEALED` |`non-sealed`
+|`VARARGS` |`...` _(internal use)_
+|===
+
+Convenience methods:
+
+[source,java]
+----
+mc.final_();        // mc.addFlag(ModifierFlag.FINAL)
+mc.static_();       // mc.addFlag(ModifierFlag.STATIC)
+mc.abstract_();     // mc.addFlag(ModifierFlag.ABSTRACT)
+mc.synchronized_(); // mc.addFlag(ModifierFlag.SYNCHRONIZED)
+mc.native_();       // mc.addFlag(ModifierFlag.NATIVE)
+mc.strictfp_();     // mc.addFlag(ModifierFlag.STRICTFP)
+mc.sealed_();       // mc.addFlag(ModifierFlag.SEALED)
+mc.nonSealed_();    // mc.addFlag(ModifierFlag.NON_SEALED)
+----
+
+==== Modifier Locations
+
+Each declaration type has a `ModifierLocation` that constrains which modifiers are valid.
+Invalid modifiers are rejected at call time with `IllegalArgumentException`.
+
+[cols="1,3,3",options="header"]
+|===
+|Location |Valid Access Levels |Valid Flags
+
+|`CLASS` |all |`abstract`, `final`, `static`, `strictfp`, `sealed`, `non-sealed`
+|`INTERFACE` |all |`abstract`, `static`, `strictfp`, `sealed`, `non-sealed`
+|`ENUM` |all |`static`, `strictfp`
+|`RECORD` |all |`static`, `final`, `sealed`, `non-sealed`
+|`ANNOTATION` |all |`abstract`, `static`
+|`METHOD` |all |`abstract`, `final`, `static`, `synchronized`, `native`, `strictfp`, `default`
+|`CONSTRUCTOR` |all |_(none)_
+|`FIELD` |all |`final`, `static`, `transient`, `volatile`
+|`INTERFACE_METHOD` |`public`, `private`, `package-private` |`abstract`, `static`, `default`, `strictfp`
+|`INTERFACE_FIELD` |`public`, `package-private` |`final`, `static`
+|`PARAMETER` |_(none)_ |`final`, `varargs`
+|`LOCAL_VARIABLE` |_(none)_ |`final`
+|===
+
+==== Mutual Exclusion
+
+Certain modifier flags are mutually exclusive and cannot be combined:
+
+* `abstract` and `final`
+* `abstract` and `native`
+* `final` and `volatile`
+* `final` and `sealed`
+* `final` and `non-sealed`
+* `sealed` and `non-sealed`
+
+Attempting to add a flag that conflicts with an existing flag throws `IllegalArgumentException`.
+
+=== Annotations
+
+==== Adding Annotations
+
+The `AnnotatableCreator` interface (parent of `ModifiableCreator`) provides annotation support.
+It is also implemented by `EnumConstantCreator`, `LocalVarCreator`, and `RecordComponentCreator`.
+
+[source,java]
+----
+// Marker annotation (no members)
+mc.annotate(Type.named("java.lang.Override"));
+
+// Annotation with default value member
+mc.annotate(Type.named("java.lang.SuppressWarnings"), ann -> {
+    ann.value(Expr.str("unchecked"));
+});
+
+// Annotation with named members
+mc.annotate(Type.named("jakarta.persistence.Column"), ann -> {
+    ann.member("name", Expr.str("user_name"));
+    ann.member("nullable", Expr.FALSE);
+    ann.member("length", Expr.decimal(255));
+});
+
+// Annotation with array member
+mc.annotate(Type.named("jakarta.persistence.NamedQueries"), ann -> {
+    ann.memberArray("value",
+        // Each element would be a nested annotation expression
+        Expr.str("query1"),
+        Expr.str("query2")
+    );
+});
+----
+
+==== Annotating Parameters
+
+[source,java]
+----
+mc.param("name", Type.STRING, pc -> {
+    pc.annotate(Type.named("jakarta.validation.constraints.NotNull"));
+    pc.annotate(Type.named("jakarta.validation.constraints.Size"), ann -> {
+        ann.member("min", Expr.decimal(1));
+        ann.member("max", Expr.decimal(100));
+    });
+});
+----
+
+==== Annotating Local Variables
+
+[source,java]
+----
+body.var(Type.STRING, "result", Expr.str(""), lvc -> {
+    lvc.annotate(Type.named("org.checkerframework.checker.nullness.qual.NonNull"));
+});
+----
+
+
+[[control-flow]]
+== Control Flow
+
+The `BlockCreator` is the central interface for building method bodies and other statement blocks.
+It provides methods for all Java control flow constructs.
+
+=== Expression Statements
+
+Use `emit` to add an expression as a statement:
+
+[source,java]
+----
+body.emit(Type.named("java.lang.System").field("out")
+    .call("println", Expr.str("Hello")));
+
+body.emit(Expr.$v("count").postInc());
+
+body.emit(Expr.$v("list").call("add", Expr.$v("item")));
+----
+
+=== Local Variables
+
+==== Typed Variables
+
+[source,java]
+----
+Var count = body.var(Type.INT, "count", Expr.ZERO);
+Var name = body.var(Type.STRING, "name", Expr.str("default"));
+----
+
+The returned `Var` can be used in subsequent expressions:
+
+[source,java]
+----
+body.emit(count.assign(count.add(Expr.ONE)));
+body.emit(name.call("toUpperCase"));
+----
+
+==== Type-Inferred Variables (Java 10+)
+
+[source,java]
+----
+Var items = body.var("items",
+    Type.named("java.util.ArrayList").new_());
+----
+
+==== Annotated and Final Variables
+
+[source,java]
+----
+Var value = body.var(Type.STRING, "value", Expr.str(""), lvc -> {
+    lvc.final_();
+    lvc.annotate(Type.named("org.example.NonNull"));
+});
+----
+
+=== Conditionals
+
+==== Simple If
+
+[source,java]
+----
+body.if_(Expr.$v("x").gt(Expr.ZERO), then -> {
+    then.emit(Expr.$v("result").assign(Expr.str("positive")));
+});
+----
+
+==== If-Else
+
+[source,java]
+----
+body.ifElse(Expr.$v("x").gt(Expr.ZERO),
+    then -> {
+        then.emit(Expr.$v("result").assign(Expr.str("positive")));
+    },
+    else_ -> {
+        else_.emit(Expr.$v("result").assign(Expr.str("non-positive")));
+    }
+);
+----
+
+==== Chained If-Else
+
+Chain `if_` and `ifElse` calls within the else block:
+
+[source,java]
+----
+body.ifElse(Expr.$v("x").gt(Expr.ZERO),
+    then -> {
+        then.return_(Expr.str("positive"));
+    },
+    else1 -> {
+        else1.ifElse(Expr.$v("x").lt(Expr.ZERO),
+            then -> {
+                then.return_(Expr.str("negative"));
+            },
+            else2 -> {
+                else2.return_(Expr.str("zero"));
+            }
+        );
+    }
+);
+----
+
+=== Loops
+
+==== While Loop
+
+[source,java]
+----
+body.while_(Expr.$v("iterator").call("hasNext"), loop -> {
+    Var item = loop.var("item",
+        Expr.$v("iterator").call("next"));
+    loop.emit(Expr.$v("result").call("add", item));
+});
+----
+
+==== Do-While Loop
+
+Note that `doWhile` takes the body first, then the condition:
+
+[source,java]
+----
+body.doWhile(
+    loop -> {
+        loop.emit(Expr.$v("line").assign(
+            Expr.$v("reader").call("readLine")));
+    },
+    Expr.$v("line").ne(Expr.NULL)
+);
+----
+
+==== Traditional For Loop
+
+The `ForCreator` provides `init`, `condition`, `update`, and `body`:
+
+[source,java]
+----
+body.for_(fc -> {
+    Var i = fc.init(Type.INT, "i", Expr.ZERO);
+    fc.condition(i.lt(Expr.$v("array").field("length")));
+    fc.update(i.postInc());
+    fc.body(loop -> {
+        loop.emit(Type.named("java.lang.System").field("out")
+            .call("println", Expr.$v("array").idx(i)));
+    });
+});
+----
+
+==== Enhanced For-Each Loop
+
+[source,java]
+----
+Var item = body.forEach(Type.STRING, "item", Expr.$v("items"),
+    loop -> {
+        loop.emit(Type.named("java.lang.System").field("out")
+            .call("println", item));
+    }
+);
+----
+
+NOTE: The `forEach` method returns the loop variable so it can be used within the body.
+The variable is also accessible inside the callback.
+
+=== Switch Statements
+
+==== Constant Cases
+
+[source,java]
+----
+body.switch_(Expr.$v("direction"), sw -> {
+    sw.case_(Expr.$v("NORTH"), cb -> {
+        cb.emit(Expr.$v("y").postInc());
+        cb.break_();
+    });
+    sw.case_(Expr.$v("SOUTH"), cb -> {
+        cb.emit(Expr.$v("y").postDec());
+        cb.break_();
+    });
+    sw.default_(cb -> {
+        cb.throw_(Type.named("java.lang.IllegalArgumentException")
+            .new_(Expr.str("Unknown direction")));
+    });
+});
+----
+
+==== Multi-Value Cases
+
+[source,java]
+----
+body.switch_(Expr.$v("dayOfWeek"), sw -> {
+    sw.case_(java.util.List.of(Expr.decimal(6), Expr.decimal(7)), cb -> {
+        cb.return_(Expr.TRUE);
+    });
+    sw.default_(cb -> {
+        cb.return_(Expr.FALSE);
+    });
+});
+----
+
+==== Type Pattern Cases (Java 21+)
+
+[source,java]
+----
+body.switch_(Expr.$v("shape"), sw -> {
+    sw.case_(Type.named("com.example.Circle"), "c", cc -> {
+        cc.body(cb -> {
+            cb.return_(Expr.$v("c").call("radius").mul(
+                Expr.$v("c").call("radius")).mul(Expr.$v("Math").field("PI")));
+        });
+    });
+    sw.case_(Type.named("com.example.Rectangle"), "r", cc -> {
+        cc.when_(Expr.$v("r").call("width").gt(Expr.ZERO));
+        cc.body(cb -> {
+            cb.return_(Expr.$v("r").call("width").mul(
+                Expr.$v("r").call("height")));
+        });
+    });
+    sw.caseNull(cb -> {
+        cb.return_(Expr.ZERO);
+    });
+    sw.default_(cb -> {
+        cb.throw_(Type.named("java.lang.IllegalArgumentException")
+            .new_(Expr.str("Unknown shape")));
+    });
+});
+----
+
+TIP: Type pattern cases use `CaseCreator`, which provides `when_(Expr)` for guard conditions
+and `body(Consumer<BlockCreator>)` for the case body.
+
+=== Exception Handling
+
+==== Basic Try-Catch
+
+[source,java]
+----
+body.try_(tc -> {
+    tc.body(tb -> {
+        tb.emit(Expr.$v("connection").call("execute"));
+    });
+    tc.catch_(Type.named("java.sql.SQLException"), "e", cb -> {
+        cb.emit(Expr.$v("logger").call("error",
+            Expr.str("Query failed"), Expr.$v("e")));
+    });
+});
+----
+
+==== Multi-Catch
+
+[source,java]
+----
+body.try_(tc -> {
+    tc.body(tb -> {
+        tb.emit(Expr.$v("parser").call("parse", Expr.$v("input")));
+    });
+    tc.catch_(
+        java.util.List.of(
+            Type.named("java.io.IOException"),
+            Type.named("java.text.ParseException")
+        ),
+        "e",
+        cb -> {
+            cb.emit(Expr.$v("logger").call("warn",
+                Expr.$v("e").call("getMessage")));
+        }
+    );
+});
+----
+
+==== Try-with-Resources
+
+[source,java]
+----
+body.try_(tc -> {
+    tc.with(Type.named("java.io.BufferedReader"), "reader",
+        Type.named("java.io.BufferedReader").new_(
+            Type.named("java.io.FileReader").new_(Expr.$v("path"))));
+    tc.body(tb -> {
+        Var line = tb.var(Type.STRING, "line",
+            Expr.$v("reader").call("readLine"));
+        tb.while_(line.ne(Expr.NULL), loop -> {
+            loop.emit(Expr.$v("result").call("add", line));
+            loop.emit(line.assign(Expr.$v("reader").call("readLine")));
+        });
+    });
+});
+----
+
+==== Try-Catch-Finally
+
+[source,java]
+----
+body.try_(tc -> {
+    tc.body(tb -> {
+        tb.emit(Expr.$v("lock").call("lock"));
+        tb.emit(Expr.$v("resource").call("use"));
+    });
+    tc.catch_(Type.named("java.lang.Exception"), "e", cb -> {
+        cb.emit(Expr.$v("logger").call("error",
+            Expr.str("Error"), Expr.$v("e")));
+        cb.throw_(Expr.$v("e"));
+    });
+    tc.finally_(fb -> {
+        fb.emit(Expr.$v("lock").call("unlock"));
+    });
+});
+----
+
+=== Synchronized Blocks
+
+[source,java]
+----
+body.synchronized_(Expr.THIS, syncBody -> {
+    syncBody.emit(Expr.$v("count").postInc());
+    syncBody.emit(Expr.$v("lastAccess").assign(
+        Type.named("java.lang.System").call("currentTimeMillis")));
+});
+----
+
+=== Nested Blocks
+
+[source,java]
+----
+body.block(inner -> {
+    Var temp = inner.var(Type.INT, "temp", Expr.$v("a"));
+    inner.emit(Expr.$v("a").assign(Expr.$v("b")));
+    inner.emit(Expr.$v("b").assign(temp));
+});
+----
+
+=== Labels
+
+Use `labeled` to create a labeled statement, then reference the label with `break_` or `continue_`:
+
+[source,java]
+----
+body.labeled("outer", (outerLabel, outerBody) -> {
+    outerBody.for_(fc -> {
+        Var i = fc.init(Type.INT, "i", Expr.ZERO);
+        fc.condition(i.lt(Expr.$v("rows")));
+        fc.update(i.postInc());
+        fc.body(outerLoop -> {
+            outerLoop.for_(fc2 -> {
+                Var j = fc2.init(Type.INT, "j", Expr.ZERO);
+                fc2.condition(j.lt(Expr.$v("cols")));
+                fc2.update(j.postInc());
+                fc2.body(innerLoop -> {
+                    innerLoop.if_(Expr.$v("matrix").idx(i).idx(j)
+                            .eq(Expr.$v("target")),
+                        found -> {
+                            found.break_(outerLabel);
+                        }
+                    );
+                });
+            });
+        });
+    });
+});
+----
+
+=== Jump Statements
+
+[source,java]
+----
+// return (void)
+body.return_();
+
+// return expression
+body.return_(Expr.$v("result"));
+
+// throw
+body.throw_(Type.named("java.lang.IllegalStateException")
+    .new_(Expr.str("invalid state")));
+
+// break, continue
+body.break_();
+body.continue_();
+
+// assert
+body.assert_(Expr.$v("count").ge(Expr.ZERO));
+body.assert_(Expr.$v("count").ge(Expr.ZERO), Expr.str("count must be non-negative"));
+
+// yield (in switch expressions, Java 14+)
+body.yield_(Expr.$v("result"));
+
+// empty statement
+body.empty();
+----
+
+=== Constructor Delegation
+
+Within a constructor body, use `callThis` or `callSuper`:
+
+[source,java]
+----
+// this(arg1, arg2)
+body.callThis(Expr.$v("name"), Expr.decimal(42));
+
+// super(arg1)
+body.callSuper(Expr.$v("name"));
+
+// super() - no arguments
+body.callSuper();
+----
+
+=== Local Types
+
+[source,java]
+----
+// Local class
+body.localClass("Helper", lc -> {
+    lc.method("compute", mc -> {
+        mc.returning(Type.INT);
+        mc.param("x", Type.INT);
+        mc.body(mb -> {
+            mb.return_(Expr.$v("x").mul(Expr.$v("x")));
+        });
+    });
+});
+
+// Local interface (Java 16+)
+body.localInterface("Processor", li -> {
+    li.method("process", mc -> {
+        mc.returning(Type.VOID);
+        mc.param("input", Type.STRING);
+    });
+});
+----
+
+=== Comments
+
+[source,java]
+----
+body.lineComment("Process each item in the list");
+body.blockComment("This section handles the retry logic\nwith exponential backoff");
+body.blankLine();
+----
+
+
+[[javadoc]]
+== Javadoc Comments
+
+JDeparser 3 provides comprehensive support for generating Javadoc comments.
+Documentation is set via the `docComment` callback on any `DocCommentableCreator`.
+
+=== Basic Documentation
+
+[source,java]
+----
+cc.method("getName", mc -> {
+    mc.public_();
+    mc.returning(Type.STRING);
+    mc.docComment(doc -> {
+        doc.text("Returns the name of this entity.");
+    });
+    mc.body(body -> {
+        body.return_(Expr.$v("name"));
+    });
+});
+----
+
+=== Inline Tags
+
+The `DocInlineCreator` provides inline Javadoc tags that can appear within text:
+
+[source,java]
+----
+mc.docComment(doc -> {
+    doc.text("Returns the ");
+    doc.code("name");                           // {@code name}
+    doc.text(" field. See ");
+    doc.link(Type.named("com.example.Entity")); // {@link Entity}
+    doc.text(" for details.");
+});
+----
+
+All inline tag methods:
+
+[cols="1,2,2",options="header"]
+|===
+|Method |Javadoc Tag |Description
+
+|`text(String)` |_(plain text)_ |Adds body text (may contain HTML)
+|`code(String)` |`{@code ...}` |Monospace code fragment
+|`docRoot()` |`{@docRoot}` |Path to documentation root
+|`index(String)` |`{@index ...}` |Index entry (Java 9+)
+|`index(String, String)` |`{@index ... desc}` |Index entry with description (Java 9+)
+|`inheritDoc()` |`{@inheritDoc}` |Inherit from supertype
+|`inheritDoc(Type)` |`{@inheritDoc Type}` |Inherit from specific supertype
+|`link(Type)` |`{@link Type}` |Code-font link to type
+|`link(Type, String)` |`{@link Type label}` |Code-font link with label
+|`link(DocReference)` |`{@link Type#member}` |Code-font link to member
+|`link(DocReference, String)` |`{@link Type#member label}` |Code-font link to member with label
+|`linkPlain(Type)` |`{@linkplain Type}` |Plain-text link to type
+|`linkPlain(Type, String)` |`{@linkplain Type label}` |Plain-text link with label
+|`linkPlain(DocReference)` |`{@linkplain Type#member}` |Plain-text link to member
+|`linkPlain(DocReference, String)` |`{@linkplain Type#member label}` |Plain-text link to member with label
+|`literal(String)` |`{@literal ...}` |Literal text (no HTML)
+|`summary(String)` |`{@summary ...}` |Explicit summary sentence (Java 10+)
+|`systemProperty(String)` |`{@systemProperty ...}` |System property reference (Java 12+)
+|`value()` |`{@value}` |Value of enclosing constant
+|`value(DocReference)` |`{@value ref}` |Value of referenced constant
+|===
+
+=== Block Tags
+
+The `DocCommentCreator` extends `DocInlineCreator` with block tags:
+
+[source,java]
+----
+mc.docComment(doc -> {
+    doc.text("Processes the input data and returns the result.");
+
+    doc.return_("the processed result string");
+
+    doc.throws_(Type.named("java.lang.IllegalArgumentException"),
+        "if the input is null or empty");
+
+    doc.throws_(Type.named("java.io.IOException"), c -> {
+        c.text("if an I/O error occurs while reading from ");
+        c.link(Type.named("java.io.InputStream"));
+    });
+
+    doc.see(Type.named("com.example.Processor"));
+    doc.see(Type.named("com.example.Result").docRef("of(String)"));
+
+    doc.since("1.0");
+    doc.deprecated("Use {@link #processV2(String)} instead.");
+    doc.author("Jane Developer");
+    doc.version("2.1");
+});
+----
+
+All block tag methods:
+
+[cols="1,2",options="header"]
+|===
+|Method |Javadoc Tag
+
+|`author(String)` |`@author`
+|`return_(String)` or `return_(Consumer<DocInlineCreator>)` |`@return`
+|`returnInline(String)` or `returnInline(Consumer<DocInlineCreator>)` |`{@return ...}` (Java 16+, serves as both summary and return)
+|`throws_(Type, String)` or `throws_(Type, Consumer<DocInlineCreator>)` |`@throws`
+|`see(Type)` or `see(DocReference)` |`@see`
+|`since(String)` |`@since`
+|`deprecated(String)` or `deprecated(Consumer<DocInlineCreator>)` |`@deprecated`
+|`hidden()` |`@hidden` (Java 9+)
+|`provides(Type, String)` or `provides(Type, Consumer<DocInlineCreator>)` |`@provides` (Java 9+, module docs)
+|`uses(Type, String)` or `uses(Type, Consumer<DocInlineCreator>)` |`@uses` (Java 9+, module docs)
+|`serial(String)` or `serial(Consumer<DocInlineCreator>)` |`@serial`
+|`serialInclude()` |`@serial include`
+|`serialExclude()` |`@serial exclude`
+|`serialData(String)` or `serialData(Consumer<DocInlineCreator>)` |`@serialData`
+|`serialField(String, Type, String)` or `serialField(String, Type, Consumer<DocInlineCreator>)` |`@serialField`
+|`version(String)` |`@version`
+|===
+
+=== Inline Return Tag (Java 16+)
+
+The `returnInline` method generates `{@return ...}`, which serves as both the summary sentence and the `@return` tag:
+
+[source,java]
+----
+mc.docComment(doc -> {
+    doc.returnInline("the current count of processed items");
+});
+----
+
+This generates:
+
+[source,java]
+----
+/**
+ * {@return the current count of processed items}
+ */
+----
+
+=== DocReference
+
+The `DocReference` interface represents a `Type#member` reference for use in `@see`, `{@link}`, and `{@value}` tags.
+Create references via `Type.docRef(String)` or `DocReference.of(String)`:
+
+[source,java]
+----
+// @see String#length()
+doc.see(Type.STRING.docRef("length()"));
+
+// {@link Map#of(Object, Object)}
+doc.link(Type.named("java.util.Map").docRef("of(Object, Object)"));
+
+// {@value Integer#MAX_VALUE}
+doc.value(Type.named("java.lang.Integer").docRef("MAX_VALUE"));
+
+// Rootless reference: {@link #myMethod()}
+doc.link(DocReference.of("myMethod()"));
+----
+
+=== Automatic @param Generation
+
+Parameters, type parameters, and record components automatically contribute `@param` tags when documented via their own `docComment` callback.
+You do not add `@param` tags to the `DocCommentCreator` directly.
+
+[source,java]
+----
+cc.method("merge", mc -> {
+    mc.public_();
+    mc.typeParam("T", tp -> {
+        tp.extends_(Type.named("java.lang.Comparable").typeArg(Type.named("T")));
+        tp.docComment(doc -> doc.text("the element type"));
+    });
+    mc.returning(Type.named("java.util.List").typeArg(Type.named("T")));
+
+    mc.param("first", Type.named("java.util.List").typeArg(Type.named("T")), pc -> {
+        pc.docComment(doc -> doc.text("the first list to merge"));
+    });
+    mc.param("second", Type.named("java.util.List").typeArg(Type.named("T")), pc -> {
+        pc.docComment(doc -> doc.text("the second list to merge"));
+    });
+
+    mc.docComment(doc -> {
+        doc.text("Merges two sorted lists into a single sorted list.");
+        doc.return_("a new list containing all elements from both lists, sorted");
+    });
+
+    mc.body(body -> {
+        body.throw_(Type.named("java.lang.UnsupportedOperationException").new_());
+    });
+});
+----
+
+This generates `@param <T>`, `@param first`, and `@param second` tags automatically from the individual `docComment` callbacks.
+
+=== Complete Javadoc Example
+
+[source,java]
+----
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.List;
+
+import io.smallrye.jdeparser.DocReference;
+import io.smallrye.jdeparser.Expr;
+import io.smallrye.jdeparser.JDeparser;
+import io.smallrye.jdeparser.Sources;
+import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
+import io.smallrye.jdeparser.format.Filer;
+import io.smallrye.jdeparser.format.FormatPreferences;
+
+public class JavadocExample {
+    public static void main(String[] args) throws IOException {
+        Filer filer = Filer.newInstance(Path.of("generated-sources"));
+        Sources sources = JDeparser.createSources(
+            filer, FormatPreferences.defaults(), SourceVersion.JAVA_17
+        );
+
+        Type listType = Type.of(List.class);
+
+        sources.createSourceFile("com.example", "DataProcessor", sf -> {
+            sf.import_(List.class);
+
+            sf.class_("DataProcessor", cc -> {
+                cc.public_();
+
+                cc.docComment(doc -> {
+                    doc.text("Processes data records from various sources.");
+                    doc.text("\n\n");
+                    doc.text("This class provides methods for filtering, ");
+                    doc.text("transforming, and aggregating data records. ");
+                    doc.text("Use ");
+                    doc.link(DocReference.of("process(List)"));
+                    doc.text(" as the main entry point.");
+                    doc.author("Code Generator");
+                    doc.since("1.0");
+                    doc.see(Type.named("com.example.DataRecord"));
+                });
+
+                cc.field("MAX_BATCH_SIZE", fc -> {
+                    fc.public_();
+                    fc.static_();
+                    fc.final_();
+                    fc.type(Type.INT);
+                    fc.init(Expr.decimal(1000));
+                    fc.docComment(doc -> {
+                        doc.text("Maximum number of records to process in a single batch.");
+                    });
+                });
+
+                cc.method("process", mc -> {
+                    mc.public_();
+                    mc.typeParam("T", tp -> {
+                        tp.docComment(doc -> doc.text("the record type"));
+                    });
+                    mc.returning(listType.typeArg(Type.named("T")));
+                    mc.param("records", listType.typeArg(Type.named("T")), pc -> {
+                        pc.docComment(doc -> {
+                            doc.text("the records to process (must not be ");
+                            doc.code("null");
+                            doc.text(")");
+                        });
+                    });
+                    mc.throws_(Type.named("java.lang.IllegalArgumentException"));
+
+                    mc.docComment(doc -> {
+                        doc.text("Processes a list of records and returns the results.");
+                        doc.return_(c -> {
+                            c.text("a new list containing the processed records, ");
+                            c.text("never ");
+                            c.code("null");
+                        });
+                        doc.throws_(Type.named("java.lang.IllegalArgumentException"),
+                            "if records is null or exceeds the maximum batch size");
+                        doc.since("1.0");
+                    });
+
+                    mc.body(body -> {
+                        body.return_(Expr.$v("records"));
+                    });
+                });
+            });
+        });
+
+        sources.writeSources();
+    }
+}
+----
+
+
+[[source-version-features]]
+== Source Version and Language Features
+
+=== SourceVersion
+
+The `SourceVersion` enum represents Java SE release versions from `JAVA_8` through `JAVA_26`.
+It controls which language features are permitted during source generation.
+
+[source,java]
+----
+Sources sources = JDeparser.createSources(
+    filer, prefs, SourceVersion.JAVA_17
+);
+----
+
+Key methods:
+
+* **`version()`** — returns the numeric version (e.g., `17`)
+* **`supports(LanguageFeature)`** — tests whether a feature is available
+* **`require(LanguageFeature)`** — throws `IllegalStateException` if the feature is unavailable
+
+[source,java]
+----
+SourceVersion sv = SourceVersion.JAVA_17;
+sv.supports(LanguageFeature.RECORDS);             // true (Java 16+)
+sv.supports(LanguageFeature.PATTERN_MATCHING_SWITCH); // false (Java 21+)
+
+sv.require(LanguageFeature.SEALED_CLASSES);        // OK
+sv.require(LanguageFeature.PATTERN_MATCHING_SWITCH); // throws IllegalStateException
+----
+
+=== LanguageFeature
+
+Each `LanguageFeature` constant identifies a feature and its minimum `SourceVersion`.
+The library checks these automatically when you use a version-gated API.
+
+.Language Features by Version
+[cols="1,3,1",options="header"]
+|===
+|Version |Feature |Constant
+
+|Java 9 |Module declarations |`MODULE_DECLARATIONS`
+|Java 9 |Private interface methods |`PRIVATE_INTERFACE_METHODS`
+|Java 9 |Diamond in anonymous classes |`DIAMOND_ANONYMOUS_CLASSES`
+|Java 9 |`@hidden` tag |`DOC_HIDDEN`
+|Java 9 |`{@index}` tag |`DOC_INDEX`
+|Java 9 |`@provides` tag |`DOC_PROVIDES`
+|Java 9 |`@uses` tag |`DOC_USES`
+|Java 10 |Local variable type inference (`var`) |`VAR_LOCAL_VARIABLE`
+|Java 10 |`{@summary}` tag |`DOC_SUMMARY`
+|Java 12 |`{@systemProperty}` tag |`DOC_SYSTEM_PROPERTY`
+|Java 14 |Switch expressions |`SWITCH_EXPRESSIONS`
+|Java 15 |Text blocks |`TEXT_BLOCKS`
+|Java 16 |Records |`RECORDS`
+|Java 16 |`{@return}` inline tag |`DOC_RETURN_INLINE`
+|Java 16 |Pattern matching `instanceof` |`PATTERN_MATCHING_INSTANCEOF`
+|Java 16 |Local interfaces |`LOCAL_INTERFACES`
+|Java 17 |Sealed classes |`SEALED_CLASSES`
+|Java 21 |Pattern matching `switch` |`PATTERN_MATCHING_SWITCH`
+|Java 21 |Record patterns |`RECORD_PATTERNS`
+|Java 22 |Unnamed variables (`_`) |`UNNAMED_VARIABLES`
+|Java 25 |Module imports |`MODULE_IMPORTS`
+|Java 25 |Flexible constructor bodies |`FLEXIBLE_CONSTRUCTOR_BODIES`
+|Java 25 |Compact source files |`COMPACT_SOURCE_FILES`
+|===
+
+=== Version-Conditional Generation
+
+You can query the source version to conditionally use features:
+
+[source,java]
+----
+import java.io.IOException;
+import java.nio.file.Path;
+
+import io.smallrye.jdeparser.Expr;
+import io.smallrye.jdeparser.JDeparser;
+import io.smallrye.jdeparser.LanguageFeature;
+import io.smallrye.jdeparser.Sources;
+import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
+import io.smallrye.jdeparser.format.Filer;
+import io.smallrye.jdeparser.format.FormatPreferences;
+
+public class VersionExample {
+    public static void main(String[] args) throws IOException {
+        SourceVersion version = SourceVersion.JAVA_17;
+        Filer filer = Filer.newInstance(Path.of("generated-sources"));
+        Sources sources = JDeparser.createSources(
+            filer, FormatPreferences.defaults(), version
+        );
+
+        sources.createSourceFile("com.example", "Config", sf -> {
+            sf.class_("Config", cc -> {
+                cc.public_();
+
+                cc.field("name", fc -> {
+                    fc.private_();
+                    fc.final_();
+                    fc.type(Type.STRING);
+                });
+
+                cc.field("value", fc -> {
+                    fc.private_();
+                    fc.final_();
+                    fc.type(Type.STRING);
+                });
+
+                cc.constructor(con -> {
+                    con.public_();
+                    con.param("name", Type.STRING);
+                    con.param("value", Type.STRING);
+                    con.body(body -> {
+                        body.emit(Expr.THIS.field("name")
+                            .assign(Expr.$v("name")));
+                        body.emit(Expr.THIS.field("value")
+                            .assign(Expr.$v("value")));
+                    });
+                });
+
+                cc.method("describe", mc -> {
+                    mc.public_();
+                    mc.returning(Type.STRING);
+                    mc.body(body -> {
+                        if (version.supports(LanguageFeature.TEXT_BLOCKS)) {
+                            // Use text blocks for Java 15+
+                            body.return_(Expr.str("Config:\n  name=%s\n  value=%s")
+                                .call("formatted",
+                                    Expr.$v("name"), Expr.$v("value")));
+                        } else {
+                            // Fall back to concatenation for older versions
+                            body.return_(
+                                Expr.str("Config: name=")
+                                    .add(Expr.$v("name"))
+                                    .add(Expr.str(", value="))
+                                    .add(Expr.$v("value")));
+                        }
+                    });
+                });
+            });
+        });
+
+        sources.writeSources();
+    }
+}
+----
+
+NOTE: Version-gated validation happens at construction time.
+For example, calling `sealed_()` when the target is `JAVA_8` will throw immediately.
+Use `SourceVersion.supports()` in your generator to choose the right API calls for the target version.
+
+
+[[formatting]]
+== Formatting Configuration
+
+The `FormatPreferences` class controls all aspects of source code formatting.
+Use `FormatPreferences.defaults()` for sensible defaults, or `FormatPreferences.builder()` to customize.
+
+=== Indentation
+
+The `Indentation` enum defines six contexts with default sizes:
+
+[cols="1,1,2",options="header"]
+|===
+|Context |Default |Description
+
+|`MEMBERS_TOP_LEVEL` |4 |Class/interface body members
+|`LABELS` |0 |Labels
+|`CASE_LABELS` |0 |Case labels within switch
+|`LINE_CONTINUATION` |4 |Continuation of wrapped lines
+|`LINE` |4 |Block-level content
+|`HTML_TAG` |2 |HTML tags in Javadoc
+|===
+
+[source,java]
+----
+FormatPreferences prefs = FormatPreferences.builder()
+    .indent(FormatPreferences.Indentation.MEMBERS_TOP_LEVEL, 2)
+    .indent(FormatPreferences.Indentation.LINE, 2)
+    .indent(FormatPreferences.Indentation.LINE_CONTINUATION, 4)
+    .build();
+----
+
+Use `indentAbsolute` for absolute positioning (replaces parent indent instead of adding to it):
+
+[source,java]
+----
+FormatPreferences prefs = FormatPreferences.builder()
+    .indent(FormatPreferences.Indentation.LABELS, 0)
+    .indentAbsolute(FormatPreferences.Indentation.LABELS)
+    .build();
+----
+
+=== Spacing
+
+The `Space` enum defines spacing contexts — over 90 specific syntactic positions.
+Each can be set to `NONE`, `SPACE`, or `NEWLINE` via `SpaceType`.
+
+Categories of spacing contexts include:
+
+* **Before parentheses** — e.g., `BEFORE_PAREN_IF`, `BEFORE_PAREN_METHOD_CALL`
+* **Within parentheses** — e.g., `WITHIN_PAREN_IF`, `WITHIN_PAREN_METHOD_CALL_EMPTY`
+* **Before braces** — e.g., `BEFORE_BRACE_CLASS`, `BEFORE_BRACE_METHOD`, `BEFORE_BRACE_IF`
+* **Within braces** — e.g., `WITHIN_BRACES_CODE`, `WITHIN_BRACES_EMPTY`
+* **Around operators** — e.g., `AROUND_ASSIGN`, `AROUND_LOGICAL`, `AROUND_ARROW`
+* **Before keywords** — e.g., `BEFORE_KEYWORD_ELSE`, `BEFORE_KEYWORD_CATCH`
+* **Commas** — e.g., `AFTER_COMMA`, `COMMA_ENUM_CONSTANT`
+* **Ternary** — `BEFORE_TERNARY_Q`, `AFTER_TERNARY_Q`, `BEFORE_TERNARY_COLON`, `AFTER_TERNARY_COLON`
+* **Annotations** — `AFTER_ANNOTATION`, `AFTER_PARAM_ANNOTATION`
+* **Declarations** — `BEFORE_METHOD`, `BEFORE_CLASS`
+
+Example — Allman brace style (opening brace on new line):
+
+[source,java]
+----
+FormatPreferences.Builder b = FormatPreferences.builder();
+// Set all BEFORE_BRACE_* to NEWLINE for Allman style
+b.space(FormatPreferences.Space.BEFORE_BRACE_CLASS, FormatPreferences.SpaceType.NEWLINE);
+b.space(FormatPreferences.Space.BEFORE_BRACE_INTERFACE, FormatPreferences.SpaceType.NEWLINE);
+b.space(FormatPreferences.Space.BEFORE_BRACE_METHOD, FormatPreferences.SpaceType.NEWLINE);
+b.space(FormatPreferences.Space.BEFORE_BRACE_IF, FormatPreferences.SpaceType.NEWLINE);
+b.space(FormatPreferences.Space.BEFORE_BRACE_ELSE, FormatPreferences.SpaceType.NEWLINE);
+b.space(FormatPreferences.Space.BEFORE_BRACE_FOR, FormatPreferences.SpaceType.NEWLINE);
+b.space(FormatPreferences.Space.BEFORE_BRACE_WHILE, FormatPreferences.SpaceType.NEWLINE);
+b.space(FormatPreferences.Space.BEFORE_BRACE_DO, FormatPreferences.SpaceType.NEWLINE);
+b.space(FormatPreferences.Space.BEFORE_BRACE_SWITCH, FormatPreferences.SpaceType.NEWLINE);
+b.space(FormatPreferences.Space.BEFORE_BRACE_TRY, FormatPreferences.SpaceType.NEWLINE);
+b.space(FormatPreferences.Space.BEFORE_BRACE_CATCH, FormatPreferences.SpaceType.NEWLINE);
+b.space(FormatPreferences.Space.BEFORE_BRACE_FINALLY, FormatPreferences.SpaceType.NEWLINE);
+FormatPreferences allman = b.build();
+----
+
+=== Wrapping
+
+The `Wrapping` enum defines list contexts that can be wrapped:
+
+[cols="1,1,2",options="header"]
+|===
+|Context |Default |Description
+
+|`EXCEPTION_LIST` |`WRAP_ONLY_IF_LONG` |`throws` clause
+|`IMPLEMENTS_LIST` |`WRAP_ONLY_IF_LONG` |`implements` clause
+|`EXTENDS_LIST` |`WRAP_ONLY_IF_LONG` |`extends` clause
+|`PERMITS_LIST` |`WRAP_ONLY_IF_LONG` |`permits` clause
+|`PARAMETER_LIST` |`WRAP_ONLY_IF_LONG` |Method parameter declarations
+|`ARGUMENT_LIST` |`WRAP_ONLY_IF_LONG` |Method call arguments
+|`RECORD_COMPONENT_LIST` |`WRAP_ONLY_IF_LONG` |Record components
+|`ENUM_CONSTANT_LIST` |`ALWAYS_WRAP` |Enum constants
+|===
+
+The `WrappingMode` has three values:
+
+* `ALWAYS_WRAP` — each element on its own line
+* `WRAP_ONLY_IF_LONG` — wrap only when the line exceeds the configured line length
+* `NEVER` — all elements on one line
+
+[source,java]
+----
+FormatPreferences prefs = FormatPreferences.builder()
+    .wrapMode(FormatPreferences.Wrapping.PARAMETER_LIST,
+        FormatPreferences.WrappingMode.ALWAYS_WRAP)
+    .wrapMode(FormatPreferences.Wrapping.ARGUMENT_LIST,
+        FormatPreferences.WrappingMode.WRAP_ONLY_IF_LONG)
+    .lineLength(120)
+    .build();
+----
+
+=== Options
+
+The `Opt` enum provides miscellaneous formatting flags:
+
+[cols="1,1,2",options="header"]
+|===
+|Option |Default |Description
+
+|`ENUM_TRAILING_COMMA` |off |Trailing comma after last enum constant
+|`ENUM_EMPTY_PARENS` |off |Empty `()` on no-arg enum constants
+|`COMPACT_INIT_ONLY_CLASS` |on |Compact format for initializer-only classes
+|`SINGLE_STATEMENT_BRACES` |on |Braces around single-statement bodies
+|===
+
+[source,java]
+----
+FormatPreferences prefs = FormatPreferences.builder()
+    .addOption(FormatPreferences.Opt.ENUM_TRAILING_COMMA)
+    .addOption(FormatPreferences.Opt.ENUM_EMPTY_PARENS)
+    .removeOption(FormatPreferences.Opt.SINGLE_STATEMENT_BRACES)
+    .build();
+----
+
+=== Tabs and Line Length
+
+[source,java]
+----
+FormatPreferences prefs = FormatPreferences.builder()
+    .useTabs(true)
+    .tabWidth(4)
+    .lineLength(80)
+    .build();
+----
+
+=== Loading from Properties
+
+Preferences can be loaded from a `Properties` object, allowing external configuration:
+
+[source,java]
+----
+Properties props = new Properties();
+props.setProperty("line-length", "80");
+props.setProperty("use-tabs", "false");
+props.setProperty("tab-width", "4");
+props.setProperty("indent.members-top-level", "2");
+props.setProperty("indent.line", "2");
+props.setProperty("space.before-brace-class", "NEWLINE");
+props.setProperty("wrapping.parameter-list", "ALWAYS_WRAP");
+props.setProperty("option.enum-trailing-comma", "true");
+
+FormatPreferences prefs = FormatPreferences.builder()
+    .fromProperties(props)
+    .build();
+----
+
+Property key naming convention: lowercase, hyphen-separated form of the enum constant name (e.g., `MEMBERS_TOP_LEVEL` becomes `members-top-level`), prefixed with the category (`indent.`, `space.`, `wrapping.`, `option.`).
+
+=== Complete Formatting Example
+
+[source,java]
+----
+import java.io.IOException;
+import java.nio.file.Path;
+
+import io.smallrye.jdeparser.Expr;
+import io.smallrye.jdeparser.JDeparser;
+import io.smallrye.jdeparser.Sources;
+import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
+import io.smallrye.jdeparser.format.Filer;
+import io.smallrye.jdeparser.format.FormatPreferences;
+
+public class FormattingExample {
+    public static void main(String[] args) throws IOException {
+        Filer filer = Filer.newInstance(Path.of("generated-sources"));
+
+        // Custom formatting: 2-space indent, 80 columns, Allman braces
+        FormatPreferences prefs = FormatPreferences.builder()
+            .indent(FormatPreferences.Indentation.MEMBERS_TOP_LEVEL, 2)
+            .indent(FormatPreferences.Indentation.LINE, 2)
+            .lineLength(80)
+            .space(FormatPreferences.Space.BEFORE_BRACE_CLASS,
+                FormatPreferences.SpaceType.NEWLINE)
+            .space(FormatPreferences.Space.BEFORE_BRACE_METHOD,
+                FormatPreferences.SpaceType.NEWLINE)
+            .addOption(FormatPreferences.Opt.ENUM_TRAILING_COMMA)
+            .wrapMode(FormatPreferences.Wrapping.PARAMETER_LIST,
+                FormatPreferences.WrappingMode.ALWAYS_WRAP)
+            .build();
+
+        Sources sources = JDeparser.createSources(
+            filer, prefs, SourceVersion.JAVA_17
+        );
+
+        sources.createSourceFile("com.example", "StyledClass", sf -> {
+            sf.class_("StyledClass", cc -> {
+                cc.public_();
+
+                cc.field("value", fc -> {
+                    fc.private_();
+                    fc.type(Type.INT);
+                });
+
+                cc.constructor(con -> {
+                    con.public_();
+                    con.param("value", Type.INT);
+                    con.body(body -> {
+                        body.emit(Expr.THIS.field("value")
+                            .assign(Expr.$v("value")));
+                    });
+                });
+
+                cc.method("getValue", mc -> {
+                    mc.public_();
+                    mc.returning(Type.INT);
+                    mc.body(body -> {
+                        body.return_(Expr.$v("value"));
+                    });
+                });
+            });
+        });
+
+        sources.writeSources();
+    }
+}
+----
+
+With these settings, the generated output uses 2-space indentation and Allman-style braces:
+
+[source,java]
+----
+package com.example;
+
+public class StyledClass
+{
+  private int value;
+
+  public StyledClass(int value)
+  {
+    this.value = value;
+  }
+
+  public int getValue()
+  {
+    return value;
+  }
+}
+----
+
+
+[[use-case-annotation-processor]]
+== Use Case: Annotation Processor
+
+A common use of JDeparser 3 is within annotation processors.
+The `Filer` class integrates with `javax.annotation.processing.Filer` for seamless source file creation.
+
+=== Complete Annotation Processor Example
+
+This example defines a `@GenerateBuilder` annotation and the processor that generates builder classes:
+
+[source,java]
+----
+import java.io.IOException;
+import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
+
+import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.SupportedSourceVersion;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
+
+import io.smallrye.jdeparser.Expr;
+import io.smallrye.jdeparser.JDeparser;
+import io.smallrye.jdeparser.Sources;
+import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
+import io.smallrye.jdeparser.format.Filer;
+import io.smallrye.jdeparser.format.FormatPreferences;
+
+@SupportedAnnotationTypes("com.example.GenerateBuilder")
+@SupportedSourceVersion(javax.lang.model.SourceVersion.RELEASE_17)
+public class BuilderProcessor extends AbstractProcessor {
+
+    @Override
+    public boolean process(Set<? extends TypeElement> annotations,
+                          RoundEnvironment roundEnv) {
+        for (Element element : roundEnv.getElementsAnnotatedWith(
+                annotations.iterator().next())) {
+            if (element.getKind() != ElementKind.CLASS) {
+                continue;
+            }
+            TypeElement typeElement = (TypeElement) element;
+            try {
+                generateBuilder(typeElement);
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to generate builder", e);
+            }
+        }
+        return true;
+    }
+
+    private void generateBuilder(TypeElement typeElement) throws IOException {
+        String packageName = processingEnv.getElementUtils()
+            .getPackageOf(typeElement).getQualifiedName().toString();
+        String className = typeElement.getSimpleName().toString();
+        String builderName = className + "Builder";
+
+        // Collect fields
+        List<VariableElement> fields = new ArrayList<>();
+        for (Element enclosed : typeElement.getEnclosedElements()) {
+            if (enclosed.getKind() == ElementKind.FIELD) {
+                fields.add((VariableElement) enclosed);
+            }
+        }
+
+        // Use JDeparser with the annotation processing Filer
+        Filer filer = Filer.newInstance(processingEnv.getFiler());
+        Sources sources = JDeparser.createSources(
+            filer, FormatPreferences.defaults(), SourceVersion.JAVA_17
+        );
+
+        Type targetType = Type.named(packageName + "." + className);
+
+        sources.createSourceFile(packageName, builderName, sf -> {
+            sf.class_(builderName, cc -> {
+                cc.public_();
+                cc.final_();
+
+                // Generate a field for each target field
+                for (VariableElement field : fields) {
+                    String fieldName = field.getSimpleName().toString();
+                    Type fieldType = Type.of(field.asType());
+
+                    cc.field(fieldName, fc -> {
+                        fc.private_();
+                        fc.type(fieldType);
+                    });
+                }
+
+                // Generate a setter for each field (returns this)
+                Type builderType = Type.named(packageName + "." + builderName);
+                for (VariableElement field : fields) {
+                    String fieldName = field.getSimpleName().toString();
+                    Type fieldType = Type.of(field.asType());
+
+                    cc.method(fieldName, mc -> {
+                        mc.public_();
+                        mc.returning(builderType);
+                        mc.param(fieldName, fieldType);
+                        mc.body(body -> {
+                            body.emit(Expr.THIS.field(fieldName)
+                                .assign(Expr.$v(fieldName)));
+                            body.return_(Expr.THIS);
+                        });
+                    });
+                }
+
+                // Generate build() method
+                cc.method("build", mc -> {
+                    mc.public_();
+                    mc.returning(targetType);
+                    mc.body(body -> {
+                        // new TargetClass(field1, field2, ...)
+                        Expr[] args = fields.stream()
+                            .map(f -> Expr.$v(f.getSimpleName().toString()))
+                            .toArray(Expr[]::new);
+                        body.return_(targetType.new_(args));
+                    });
+                });
+            });
+        });
+
+        sources.writeSources();
+    }
+}
+----
+
+Key points for annotation processor integration:
+
+* Use `Filer.newInstance(processingEnv.getFiler())` to integrate with the annotation processing environment
+* Use `Type.of(TypeMirror)` to convert `javax.lang.model` types to JDeparser types
+* Generated sources are automatically registered with the compilation environment
+
+
+[[use-case-build-time]]
+== Use Case: Build-Time Code Generator
+
+JDeparser 3 is also useful for standalone code generators invoked during the build.
+This example generates data classes from a simple definition.
+
+=== Complete Build-Time Generator
+
+[source,java]
+----
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.List;
+
+import io.smallrye.jdeparser.Expr;
+import io.smallrye.jdeparser.JDeparser;
+import io.smallrye.jdeparser.Sources;
+import io.smallrye.jdeparser.SourceVersion;
+import io.smallrye.jdeparser.Type;
+import io.smallrye.jdeparser.format.Filer;
+import io.smallrye.jdeparser.format.FormatPreferences;
+
+public class EntityGenerator {
+
+    record FieldDef(String name, Type type) {}
+    record EntityDef(String packageName, String className, List<FieldDef> fields) {}
+
+    public static void main(String[] args) throws IOException {
+        Path outputDir = Path.of(args.length > 0 ? args[0] : "generated-sources");
+
+        // Define entities to generate
+        List<EntityDef> entities = List.of(
+            new EntityDef("com.example.model", "User", List.of(
+                new FieldDef("id", Type.LONG),
+                new FieldDef("username", Type.STRING),
+                new FieldDef("email", Type.STRING),
+                new FieldDef("active", Type.BOOLEAN)
+            )),
+            new EntityDef("com.example.model", "Product", List.of(
+                new FieldDef("id", Type.LONG),
+                new FieldDef("name", Type.STRING),
+                new FieldDef("price", Type.DOUBLE),
+                new FieldDef("quantity", Type.INT)
+            ))
+        );
+
+        Filer filer = Filer.newInstance(outputDir);
+        Sources sources = JDeparser.createSources(
+            filer, FormatPreferences.defaults(), SourceVersion.JAVA_17
+        );
+
+        for (EntityDef entity : entities) {
+            generateEntity(sources, entity);
+        }
+
+        sources.writeSources();
+        System.out.println("Generated " + entities.size()
+            + " entity classes in " + outputDir);
+    }
+
+    private static void generateEntity(Sources sources, EntityDef entity) {
+        sources.createSourceFile(entity.packageName(), entity.className(), sf -> {
+            sf.import_(Type.named("java.util.Objects"));
+
+            sf.class_(entity.className(), cc -> {
+                cc.public_();
+
+                cc.docComment(doc -> {
+                    doc.text("Generated entity class for " + entity.className() + ".");
+                    doc.since("1.0");
+                });
+
+                // Fields
+                for (FieldDef field : entity.fields()) {
+                    cc.field(field.name(), fc -> {
+                        fc.private_();
+                        fc.type(field.type());
+                    });
+                }
+
+                // No-arg constructor
+                cc.constructor(con -> {
+                    con.public_();
+                    con.docComment(doc ->
+                        doc.text("Creates a new empty " + entity.className() + "."));
+                    con.body(body -> {});
+                });
+
+                // All-args constructor
+                cc.constructor(con -> {
+                    con.public_();
+                    con.docComment(doc ->
+                        doc.text("Creates a new " + entity.className()
+                            + " with all fields."));
+                    for (FieldDef field : entity.fields()) {
+                        con.param(field.name(), field.type(), pc -> {
+                            pc.docComment(doc ->
+                                doc.text("the " + field.name()));
+                        });
+                    }
+                    con.body(body -> {
+                        for (FieldDef field : entity.fields()) {
+                            body.emit(Expr.THIS.field(field.name())
+                                .assign(Expr.$v(field.name())));
+                        }
+                    });
+                });
+
+                // Getters and setters
+                for (FieldDef field : entity.fields()) {
+                    String capName = field.name().substring(0, 1).toUpperCase()
+                        + field.name().substring(1);
+
+                    // Getter
+                    cc.method("get" + capName, mc -> {
+                        mc.public_();
+                        mc.returning(field.type());
+                        mc.docComment(doc ->
+                            doc.returnInline("the " + field.name()));
+                        mc.body(body -> {
+                            body.return_(Expr.$v(field.name()));
+                        });
+                    });
+
+                    // Setter
+                    cc.method("set" + capName, mc -> {
+                        mc.public_();
+                        mc.returning(Type.VOID);
+                        mc.param(field.name(), field.type(), pc -> {
+                            pc.docComment(doc ->
+                                doc.text("the " + field.name() + " to set"));
+                        });
+                        mc.docComment(doc ->
+                            doc.text("Sets the " + field.name() + "."));
+                        mc.body(body -> {
+                            body.emit(Expr.THIS.field(field.name())
+                                .assign(Expr.$v(field.name())));
+                        });
+                    });
+                }
+
+                // toString
+                cc.method("toString", mc -> {
+                    mc.public_();
+                    mc.returning(Type.STRING);
+                    mc.annotate(Type.named("java.lang.Override"));
+                    mc.body(body -> {
+                        Expr result = Expr.str(entity.className() + "{");
+                        boolean first = true;
+                        for (FieldDef field : entity.fields()) {
+                            if (!first) {
+                                result = result.add(Expr.str(", "));
+                            }
+                            result = result.add(Expr.str(field.name() + "="))
+                                .add(Expr.$v(field.name()));
+                            first = false;
+                        }
+                        result = result.add(Expr.str("}"));
+                        body.return_(result);
+                    });
+                });
+            });
+        });
+    }
+}
+----
+
+=== Maven Integration
+
+Add the generator to your build with the `exec-maven-plugin`:
+
+[source,xml]
+----
+<plugin>
+    <groupId>org.codehaus.mojo</groupId>
+    <artifactId>exec-maven-plugin</artifactId>
+    <version>3.1.0</version>
+    <executions>
+        <execution>
+            <phase>generate-sources</phase>
+            <goals>
+                <goal>java</goal>
+            </goals>
+            <configuration>
+                <mainClass>com.example.EntityGenerator</mainClass>
+                <arguments>
+                    <argument>${project.build.directory}/generated-sources/jdeparser</argument>
+                </arguments>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+
+<plugin>
+    <groupId>org.codehaus.mojo</groupId>
+    <artifactId>build-helper-maven-plugin</artifactId>
+    <version>3.4.0</version>
+    <executions>
+        <execution>
+            <phase>generate-sources</phase>
+            <goals>
+                <goal>add-source</goal>
+            </goals>
+            <configuration>
+                <sources>
+                    <source>${project.build.directory}/generated-sources/jdeparser</source>
+                </sources>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+----
+
+
+[[api-reference]]
+== API Reference Summary
+
+This chapter provides a tabular overview of every public type in the library, organized by package.
+
+=== Package `io.smallrye.jdeparser`
+
+.Core Types
+[cols="1,3,1",options="header"]
+|===
+|Type |Description |Chapter
+
+|`JDeparser` |Entry point: `createSources(Filer, FormatPreferences, SourceVersion)` |<<quick-start>>
+|`Sources` |Manages source files: `createSourceFile`, `writeSources` |<<quick-start>>
+|`Type` |Represents Java types: primitives, references, arrays, parameterized, wildcards |<<types>>
+|`Expr` |Represents Java expressions: literals, operations, casts, lambdas, switches |<<expressions>>
+|`Var` |Extends `Expr` with assignment operations |<<expressions>>
+|`SourceVersion` |Target Java version enum (`JAVA_8` through `JAVA_26`) |<<source-version-features>>
+|`LanguageFeature` |Version-gated features enum |<<source-version-features>>
+|`Label` |Label handle for `break`/`continue` targeting |<<control-flow>>
+|`DocReference` |Javadoc program element reference (`Type#member`) |<<javadoc>>
+|===
+
+=== Package `io.smallrye.jdeparser.format`
+
+.Formatting Types
+[cols="1,3,1",options="header"]
+|===
+|Type |Description |Chapter
+
+|`Filer` |Output abstraction: `newInstance(Path)`, `newInstance(File)`, `newInstance(javax.annotation.processing.Filer)` |<<setup>>
+|`FormatPreferences` |Formatting configuration |<<formatting>>
+|`FormatPreferences.Builder` |Builder for `FormatPreferences` |<<formatting>>
+|`FormatPreferences.SpaceType` |Space type: `NONE`, `SPACE`, `NEWLINE` |<<formatting>>
+|`FormatPreferences.Space` |Spacing context enum (~90 contexts) |<<formatting>>
+|`FormatPreferences.Indentation` |Indentation context enum (6 contexts) |<<formatting>>
+|`FormatPreferences.Wrapping` |Wrapping context enum (8 contexts) |<<formatting>>
+|`FormatPreferences.WrappingMode` |Wrapping mode: `ALWAYS_WRAP`, `WRAP_ONLY_IF_LONG`, `NEVER` |<<formatting>>
+|`FormatPreferences.Opt` |Formatting option enum (4 options) |<<formatting>>
+|===
+
+=== Package `io.smallrye.jdeparser.creator`
+
+.Creator Interfaces (Borrow Pattern)
+[cols="1,3,1",options="header"]
+|===
+|Type |Description |Chapter
+
+|`SourceFileCreator` |Top-level source file: imports, type declarations, comments |<<source-files-imports>>
+|`ClassCreator` |Class declaration: extends, implements, permits, members |<<classes>>
+|`InterfaceCreator` |Interface declaration: extends, permits, default/static/private methods |<<interfaces>>
+|`EnumCreator` |Enum declaration: constants, fields, constructors, methods |<<enums>>
+|`EnumConstantCreator` |Enum constant: args, anonymous body |<<enums>>
+|`RecordCreator` |Record declaration: components, compact constructor |<<records>>
+|`RecordComponentCreator` |Record component: annotations, documentation |<<records>>
+|`AnnotationInterfaceCreator` |Annotation type: elements, constants |<<annotation-types>>
+|`MethodCreator` |Method: return type, params, throws, type params, body |<<methods-constructors>>
+|`ConstructorCreator` |Constructor: params, throws, type params, body |<<methods-constructors>>
+|`ParamCreator` |Parameter: annotations, final, documentation |<<methods-constructors>>
+|`FieldCreator` |Field: type, init, volatile, transient |<<fields>>
+|`BlockCreator` |Statement block: all control flow, variables, expressions |<<control-flow>>
+|`ForCreator` |Traditional for loop: init, condition, update, body |<<control-flow>>
+|`SwitchCreator` |Switch: constant, multi-value, type pattern, null, default cases |<<control-flow>>
+|`CaseCreator` |Type pattern case: guard condition, body |<<control-flow>>
+|`TryCreator` |Try: resources, body, catch, multi-catch, finally |<<control-flow>>
+|`LocalVarCreator` |Local variable: final, annotations |<<control-flow>>
+|`TypeParamCreator` |Type parameter: bounds, documentation |<<classes>>
+|`AnnotationCreator` |Annotation values: value, member, memberArray |<<modifiers-annotations>>
+|`DocCommentCreator` |Javadoc: block tags (`@return`, `@throws`, `@see`, etc.) |<<javadoc>>
+|`DocInlineCreator` |Javadoc inline: `{@code}`, `{@link}`, `{@literal}`, etc. |<<javadoc>>
+|`DocCommentableCreator` |Mixin: `docComment(Consumer)` |<<javadoc>>
+|===
+
+.Modifier Types
+[cols="1,3,1",options="header"]
+|===
+|Type |Description |Chapter
+
+|`ModifiableCreator` |Mixin: `setAccess`, `addFlag`, `removeFlag`, convenience methods |<<modifiers-annotations>>
+|`AnnotatableCreator` |Mixin: `annotate(Type)`, `annotate(Type, Consumer)` |<<modifiers-annotations>>
+|`AccessLevel` |Enum: `PUBLIC`, `PROTECTED`, `PACKAGE_PRIVATE`, `PRIVATE` |<<modifiers-annotations>>
+|`ModifierFlag` |Enum: `ABSTRACT`, `FINAL`, `STATIC`, `SYNCHRONIZED`, etc. |<<modifiers-annotations>>
+|`ModifierLocation` |Enum: `CLASS`, `INTERFACE`, `METHOD`, `FIELD`, etc. |<<modifiers-annotations>>
+|`Modifier` |Sealed interface: parent of `AccessLevel` and `ModifierFlag` |<<modifiers-annotations>>
+|===
