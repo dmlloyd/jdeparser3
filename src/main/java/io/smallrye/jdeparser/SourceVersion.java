@@ -52,6 +52,12 @@ public enum SourceVersion {
     JAVA_26(26),
     ;
 
+    /**
+     * The latest supported source version.
+     * The value of this constant will change as new versions become supported.
+     */
+    public static final SourceVersion LATEST = JAVA_26;
+
     private final int version;
 
     SourceVersion(final int version) {

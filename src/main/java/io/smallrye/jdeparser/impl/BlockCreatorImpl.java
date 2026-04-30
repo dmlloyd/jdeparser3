@@ -406,11 +406,7 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
     @Override
     public void return_() {
         checkActive();
-        content.add(w -> {
-            w.write(Tokens.$KW.RETURN);
-            w.write(Tokens.$PUNCT.SEMI);
-            w.nl();
-        });
+        content.add(new ReturnWritable(null));
     }
 
     /** {@inheritDoc} */
@@ -418,13 +414,44 @@ public final class BlockCreatorImpl extends AbstractCreator implements BlockCrea
     public void return_(final Expr value) {
         checkActive();
         Assert.checkNotNullParam("value", value);
-        content.add(w -> {
-            w.write(Tokens.$KW.RETURN);
-            w.addWordSpace();
-            AbstractExpr.writeExpr(w, value);
-            w.write(Tokens.$PUNCT.SEMI);
-            w.nl();
-        });
+        content.add(new ReturnWritable(value));
+    }
+
+    /**
+     * Returns the expression from a single {@code return expr;} statement,
+     * if the block body consists of exactly that, or {@code null} otherwise.
+     * <p>
+     * This is used by {@link LambdaExpr} to determine whether a block-body
+     * lambda can be rendered in expression form.
+     *
+     * @return the single return expression, or {@code null}
+     */
+    Expr singleReturnExpr() {
+        return content.size() == 1
+                && content.get(0) instanceof ReturnWritable r
+                && r.value() != null
+                        ? r.value()
+                        : null;
+    }
+
+    /**
+     * A writable representing a {@code return} statement, optionally with a value.
+     *
+     * @param value the return value expression, or {@code null} for a bare {@code return;}
+     */
+    record ReturnWritable(Expr value) implements Writable {
+
+        /** {@inheritDoc} */
+        @Override
+        public void write(final SourceFileWriter writer) throws IOException {
+            writer.write(Tokens.$KW.RETURN);
+            if (value != null) {
+                writer.addWordSpace();
+                AbstractExpr.writeExpr(writer, value);
+            }
+            writer.write(Tokens.$PUNCT.SEMI);
+            writer.nl();
+        }
     }
 
     /** {@inheritDoc} */

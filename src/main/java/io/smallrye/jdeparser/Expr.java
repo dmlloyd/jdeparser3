@@ -4,10 +4,9 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import io.smallrye.common.constraint.Assert;
-import io.smallrye.jdeparser.creator.BlockCreator;
+import io.smallrye.jdeparser.creator.LambdaCreator;
 import io.smallrye.jdeparser.creator.SwitchCreator;
 import io.smallrye.jdeparser.impl.AbstractExpr;
-import io.smallrye.jdeparser.impl.BlockCreatorImpl;
 import io.smallrye.jdeparser.impl.BooleanExpr;
 import io.smallrye.jdeparser.impl.CallExpr;
 import io.smallrye.jdeparser.impl.CharExpr;
@@ -15,6 +14,7 @@ import io.smallrye.jdeparser.impl.DoubleExpr;
 import io.smallrye.jdeparser.impl.FloatExpr;
 import io.smallrye.jdeparser.impl.IntegerExpr;
 import io.smallrye.jdeparser.impl.KeywordExpr;
+import io.smallrye.jdeparser.impl.LambdaCreatorImpl;
 import io.smallrye.jdeparser.impl.LambdaExpr;
 import io.smallrye.jdeparser.impl.LiteralArrayExpr;
 import io.smallrye.jdeparser.impl.LongExpr;
@@ -314,110 +314,345 @@ public sealed interface Expr permits Var, AbstractExpr {
         return new SwitchExpr(this, sc);
     }
 
+    // \u2500\u2500 Lambda expressions \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+
+    /**
+     * Creates a lambda expression using the {@link LambdaCreator} callback pattern.
+     * <p>
+     * This is the most general form of lambda creation. Parameters are declared
+     * via {@link LambdaCreator#param(String)} (untyped) or
+     * {@link LambdaCreator#param(String, Type)} (typed), and the body is defined
+     * via {@link LambdaCreator#body(Consumer)}.
+     *
+     * @param builder the lambda creator callback (must not be {@code null})
+     * @return the lambda expression
+     */
+    static Expr lambda(final Consumer<LambdaCreator> builder) {
+        Assert.checkNotNullParam("builder", builder);
+        final LambdaCreatorImpl lc = new LambdaCreatorImpl();
+        builder.accept(lc);
+        lc.finish();
+        if (lc.blockBody() == null) {
+            throw new IllegalStateException("Lambda body was not defined; body() must be called");
+        }
+        return new LambdaExpr(lc.params(), lc.blockBody());
+    }
+
+    /**
+     * Creates a zero-parameter expression-body lambda: {@code () -> expr}.
+     *
+     * @param body the expression body (must not be {@code null})
+     * @return the lambda expression
+     */
+    static Expr lambda(final Expr body) {
+        Assert.checkNotNullParam("body", body);
+        return lambda(lc -> lc.body(bc -> bc.return_(body)));
+    }
+
     /**
      * Creates an expression-body lambda with a single untyped parameter: {@code x -> expr}.
      *
-     * @param param the parameter name
-     * @param body the expression body
+     * @param name the parameter name (must not be {@code null} or empty)
+     * @param body the expression body (must not be {@code null})
      * @return the lambda expression
      */
-    static Expr lambda(final String param, final Expr body) {
-        Assert.checkNotNullParam("param", param);
-        Assert.checkNotEmptyParam("param", param);
+    static Expr lambda(final String name, final Expr body) {
+        Assert.checkNotNullParam("name", name);
+        Assert.checkNotEmptyParam("name", name);
         Assert.checkNotNullParam("body", body);
-        return new LambdaExpr(List.of(new LambdaExpr.LambdaParam(param)), body);
+        return lambda(lc -> {
+            lc.param(name);
+            lc.body(bc -> bc.return_(body));
+        });
     }
 
     /**
      * Creates an expression-body lambda with multiple untyped parameters: {@code (x, y) -> expr}.
      *
-     * @param params the parameter names
-     * @param body the expression body
+     * @param params the parameter names (must not be {@code null} or empty)
+     * @param body the expression body (must not be {@code null})
      * @return the lambda expression
      */
     static Expr lambda(final List<String> params, final Expr body) {
         Assert.checkNotNullParam("params", params);
         Assert.checkNotEmptyParam("params", params);
         Assert.checkNotNullParam("body", body);
-        return new LambdaExpr(
-                params.stream().map(LambdaExpr.LambdaParam::new).toList(),
-                body);
+        return lambda(lc -> {
+            for (String p : params) {
+                lc.param(p);
+            }
+            lc.body(bc -> bc.return_(body));
+        });
     }
 
     /**
-     * Creates a block-body lambda with a single untyped parameter: {@code x -> { /* statements *\u200D/ }}.
+     * Creates an expression-body lambda with two untyped parameters: {@code (n1, n2) -> expr}.
      *
-     * @param version the source version for feature validation
-     * @param param the parameter name
-     * @param body the block body builder
+     * @param n1 the first parameter name (must not be {@code null} or empty)
+     * @param n2 the second parameter name (must not be {@code null} or empty)
+     * @param body the expression body (must not be {@code null})
      * @return the lambda expression
      */
-    static Expr lambda(final SourceVersion version, final String param,
-            final Consumer<BlockCreator> body) {
-        Assert.checkNotNullParam("version", version);
-        Assert.checkNotNullParam("param", param);
-        Assert.checkNotEmptyParam("param", param);
+    static Expr lambda(final String n1, final String n2, final Expr body) {
+        Assert.checkNotNullParam("n1", n1);
+        Assert.checkNotEmptyParam("n1", n1);
+        Assert.checkNotNullParam("n2", n2);
+        Assert.checkNotEmptyParam("n2", n2);
         Assert.checkNotNullParam("body", body);
-        final BlockCreatorImpl bc = new BlockCreatorImpl(version);
-        body.accept(bc);
-        bc.finish();
-        return new LambdaExpr(List.of(new LambdaExpr.LambdaParam(param)), bc);
+        return lambda(lc -> {
+            lc.param(n1);
+            lc.param(n2);
+            lc.body(bc -> bc.return_(body));
+        });
     }
 
     /**
-     * Creates a block-body lambda with multiple untyped parameters: {@code (x, y) -> /* statements *\u200D/}.
+     * Creates an expression-body lambda with three untyped parameters: {@code (n1, n2, n3) -> expr}.
      *
-     * @param version the source version for feature validation
-     * @param params the parameter names
-     * @param body the block body builder
+     * @param n1 the first parameter name (must not be {@code null} or empty)
+     * @param n2 the second parameter name (must not be {@code null} or empty)
+     * @param n3 the third parameter name (must not be {@code null} or empty)
+     * @param body the expression body (must not be {@code null})
      * @return the lambda expression
      */
-    static Expr lambda(final SourceVersion version, final List<String> params,
-            final Consumer<BlockCreator> body) {
-        Assert.checkNotNullParam("version", version);
-        Assert.checkNotNullParam("params", params);
-        Assert.checkNotEmptyParam("params", params);
+    static Expr lambda(final String n1, final String n2, final String n3, final Expr body) {
+        Assert.checkNotNullParam("n1", n1);
+        Assert.checkNotEmptyParam("n1", n1);
+        Assert.checkNotNullParam("n2", n2);
+        Assert.checkNotEmptyParam("n2", n2);
+        Assert.checkNotNullParam("n3", n3);
+        Assert.checkNotEmptyParam("n3", n3);
         Assert.checkNotNullParam("body", body);
-        final BlockCreatorImpl bc = new BlockCreatorImpl(version);
-        body.accept(bc);
-        bc.finish();
-        return new LambdaExpr(
-                params.stream().map(LambdaExpr.LambdaParam::new).toList(),
-                bc);
+        return lambda(lc -> {
+            lc.param(n1);
+            lc.param(n2);
+            lc.param(n3);
+            lc.body(bc -> bc.return_(body));
+        });
     }
 
     /**
-     * Creates an expression-body lambda with typed parameters: {@code (Type1 x, Type2 y) -> expr}.
+     * Creates an expression-body lambda with four untyped parameters: {@code (n1, n2, n3, n4) -> expr}.
      *
-     * @param params the typed parameters (name-type pairs)
-     * @param body the expression body
+     * @param n1 the first parameter name (must not be {@code null} or empty)
+     * @param n2 the second parameter name (must not be {@code null} or empty)
+     * @param n3 the third parameter name (must not be {@code null} or empty)
+     * @param n4 the fourth parameter name (must not be {@code null} or empty)
+     * @param body the expression body (must not be {@code null})
      * @return the lambda expression
      */
-    static Expr lambdaTyped(final List<LambdaExpr.LambdaParam> params, final Expr body) {
-        Assert.checkNotNullParam("params", params);
-        Assert.checkNotEmptyParam("params", params);
+    static Expr lambda(final String n1, final String n2, final String n3, final String n4, final Expr body) {
+        Assert.checkNotNullParam("n1", n1);
+        Assert.checkNotEmptyParam("n1", n1);
+        Assert.checkNotNullParam("n2", n2);
+        Assert.checkNotEmptyParam("n2", n2);
+        Assert.checkNotNullParam("n3", n3);
+        Assert.checkNotEmptyParam("n3", n3);
+        Assert.checkNotNullParam("n4", n4);
+        Assert.checkNotEmptyParam("n4", n4);
         Assert.checkNotNullParam("body", body);
-        return new LambdaExpr(params, body);
+        return lambda(lc -> {
+            lc.param(n1);
+            lc.param(n2);
+            lc.param(n3);
+            lc.param(n4);
+            lc.body(bc -> bc.return_(body));
+        });
     }
 
     /**
-     * Creates a block-body lambda with typed parameters: {@code (Type1 x, Type2 y) -> { }/* statements *\u200D/ }}.
+     * Creates an expression-body lambda with five untyped parameters: {@code (n1, n2, n3, n4, n5) -> expr}.
      *
-     * @param version the source version for feature validation
-     * @param params the typed parameters (name-type pairs)
-     * @param body the block body builder
+     * @param n1 the first parameter name (must not be {@code null} or empty)
+     * @param n2 the second parameter name (must not be {@code null} or empty)
+     * @param n3 the third parameter name (must not be {@code null} or empty)
+     * @param n4 the fourth parameter name (must not be {@code null} or empty)
+     * @param n5 the fifth parameter name (must not be {@code null} or empty)
+     * @param body the expression body (must not be {@code null})
      * @return the lambda expression
      */
-    static Expr lambdaTyped(final SourceVersion version, final List<LambdaExpr.LambdaParam> params,
-            final Consumer<BlockCreator> body) {
-        Assert.checkNotNullParam("version", version);
-        Assert.checkNotNullParam("params", params);
-        Assert.checkNotEmptyParam("params", params);
+    static Expr lambda(final String n1, final String n2, final String n3, final String n4, final String n5,
+            final Expr body) {
+        Assert.checkNotNullParam("n1", n1);
+        Assert.checkNotEmptyParam("n1", n1);
+        Assert.checkNotNullParam("n2", n2);
+        Assert.checkNotEmptyParam("n2", n2);
+        Assert.checkNotNullParam("n3", n3);
+        Assert.checkNotEmptyParam("n3", n3);
+        Assert.checkNotNullParam("n4", n4);
+        Assert.checkNotEmptyParam("n4", n4);
+        Assert.checkNotNullParam("n5", n5);
+        Assert.checkNotEmptyParam("n5", n5);
         Assert.checkNotNullParam("body", body);
-        final BlockCreatorImpl bc = new BlockCreatorImpl(version);
-        body.accept(bc);
-        bc.finish();
-        return new LambdaExpr(params, bc);
+        return lambda(lc -> {
+            lc.param(n1);
+            lc.param(n2);
+            lc.param(n3);
+            lc.param(n4);
+            lc.param(n5);
+            lc.body(bc -> bc.return_(body));
+        });
+    }
+
+    /**
+     * Creates an expression-body lambda with one typed parameter: {@code (Type1 n1) -> expr}.
+     *
+     * @param t1 the parameter type (must not be {@code null})
+     * @param n1 the parameter name (must not be {@code null} or empty)
+     * @param body the expression body (must not be {@code null})
+     * @return the lambda expression
+     */
+    static Expr lambda(final Type t1, final String n1, final Expr body) {
+        Assert.checkNotNullParam("t1", t1);
+        Assert.checkNotNullParam("n1", n1);
+        Assert.checkNotEmptyParam("n1", n1);
+        Assert.checkNotNullParam("body", body);
+        return lambda(lc -> {
+            lc.param(n1, t1);
+            lc.body(bc -> bc.return_(body));
+        });
+    }
+
+    /**
+     * Creates an expression-body lambda with two typed parameters: {@code (Type1 n1, Type2 n2) -> expr}.
+     *
+     * @param t1 the first parameter type (must not be {@code null})
+     * @param n1 the first parameter name (must not be {@code null} or empty)
+     * @param t2 the second parameter type (must not be {@code null})
+     * @param n2 the second parameter name (must not be {@code null} or empty)
+     * @param body the expression body (must not be {@code null})
+     * @return the lambda expression
+     */
+    static Expr lambda(final Type t1, final String n1, final Type t2, final String n2, final Expr body) {
+        Assert.checkNotNullParam("t1", t1);
+        Assert.checkNotNullParam("n1", n1);
+        Assert.checkNotEmptyParam("n1", n1);
+        Assert.checkNotNullParam("t2", t2);
+        Assert.checkNotNullParam("n2", n2);
+        Assert.checkNotEmptyParam("n2", n2);
+        Assert.checkNotNullParam("body", body);
+        return lambda(lc -> {
+            lc.param(n1, t1);
+            lc.param(n2, t2);
+            lc.body(bc -> bc.return_(body));
+        });
+    }
+
+    /**
+     * Creates an expression-body lambda with three typed parameters:
+     * {@code (Type1 n1, Type2 n2, Type3 n3) -> expr}.
+     *
+     * @param t1 the first parameter type (must not be {@code null})
+     * @param n1 the first parameter name (must not be {@code null} or empty)
+     * @param t2 the second parameter type (must not be {@code null})
+     * @param n2 the second parameter name (must not be {@code null} or empty)
+     * @param t3 the third parameter type (must not be {@code null})
+     * @param n3 the third parameter name (must not be {@code null} or empty)
+     * @param body the expression body (must not be {@code null})
+     * @return the lambda expression
+     */
+    static Expr lambda(final Type t1, final String n1, final Type t2, final String n2, final Type t3, final String n3,
+            final Expr body) {
+        Assert.checkNotNullParam("t1", t1);
+        Assert.checkNotNullParam("n1", n1);
+        Assert.checkNotEmptyParam("n1", n1);
+        Assert.checkNotNullParam("t2", t2);
+        Assert.checkNotNullParam("n2", n2);
+        Assert.checkNotEmptyParam("n2", n2);
+        Assert.checkNotNullParam("t3", t3);
+        Assert.checkNotNullParam("n3", n3);
+        Assert.checkNotEmptyParam("n3", n3);
+        Assert.checkNotNullParam("body", body);
+        return lambda(lc -> {
+            lc.param(n1, t1);
+            lc.param(n2, t2);
+            lc.param(n3, t3);
+            lc.body(bc -> bc.return_(body));
+        });
+    }
+
+    /**
+     * Creates an expression-body lambda with four typed parameters:
+     * {@code (Type1 n1, Type2 n2, Type3 n3, Type4 n4) -> expr}.
+     *
+     * @param t1 the first parameter type (must not be {@code null})
+     * @param n1 the first parameter name (must not be {@code null} or empty)
+     * @param t2 the second parameter type (must not be {@code null})
+     * @param n2 the second parameter name (must not be {@code null} or empty)
+     * @param t3 the third parameter type (must not be {@code null})
+     * @param n3 the third parameter name (must not be {@code null} or empty)
+     * @param t4 the fourth parameter type (must not be {@code null})
+     * @param n4 the fourth parameter name (must not be {@code null} or empty)
+     * @param body the expression body (must not be {@code null})
+     * @return the lambda expression
+     */
+    static Expr lambda(final Type t1, final String n1, final Type t2, final String n2, final Type t3, final String n3,
+            final Type t4, final String n4, final Expr body) {
+        Assert.checkNotNullParam("t1", t1);
+        Assert.checkNotNullParam("n1", n1);
+        Assert.checkNotEmptyParam("n1", n1);
+        Assert.checkNotNullParam("t2", t2);
+        Assert.checkNotNullParam("n2", n2);
+        Assert.checkNotEmptyParam("n2", n2);
+        Assert.checkNotNullParam("t3", t3);
+        Assert.checkNotNullParam("n3", n3);
+        Assert.checkNotEmptyParam("n3", n3);
+        Assert.checkNotNullParam("t4", t4);
+        Assert.checkNotNullParam("n4", n4);
+        Assert.checkNotEmptyParam("n4", n4);
+        Assert.checkNotNullParam("body", body);
+        return lambda(lc -> {
+            lc.param(n1, t1);
+            lc.param(n2, t2);
+            lc.param(n3, t3);
+            lc.param(n4, t4);
+            lc.body(bc -> bc.return_(body));
+        });
+    }
+
+    /**
+     * Creates an expression-body lambda with five typed parameters:
+     * {@code (Type1 n1, Type2 n2, Type3 n3, Type4 n4, Type5 n5) -> expr}.
+     *
+     * @param t1 the first parameter type (must not be {@code null})
+     * @param n1 the first parameter name (must not be {@code null} or empty)
+     * @param t2 the second parameter type (must not be {@code null})
+     * @param n2 the second parameter name (must not be {@code null} or empty)
+     * @param t3 the third parameter type (must not be {@code null})
+     * @param n3 the third parameter name (must not be {@code null} or empty)
+     * @param t4 the fourth parameter type (must not be {@code null})
+     * @param n4 the fourth parameter name (must not be {@code null} or empty)
+     * @param t5 the fifth parameter type (must not be {@code null})
+     * @param n5 the fifth parameter name (must not be {@code null} or empty)
+     * @param body the expression body (must not be {@code null})
+     * @return the lambda expression
+     */
+    static Expr lambda(final Type t1, final String n1, final Type t2, final String n2, final Type t3, final String n3,
+            final Type t4, final String n4, final Type t5, final String n5, final Expr body) {
+        Assert.checkNotNullParam("t1", t1);
+        Assert.checkNotNullParam("n1", n1);
+        Assert.checkNotEmptyParam("n1", n1);
+        Assert.checkNotNullParam("t2", t2);
+        Assert.checkNotNullParam("n2", n2);
+        Assert.checkNotEmptyParam("n2", n2);
+        Assert.checkNotNullParam("t3", t3);
+        Assert.checkNotNullParam("n3", n3);
+        Assert.checkNotEmptyParam("n3", n3);
+        Assert.checkNotNullParam("t4", t4);
+        Assert.checkNotNullParam("n4", n4);
+        Assert.checkNotEmptyParam("n4", n4);
+        Assert.checkNotNullParam("t5", t5);
+        Assert.checkNotNullParam("n5", n5);
+        Assert.checkNotEmptyParam("n5", n5);
+        Assert.checkNotNullParam("body", body);
+        return lambda(lc -> {
+            lc.param(n1, t1);
+            lc.param(n2, t2);
+            lc.param(n3, t3);
+            lc.param(n4, t4);
+            lc.param(n5, t5);
+            lc.body(bc -> bc.return_(body));
+        });
     }
 
     // Arithmetic operations

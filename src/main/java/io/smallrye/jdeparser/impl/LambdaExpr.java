@@ -4,34 +4,27 @@ import java.io.IOException;
 import java.util.List;
 
 import io.smallrye.jdeparser.Expr;
-import io.smallrye.jdeparser.Type;
 import io.smallrye.jdeparser.format.FormatPreferences;
 
 /**
  * A lambda expression: {@code (params) -> body}.
  * <p>
- * Supports both expression-body lambdas ({@code x -> x + 1}) and
- * statement-body lambdas ({@code x -> &#123; return x + 1; &#125;}).
+ * All lambdas are internally represented with a block body. When the block
+ * body consists of a single {@code return expr;} statement and the
+ * {@link FormatPreferences.Opt#LAMBDA_ALWAYS_BLOCK_BODY} option is not
+ * enabled, the lambda is rendered in expression form ({@code params -> expr}).
+ * <p>
  * Parameters may be untyped ({@code x}) or typed ({@code int x}).
- * A single untyped parameter omits the parentheses.
+ * Typed parameters are backed by a {@link ParamCreatorImpl} that may carry
+ * annotations and modifiers. A single untyped parameter omits the parentheses.
  */
 public final class LambdaExpr extends AbstractExpr {
 
+    /** The lambda parameters. */
     private final List<LambdaParam> params;
-    private final Expr exprBody;
-    private final BlockCreatorImpl blockBody;
 
-    /**
-     * Constructs a lambda expression with an expression body.
-     *
-     * @param params the lambda parameters
-     * @param exprBody the expression body
-     */
-    public LambdaExpr(final List<LambdaParam> params, final Expr exprBody) {
-        this.params = List.copyOf(params);
-        this.exprBody = exprBody;
-        this.blockBody = null;
-    }
+    /** The block body. */
+    private final BlockCreatorImpl blockBody;
 
     /**
      * Constructs a lambda expression with a block body.
@@ -41,7 +34,6 @@ public final class LambdaExpr extends AbstractExpr {
      */
     public LambdaExpr(final List<LambdaParam> params, final BlockCreatorImpl blockBody) {
         this.params = List.copyOf(params);
-        this.exprBody = null;
         this.blockBody = blockBody;
     }
 
@@ -69,7 +61,7 @@ public final class LambdaExpr extends AbstractExpr {
     @Override
     public void write(final SourceFileWriter writer) throws IOException {
         // single untyped parameter: no parens needed
-        if (params.size() == 1 && params.get(0).type() == null) {
+        if (params.size() == 1 && params.get(0).paramCreator() == null) {
             writer.writeName(params.get(0).name());
         } else {
             writer.write(Tokens.$PAREN.OPEN);
@@ -81,18 +73,21 @@ public final class LambdaExpr extends AbstractExpr {
                     writer.write(FormatPreferences.Space.AFTER_COMMA);
                 }
                 first = false;
-                if (p.type() != null) {
-                    writeType(writer, p.type());
-                    writer.sp();
+                if (p.paramCreator() != null) {
+                    p.paramCreator().write(writer);
+                } else {
+                    writer.writeName(p.name());
                 }
-                writer.writeName(p.name());
             }
             writer.write(FormatPreferences.Space.WITHIN_PAREN_METHOD_DECLARATION);
             writer.write(Tokens.$PAREN.CLOSE);
         }
         writer.write(Tokens.$BINOP.ARROW);
-        if (exprBody != null) {
-            writeExpr(writer, exprBody);
+        // check if we can render as expression form
+        Expr singleReturn = blockBody.singleReturnExpr();
+        if (singleReturn != null
+                && !writer.getFormat().hasOption(FormatPreferences.Opt.LAMBDA_ALWAYS_BLOCK_BODY)) {
+            writeExpr(writer, singleReturn);
         } else {
             writer.write(FormatPreferences.Space.BEFORE_BRACE_LAMBDA);
             blockBody.writeBlock(writer);
@@ -100,12 +95,17 @@ public final class LambdaExpr extends AbstractExpr {
     }
 
     /**
-     * A lambda parameter with an optional type.
+     * A lambda parameter with an optional typed parameter creator.
+     * <p>
+     * For untyped parameters, only the {@code name} is set and
+     * {@code paramCreator} is {@code null}. For typed parameters,
+     * the {@link ParamCreatorImpl} holds the type, annotations,
+     * and modifiers.
      *
      * @param name the parameter name
-     * @param type the parameter type, or {@code null} for an inferred-type parameter
+     * @param paramCreator the typed parameter creator, or {@code null} for an inferred-type parameter
      */
-    public record LambdaParam(String name, Type type) {
+    public record LambdaParam(String name, ParamCreatorImpl paramCreator) {
 
         /**
          * Creates an untyped lambda parameter.

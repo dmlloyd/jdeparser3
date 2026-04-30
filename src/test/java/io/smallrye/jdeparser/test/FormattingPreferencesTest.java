@@ -1675,12 +1675,18 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
      */
     @Test
     void noSpaceBeforeBraceLambda() throws IOException {
-        final Sources defaultSources = createSources(SourceVersion.JAVA_17);
+        final FormatPreferences blockPrefs = FormatPreferences.builder()
+                .addOption(FormatPreferences.Opt.LAMBDA_ALWAYS_BLOCK_BODY)
+                .build();
+        final Sources defaultSources = createSources(blockPrefs, SourceVersion.JAVA_17);
         defaultSources.createSourceFile("com.example", "Cls1", sf -> {
             sf.class_("Cls1", cc -> {
                 cc.field("fn", fc -> {
                     fc.type(Type.OBJECT);
-                    fc.init(Expr.lambda(SourceVersion.JAVA_17, "x", body -> body.return_(Expr.$v("x"))));
+                    fc.init(Expr.lambda(lc -> {
+                        lc.param("x");
+                        lc.body(body -> body.return_(Expr.$v("x")));
+                    }));
                 });
             });
         });
@@ -1690,6 +1696,7 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
 
         clearSources();
         final FormatPreferences prefs = FormatPreferences.builder()
+                .addOption(FormatPreferences.Opt.LAMBDA_ALWAYS_BLOCK_BODY)
                 .space(Space.AROUND_ARROW, SpaceType.NONE)
                 .space(Space.BEFORE_BRACE_LAMBDA, SpaceType.NONE)
                 .build();
@@ -1698,7 +1705,10 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
             sf.class_("Cls2", cc -> {
                 cc.field("fn", fc -> {
                     fc.type(Type.OBJECT);
-                    fc.init(Expr.lambda(SourceVersion.JAVA_17, "x", body -> body.return_(Expr.$v("x"))));
+                    fc.init(Expr.lambda(lc -> {
+                        lc.param("x");
+                        lc.body(body -> body.return_(Expr.$v("x")));
+                    }));
                 });
             });
         });
@@ -2931,7 +2941,10 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
             sf.class_("Cls1", cc -> {
                 cc.field("fn", fc -> {
                     fc.type(Type.OBJECT);
-                    fc.init(Expr.lambda(SourceVersion.JAVA_17, "x", body -> {
+                    fc.init(Expr.lambda(lc -> {
+                        lc.param("x");
+                        lc.body(body -> {
+                        });
                     }));
                 });
             });
@@ -2949,7 +2962,10 @@ class FormattingPreferencesTest extends AbstractGeneratingTestCase {
             sf.class_("Cls2", cc -> {
                 cc.field("fn", fc -> {
                     fc.type(Type.OBJECT);
-                    fc.init(Expr.lambda(SourceVersion.JAVA_17, "x", body -> {
+                    fc.init(Expr.lambda(lc -> {
+                        lc.param("x");
+                        lc.body(body -> {
+                        });
                     }));
                 });
             });

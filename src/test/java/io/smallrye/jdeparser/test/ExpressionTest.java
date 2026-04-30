@@ -12,7 +12,8 @@ import io.smallrye.jdeparser.Expr;
 import io.smallrye.jdeparser.SourceVersion;
 import io.smallrye.jdeparser.Sources;
 import io.smallrye.jdeparser.Type;
-import io.smallrye.jdeparser.impl.LambdaExpr;
+import io.smallrye.jdeparser.Var;
+import io.smallrye.jdeparser.format.FormatPreferences;
 
 /**
  * Tests for expression generation: arithmetic, logical, comparisons,
@@ -964,7 +965,7 @@ class ExpressionTest extends AbstractGeneratingTestCase {
 
     /**
      * Verifies that a block-body lambda with a single untyped parameter
-     * is rendered as {@code x -> { stmts }}.
+     * and multiple statements is rendered as {@code x -> { stmts }}.
      *
      * @throws IOException if source generation fails
      */
@@ -975,8 +976,12 @@ class ExpressionTest extends AbstractGeneratingTestCase {
             sf.class_("Lambda3", cc -> {
                 cc.field("fn", fc -> {
                     fc.type(Type.OBJECT);
-                    fc.init(Expr.lambda(SourceVersion.JAVA_17, "x", b -> {
-                        b.return_(Expr.$v("x"));
+                    fc.init(Expr.lambda(lc -> {
+                        Var x = lc.param("x");
+                        lc.body(b -> {
+                            b.emit(x.call("toString"));
+                            b.return_(x);
+                        });
                     }));
                 });
             });
@@ -989,7 +994,7 @@ class ExpressionTest extends AbstractGeneratingTestCase {
 
     /**
      * Verifies that a block-body lambda with multiple untyped parameters
-     * is rendered as {@code (x, y) -> { stmts }}.
+     * and multiple statements is rendered as {@code (x, y) -> { stmts }}.
      *
      * @throws IOException if source generation fails
      */
@@ -1000,8 +1005,13 @@ class ExpressionTest extends AbstractGeneratingTestCase {
             sf.class_("Lambda4", cc -> {
                 cc.field("fn", fc -> {
                     fc.type(Type.OBJECT);
-                    fc.init(Expr.lambda(SourceVersion.JAVA_17, List.of("a", "b"), b -> {
-                        b.return_(Expr.$v("a").add(Expr.$v("b")));
+                    fc.init(Expr.lambda(lc -> {
+                        Var a = lc.param("a");
+                        Var b = lc.param("b");
+                        lc.body(bc -> {
+                            bc.var(Type.INT, "sum", a.add(b));
+                            bc.return_(Expr.$v("sum"));
+                        });
                     }));
                 });
             });
@@ -1009,12 +1019,12 @@ class ExpressionTest extends AbstractGeneratingTestCase {
         sources.writeSources();
         final String source = getSource("com.example", "Lambda4");
         assertTrue(source.contains("(a, b) -> {"), "should contain multi-param block lambda");
-        assertTrue(source.contains("return a + b;"), "should contain block body return statement");
+        assertTrue(source.contains("return sum;"), "should contain block body return statement");
     }
 
     /**
      * Verifies that an expression-body lambda with typed parameters
-     * is rendered as {@code (Type1 x, Type2 y) -> expr}.
+     * is rendered as {@code (Type1 x) -> expr}.
      *
      * @throws IOException if source generation fails
      */
@@ -1025,8 +1035,7 @@ class ExpressionTest extends AbstractGeneratingTestCase {
             sf.class_("LambdaTyped1", cc -> {
                 cc.field("fn", fc -> {
                     fc.type(Type.OBJECT);
-                    fc.init(Expr.lambdaTyped(
-                            List.of(new LambdaExpr.LambdaParam("x", Type.INT)),
+                    fc.init(Expr.lambda(Type.INT, "x",
                             Expr.$v("x").mul(Expr.decimal(2))));
                 });
             });
@@ -1110,8 +1119,8 @@ class ExpressionTest extends AbstractGeneratingTestCase {
     }
 
     /**
-     * Verifies that a block-body lambda with typed parameters
-     * is rendered as {@code (Type1 x) -> { stmts }}.
+     * Verifies that an expression-body lambda with two typed parameters
+     * is rendered as {@code (String s, int n) -> expr}.
      *
      * @throws IOException if source generation fails
      */
@@ -1122,22 +1131,123 @@ class ExpressionTest extends AbstractGeneratingTestCase {
             sf.class_("LambdaTyped2", cc -> {
                 cc.field("fn", fc -> {
                     fc.type(Type.OBJECT);
-                    fc.init(Expr.lambdaTyped(
-                            SourceVersion.JAVA_17,
-                            List.of(
-                                    new LambdaExpr.LambdaParam("s", Type.STRING),
-                                    new LambdaExpr.LambdaParam("n", Type.INT)),
-                            b -> {
-                                b.return_(Expr.$v("s").call("substring", Expr.$v("n")));
-                            }));
+                    fc.init(Expr.lambda(Type.STRING, "s", Type.INT, "n",
+                            Expr.$v("s").call("substring", Expr.$v("n"))));
                 });
             });
         });
         sources.writeSources();
         final String source = getSource("com.example", "LambdaTyped2");
+        assertTrue(source.contains("(String s, int n) -> s.substring(n)"),
+                "should contain typed-param expression lambda");
+    }
+
+    /**
+     * Verifies that a block-body lambda with typed parameters and multiple
+     * statements is rendered as {@code (String s, int n) -> { stmts }}.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void lambdaTypedMultiStatementBlock() throws IOException {
+        final Sources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "LambdaTyped3", sf -> {
+            sf.class_("LambdaTyped3", cc -> {
+                cc.field("fn", fc -> {
+                    fc.type(Type.OBJECT);
+                    fc.init(Expr.lambda(lc -> {
+                        Var s = lc.param("s", Type.STRING);
+                        Var n = lc.param("n", Type.INT);
+                        lc.body(bc -> {
+                            bc.var(Type.STRING, "result", s.call("substring", n));
+                            bc.return_(Expr.$v("result"));
+                        });
+                    }));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "LambdaTyped3");
         assertTrue(source.contains("(String s, int n) -> {"),
                 "should contain typed-param block lambda");
-        assertTrue(source.contains("return s.substring(n);"),
+        assertTrue(source.contains("return result;"),
                 "should contain block body return");
+    }
+
+    /**
+     * Verifies that a zero-parameter expression lambda
+     * is rendered as {@code () -> expr}.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void lambdaZeroParam() throws IOException {
+        final Sources sources = createSources(SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "LambdaZero", sf -> {
+            sf.class_("LambdaZero", cc -> {
+                cc.field("fn", fc -> {
+                    fc.type(Type.OBJECT);
+                    fc.init(Expr.lambda(Expr.decimal(42)));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "LambdaZero");
+        assertTrue(source.contains("() -> 42"),
+                "should contain zero-param expression lambda");
+    }
+
+    /**
+     * Verifies that the {@link FormatPreferences.Opt#LAMBDA_ALWAYS_BLOCK_BODY}
+     * option forces block rendering even for single-return lambdas.
+     *
+     * @throws IOException if source generation fails
+     */
+    @Test
+    void lambdaAlwaysBlockBody() throws IOException {
+        final FormatPreferences prefs = FormatPreferences.builder()
+                .addOption(FormatPreferences.Opt.LAMBDA_ALWAYS_BLOCK_BODY)
+                .build();
+        final Sources sources = createSources(prefs, SourceVersion.JAVA_17);
+        sources.createSourceFile("com.example", "LambdaBlock", sf -> {
+            sf.class_("LambdaBlock", cc -> {
+                cc.field("fn", fc -> {
+                    fc.type(Type.OBJECT);
+                    fc.init(Expr.lambda("x", Expr.$v("x").mul(Expr.decimal(2))));
+                });
+            });
+        });
+        sources.writeSources();
+        final String source = getSource("com.example", "LambdaBlock");
+        assertTrue(source.contains("x -> {"), "should contain block lambda opening");
+        assertTrue(source.contains("return x * 2;"), "should contain return statement");
+    }
+
+    /**
+     * Verifies that mixing typed and untyped parameters throws
+     * {@link IllegalStateException}.
+     */
+    @Test
+    void lambdaMixedParamsRejected() {
+        assertThrows(IllegalStateException.class, () -> {
+            Expr.lambda(lc -> {
+                lc.param("x");
+                lc.param("y", Type.INT);
+                lc.body(b -> b.return_(Expr.$v("x")));
+            });
+        });
+    }
+
+    /**
+     * Verifies that omitting the {@code body()} call on a {@link io.smallrye.jdeparser.creator.LambdaCreator}
+     * throws {@link IllegalStateException}.
+     */
+    @Test
+    void lambdaMissingBodyRejected() {
+        assertThrows(IllegalStateException.class, () -> {
+            Expr.lambda(lc -> {
+                lc.param("x");
+            });
+        });
     }
 }

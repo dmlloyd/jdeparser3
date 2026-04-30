@@ -1224,6 +1224,9 @@ public class ExprMethodRefs {
 
 ==== Expression-Body Lambdas
 
+Expression lambdas are the simplest form.
+Convenience overloads exist for zero to five parameters (both untyped and typed):
+
 //TEST:BEGIN
 //TEST:COMPILE-ONLY
 [source,java]
@@ -1231,16 +1234,32 @@ public class ExprMethodRefs {
 import java.util.List;
 
 import io.smallrye.jdeparser.Expr;
+import io.smallrye.jdeparser.Type;
 
 public class ExprLambdaExpr {
     @SuppressWarnings("unused")
     public static void main(String[] args) {
-        // Single parameter: x -> x * 2
+        // Zero parameters: () -> 42
+        Expr lambda0 = Expr.lambda(Expr.decimal(42));
+
+        // Single untyped parameter: x -> x * 2
         Expr lambda1 = Expr.lambda("x", Expr.$v("x").mul(Expr.decimal(2)));
 
-        // Multiple parameters: (a, b) -> a + b
-        Expr lambda2 = Expr.lambda(List.of("a", "b"),
+        // Multiple untyped parameters: (a, b) -> a + b
+        Expr lambda2 = Expr.lambda("a", "b",
             Expr.$v("a").add(Expr.$v("b")));
+
+        // Also available via List:
+        Expr lambda2b = Expr.lambda(List.of("a", "b"),
+            Expr.$v("a").add(Expr.$v("b")));
+
+        // Single typed parameter: (int x) -> x * 2
+        Expr lambda3 = Expr.lambda(Type.INT, "x",
+            Expr.$v("x").mul(Expr.decimal(2)));
+
+        // Multiple typed parameters: (String s, int i) -> s.length() + i
+        Expr lambda4 = Expr.lambda(Type.STRING, "s", Type.INT, "i",
+            Expr.$v("s").call("length").add(Expr.$v("i")));
     }
 }
 ----
@@ -1248,68 +1267,49 @@ public class ExprLambdaExpr {
 
 ==== Block-Body Lambdas
 
-Block-body lambdas require a `SourceVersion` parameter:
+For lambdas with statement bodies, use the `LambdaCreator` callback pattern.
+Parameters are declared via `param()` (untyped) or `param(name, type)` (typed),
+and the body is defined via `body()`.
+Each `param()` call returns a `Var` that can be used directly in expressions
+within the lambda body, avoiding the need for `Expr.$v()`:
 
 //TEST:BEGIN
 //TEST:COMPILE-ONLY
 [source,java]
 ----
-import java.util.List;
-
 import io.smallrye.jdeparser.Expr;
-import io.smallrye.jdeparser.SourceVersion;
 import io.smallrye.jdeparser.Type;
+import io.smallrye.jdeparser.Var;
 
 public class ExprLambdaBlock {
     @SuppressWarnings("unused")
     public static void main(String[] args) {
-        // x -> { return x * 2; }
-        Expr lambda3 = Expr.lambda(SourceVersion.JAVA_17, "x", body -> {
-            body.return_(Expr.$v("x").mul(Expr.decimal(2)));
+        // x -> { int y = x * 2; return y; }
+        Expr lambda1 = Expr.lambda(lc -> {
+            Var x = lc.param("x");
+            lc.body(body -> {
+                body.var(Type.INT, "y", x.mul(Expr.decimal(2)));
+                body.return_(Expr.$v("y"));
+            });
         });
 
-        // (a, b) -> { ... }
-        Expr lambda4 = Expr.lambda(SourceVersion.JAVA_17, List.of("a", "b"), body -> {
-            body.var(Type.INT, "sum", Expr.$v("a").add(Expr.$v("b")));
-            body.return_(Expr.$v("sum"));
+        // (String s, int n) -> { return s.substring(n); }
+        Expr lambda2 = Expr.lambda(lc -> {
+            Var s = lc.param("s", Type.STRING);
+            Var n = lc.param("n", Type.INT);
+            lc.body(body -> {
+                body.return_(s.call("substring", n));
+            });
         });
     }
 }
 ----
 //TEST:END
 
-==== Typed Lambdas
-
-For lambdas with explicitly typed parameters, use `lambdaTyped()`:
-
-WARNING: `LambdaParam` currently resides in the `io.smallrye.jdeparser.impl` package, which is not exported from the Java module.
-This type will be relocated to a public package in a future release.
-
-//TEST:BEGIN
-//TEST:COMPILE-ONLY
-[source,java]
-----
-import java.util.List;
-
-import io.smallrye.jdeparser.Expr;
-import io.smallrye.jdeparser.Type;
-import io.smallrye.jdeparser.impl.LambdaExpr.LambdaParam;
-
-public class ExprTypedLambda {
-    @SuppressWarnings("unused")
-    public static void main(String[] args) {
-        // (String s, int i) -> s.length() + i
-        Expr typed = Expr.lambdaTyped(
-            List.of(
-                new LambdaParam("s", Type.STRING),
-                new LambdaParam("i", Type.INT)
-            ),
-            Expr.$v("s").call("length").add(Expr.$v("i"))
-        );
-    }
-}
-----
-//TEST:END
+NOTE: A block-body lambda whose body consists of a single `return` statement
+is rendered in expression form by default (e.g., `x -> x * 2` instead of
+`x -> { return x * 2; }`). To force block form, enable the
+`LAMBDA_ALWAYS_BLOCK_BODY` formatting option.
 
 === Switch Expressions
 
@@ -6379,6 +6379,7 @@ The `Opt` enum provides miscellaneous formatting flags:
 |`ENUM_EMPTY_PARENS` |off |Empty `()` on no-arg enum constants
 |`COMPACT_INIT_ONLY_CLASS` |on |Compact format for initializer-only classes
 |`SINGLE_STATEMENT_BRACES` |on |Braces around single-statement bodies
+|`LAMBDA_ALWAYS_BLOCK_BODY` |off |Force block form for single-return lambdas
 |===
 
 //TEST:BEGIN
@@ -6971,6 +6972,7 @@ This chapter provides a tabular overview of every public type in the library, or
 |`SwitchCreator` |Switch: constant, multi-value, type pattern, null, default cases |<<control-flow>>
 |`CaseCreator` |Type pattern case: guard condition, body |<<control-flow>>
 |`TryCreator` |Try: resources, body, catch, multi-catch, finally |<<control-flow>>
+|`LambdaCreator` |Lambda: params (typed/untyped), source version, block body |<<expressions>>
 |`LocalVarCreator` |Local variable: final, annotations |<<control-flow>>
 |`TypeParamCreator` |Type parameter: bounds, documentation |<<classes>>
 |`AnnotationCreator` |Annotation values: value, member, memberArray |<<modifiers-annotations>>

@@ -359,6 +359,16 @@ public final class FormatPreferences {
          * without braces, indented on the following line.
          */
         SINGLE_STATEMENT_BRACES,
+        /**
+         * Always render lambda bodies as block bodies, even when the body
+         * consists of a single {@code return} statement.
+         * <p>
+         * When disabled (default), a lambda whose body is exactly one
+         * {@code return expr;} statement is rendered in expression form
+         * ({@code params -> expr}). When enabled, such lambdas are always
+         * rendered in block form ({@code params -> { return expr; }}).
+         */
+        LAMBDA_ALWAYS_BLOCK_BODY,
         ;
     }
 
